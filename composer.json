@@ -1,4 +1,10 @@
 {
+  "name": "parking/app",
+  "description": "App de geston de parkings partagés ",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2"
+  },
   "autoload": {
     "psr-4": {
       "App\\": "src/"
