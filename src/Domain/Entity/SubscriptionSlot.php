@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domaine\Entity;
+namespace App\Domain\Entity;
 
 class SubscriptionSlot {
     private int $id;
