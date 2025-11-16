@@ -1,48 +1,57 @@
 <?php
-class Parking {
-    private $id;
-    private $adresse;
-    private $latitude;
-    private $longitude;
-    private $capacite;
-    private $proprietaireId;
-    private $ouvert_24_7;
 
-    public function __construct($id, $adresse, $latitude, $longitude, $capacite, $proprietaireId, $ouvert_24_7) {
+namespace App\Domaine\Entity;
+
+class Parking {
+    private int $id;
+    private string $ownerId; // UUID
+    private string $name;
+    private string $address;
+    private float $latitude;
+    private float $longitude;
+    private int $totalCapacity;
+    private bool $open_24_7; // false par défaut
+
+    public function __construct(int $id, string $ownerId, string $name, string $address, float $latitude, float $longitude, int $totalCapacity, bool $open_24_7 = false) {
         $this->id = $id;
-        $this->adresse = $adresse;
+        $this->ownerId = $ownerId;
+        $this->name = $name;
+        $this->address = $address;
         $this->latitude = $latitude;
         $this->longitude = $longitude;
-        $this->capacite = $capacite;
-        $this->proprietaireId = $proprietaireId;
-        $this->ouvert_24_7 = $ouvert_24_7;
+        $this->totalCapacity = $totalCapacity;
+        $this->open_24_7 = $open_24_7;
     }
 
-    public function getId() {
+    public function getParkingId(): int {
         return $this->id;
     }
 
-    public function getAdresse() {
-        return $this->adresse;
+    public function getOwnerId(): string {
+        return $this->ownerId;
     }
 
-    public function getLatitude() {
+    public function getName(): string {
+        return $this->name;
+    }
+
+    public function getAddress(): string {
+        return $this->address;
+    }
+
+    public function getLatitude(): float {
         return $this->latitude;
     }
 
-    public function getLongitude() {
+    public function getLongitude(): float {
         return $this->longitude;
     }
 
-    public function getCapacite() {
-        return $this->capacite;
+    public function getTotalCapacity(): int {
+        return $this->totalCapacity;
     }
 
-    public function getProprietaireId() {
-        return $this->proprietaireId;
-    }
-
-    public function isOuvert247() {
-        return $this->ouvert_24_7;
+    public function isOpen24_7(): bool {
+        return $this->open_24_7;
     }
 }

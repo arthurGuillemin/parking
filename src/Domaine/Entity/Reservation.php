@@ -1,54 +1,57 @@
 <?php
+
+namespace App\Domaine\Entity;
+
 class Reservation {
-    private $idReservation;
-    private $dateHeureDebut;
-    private $dateHeureFin;
-    private $statut;
-    private $montantCalcule;
-    private $montantFinal;
-    private $idUtilisateur;
-    private $idParking;
+    private int $id;
+    private string $userId; // UUID
+    private int $parkingId;
+    private \DateTimeImmutable $startDateTime;
+    private \DateTimeImmutable $endDateTime;
+    private string $status; // e.g., 'pending', 'active', 'completed', 'cancelled'
+    private ?float $calculatedAmount; // calculé à la création
+    private ?float $finalAmount; // mis à jour après le stationnement
 
-    public function __construct($idReservation, $dateHeureDebut, $dateHeureFin, $statut, $montantCalcule, $montantFinal, $idUtilisateur, $idParking) {
-        $this->idReservation = $idReservation;
-        $this->dateHeureDebut = $dateHeureDebut;
-        $this->dateHeureFin = $dateHeureFin;
-        $this->statut = $statut;
-        $this->montantCalcule = $montantCalcule;
-        $this->montantFinal = $montantFinal;
-        $this->idUtilisateur = $idUtilisateur;
-        $this->idParking = $idParking;
+    public function __construct(int $id, string $userId, int $parkingId, \DateTimeImmutable $startDateTime, \DateTimeImmutable $endDateTime, string $status, ?float $calculatedAmount, ?float $finalAmount) {
+        $this->id = $id;
+        $this->userId = $userId;
+        $this->parkingId = $parkingId;
+        $this->startDateTime = $startDateTime;
+        $this->endDateTime = $endDateTime;
+        $this->status = $status;
+        $this->calculatedAmount = $calculatedAmount;
+        $this->finalAmount = $finalAmount;
     }
 
-    public function getIdReservation() {
-        return $this->idReservation;
+    public function getReservationId(): int {
+        return $this->id;
     }
 
-    public function getDateHeureDebut() {
-        return $this->dateHeureDebut;
+    public function getUserId(): string {
+        return $this->userId;
     }
 
-    public function getDateHeureFin() {
-        return $this->dateHeureFin;
+    public function getParkingId(): int {
+        return $this->parkingId;
     }
 
-    public function getStatut() {
-        return $this->statut;
+    public function getStartDateTime(): \DateTimeImmutable {
+        return $this->startDateTime;
     }
 
-    public function getMontantCalcule() {
-        return $this->montantCalcule;
+    public function getEndDateTime(): \DateTimeImmutable {
+        return $this->endDateTime;
     }
 
-    public function getMontantFinal() {
-        return $this->montantFinal;
+    public function getStatus(): string {
+        return $this->status;
     }
 
-    public function getIdUtilisateur() {
-        return $this->idUtilisateur;
+    public function getCalculatedAmount(): ?float {
+        return $this->calculatedAmount;
     }
 
-    public function getIdParking() {
-        return $this->idParking;
+    public function getFinalAmount(): ?float {
+        return $this->finalAmount;
     }
 }
