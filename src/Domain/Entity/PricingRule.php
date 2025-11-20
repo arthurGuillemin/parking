@@ -2,7 +2,7 @@
 
 namespace App\Domain\Entity;
 
-class Pricing_Rule {
+class PricingRule {
     private int $id;
     private int $parkingId;
     private int $startDurationMinute;

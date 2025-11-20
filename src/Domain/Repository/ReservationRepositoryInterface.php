@@ -4,8 +4,7 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\Reservation;
 
-interface ReservationRepository
-{
+interface ReservationRepositoryInterface {
     public function findById(int $id): ?Reservation;
 
     public function findByUserId(string $userId): array;

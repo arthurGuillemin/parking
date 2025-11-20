@@ -4,8 +4,7 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\OpeningHour;
 
-interface OpeningHourRepository
-{
+interface OpeningHourRepositoryInterface {
     public function findById(int $id): ?OpeningHour;
 
     public function findByParkingId(int $parkingId): array;

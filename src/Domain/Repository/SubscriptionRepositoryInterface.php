@@ -4,8 +4,7 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\Subscription;
 
-interface SubscriptionRepository
-{
+interface SubscriptionRepositoryInterface {
     public function findById(int $id): ?Subscription;
 
     public function findByUserId(string $userId): array;

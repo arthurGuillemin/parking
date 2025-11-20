@@ -4,8 +4,7 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\PricingRule;
 
-interface PricingRuleRepository
-{
+interface PricingRuleRepositoryInterface {
     public function findById(int $id): ?PricingRule;
 
     /**

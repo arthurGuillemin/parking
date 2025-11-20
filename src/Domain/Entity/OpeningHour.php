@@ -2,7 +2,7 @@
 
 namespace App\Domain\Entity;
 
-class Opening_hour {
+class OpeningHour {
     private int $id;
     private int $parkingId;
     private int $weekday; // 1 (Lundi) à 7 (Dimanche)
