@@ -17,7 +17,7 @@ class OwnerController
     public function register(array $data): array
     {
         if (empty($data['email']) || empty($data['password']) || empty($data['firstName']) || empty($data['lastName'])) {
-            throw new Exception('Champs requis manquants');
+            throw new \InvalidArgumentException('Champs requis manquants');
         }
         $owner = $this->ownerService->register(
             $data['email'],
@@ -36,7 +36,7 @@ class OwnerController
     public function login(array $data): ?array
     {
         if (empty($data['email']) || empty($data['password'])) {
-            throw new Exception('Missing email or password');
+            throw new \InvalidArgumentException('Champs requis manquants');
         }
         $owner = $this->ownerService->authenticate($data['email'], $data['password']);
         if ($owner) {

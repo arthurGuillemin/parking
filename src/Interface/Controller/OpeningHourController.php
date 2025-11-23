@@ -18,7 +18,7 @@ class OpeningHourController
     public function update(array $data): array
     {
         if (empty($data['parkingId']) || !isset($data['weekday']) || empty($data['openingTime']) || empty($data['closingTime'])) {
-            throw new Exception('Champs requis manquants');
+            throw new \InvalidArgumentException('Champs requis manquants');
         }
         $request = new UpdateOpeningHourRequest(
             (int)$data['parkingId'],

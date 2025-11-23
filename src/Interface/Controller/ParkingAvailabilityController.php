@@ -18,7 +18,7 @@ class ParkingAvailabilityController
     public function getAvailableSpots(array $data): array
     {
         if (empty($data['parkingId']) || empty($data['at'])) {
-            throw new Exception('Les champs parkingId et at sont obligatoires.');
+            throw new \InvalidArgumentException('Les champs sont obligatoires.');
         }
         $request = new GetAvailableSpotsRequest((int)$data['parkingId'], new \DateTimeImmutable($data['at']));
         $available = $this->parkingAvailabilityService->getAvailableSpots($request);

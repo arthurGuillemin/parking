@@ -17,7 +17,7 @@ class ParkingController
     public function add(array $data): array
     {
         if (empty($data['ownerId']) || empty($data['name']) || empty($data['address']) || !isset($data['latitude']) || !isset($data['longitude']) || !isset($data['totalCapacity'])) {
-            throw new Exception('Champs requis manquants');
+            throw new \InvalidArgumentException('Champs requis manquants');
         }
         $open_24_7 = $data['open_24_7'] ?? false;
         $parking = $this->parkingService->addParking(

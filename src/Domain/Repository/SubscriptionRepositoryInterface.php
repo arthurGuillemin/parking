@@ -16,13 +16,5 @@ interface SubscriptionRepositoryInterface {
     ): array;
 
     public function save(Subscription $subscription): Subscription;
-
-    /**
-     * Retourne tous les abonnements d'un parking pour un mois donné.
-     * @param int $parkingId
-     * @param int $year
-     * @param int $month
-     * @return Subscription[]
-     */
     public function findByParkingIdAndMonth(int $parkingId, int $year, int $month): array;
 }

@@ -18,7 +18,7 @@ class PricingRuleController
     public function update(array $data): array
     {
         if (empty($data['parkingId']) || !isset($data['startDurationMinute']) || !isset($data['endDurationMinute']) || !isset($data['pricePerSlice']) || !isset($data['sliceInMinutes']) || empty($data['effectiveDate'])) {
-            throw new Exception('Champs requis manquants');
+            throw new \InvalidArgumentException('Champs requis manquants');
         }
         $request = new UpdatePricingRuleRequest(
             (int)$data['parkingId'],

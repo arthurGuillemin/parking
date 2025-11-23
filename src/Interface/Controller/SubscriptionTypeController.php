@@ -18,7 +18,7 @@ class SubscriptionTypeController
     public function add(array $data): array
     {
         if (empty($data['parkingId']) || empty($data['name'])) {
-            throw new Exception('Les champs parkingId et name sont obligatoires.');
+            throw new \InvalidArgumentException('Les champs sont obligatoires.');
         }
         $request = new AddSubscriptionTypeRequest((int)$data['parkingId'], $data['name'], $data['description'] ?? null);
         $type = $this->subscriptionTypeService->addSubscriptionType($request);

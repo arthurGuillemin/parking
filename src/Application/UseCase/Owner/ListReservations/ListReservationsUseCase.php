@@ -29,15 +29,7 @@ class ListReservationsUseCase
                 $request->end
             );
         }
-        // Si pas de filtre, on retourne toutes les réservations du parking
-        // (Supposons qu'il existe une méthode findByParkingId sinon on peut utiliser une période très large)
-        $epoch = new \DateTimeImmutable('1970-01-01');
-        $future = new \DateTimeImmutable('2100-01-01');
-        return $this->reservationRepository->findForParkingBetween(
-            $request->parkingId,
-            $epoch,
-            $future
-        );
+        return $this->reservationRepository->findAllByParkingId($request->parkingId);
     }
 }
 

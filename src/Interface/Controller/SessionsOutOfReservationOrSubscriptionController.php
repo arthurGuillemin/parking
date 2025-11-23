@@ -18,7 +18,7 @@ class SessionsOutOfReservationOrSubscriptionController
     public function list(array $data): array
     {
         if (empty($data['parkingId'])) {
-            throw new Exception('Le champ parkingId est obligatoire.');
+            throw new \InvalidArgumentException('Le champ est obligatoire.');
         }
         $request = new ListSessionsOutOfReservationOrSubscriptionRequest((int)$data['parkingId']);
         $sessions = $this->service->listSessions($request);

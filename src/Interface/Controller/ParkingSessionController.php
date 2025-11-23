@@ -18,7 +18,7 @@ class ParkingSessionController
     public function listByParking(array $data): array
     {
         if (empty($data['parkingId'])) {
-            throw new Exception('Le champ parkingId est obligatoire.');
+            throw new \InvalidArgumentException('Le champ est obligatoire.');
         }
         $request = new ListParkingSessionsRequest((int)$data['parkingId']);
         $sessions = $this->parkingSessionService->listParkingSessions($request);

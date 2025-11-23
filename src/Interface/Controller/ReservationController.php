@@ -18,7 +18,7 @@ class ReservationController
     public function listByParking(array $data): array
     {
         if (empty($data['parkingId'])) {
-            throw new Exception('Le champ parkingId est obligatoire.');
+            throw new \InvalidArgumentException('Le champ est obligatoire.');
         }
         $start = !empty($data['start']) ? new \DateTimeImmutable($data['start']) : null;
         $end = !empty($data['end']) ? new \DateTimeImmutable($data['end']) : null;

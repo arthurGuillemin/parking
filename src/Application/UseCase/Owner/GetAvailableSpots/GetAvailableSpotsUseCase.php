@@ -26,7 +26,7 @@ class GetAvailableSpotsUseCase
     {
         $parking = $this->parkingRepository->findById($request->parkingId);
         if (!$parking) {
-            throw new \DomainException('Parking not found');
+            throw new \InvalidArgumentException('Parking non trouvé.');
         }
         $sessions = $this->parkingSessionRepository->findByParkingId($request->parkingId);
         $occupied = 0;

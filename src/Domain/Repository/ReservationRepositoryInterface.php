@@ -16,4 +16,6 @@ interface ReservationRepositoryInterface {
     ): array;
 
     public function save(Reservation $reservation): Reservation;
+
+    public function findAllByParkingId(int $parkingId);
 }

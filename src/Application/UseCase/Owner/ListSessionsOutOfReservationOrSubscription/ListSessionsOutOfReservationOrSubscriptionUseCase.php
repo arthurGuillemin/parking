@@ -37,30 +37,16 @@ class ListSessionsOutOfReservationOrSubscriptionUseCase
             $userId = $session->getUserId();
             $entry = $session->getEntryDateTime();
             $exit = $session->getExitDateTime() ?? new \DateTimeImmutable();
-            $hasReservation = false;
-            $hasSubscription = false;
 
-            // Vérifier si une réservation couvre la session
-            $reservations = $this->reservationRepository->findByUserId($userId);
-            foreach ($reservations as $reservation) {
-                if ($reservation->getParkingId() === $request->parkingId &&
-                    $reservation->getStartDateTime() <= $entry &&
-                    $reservation->getEndDateTime() >= $exit) {
-                    $hasReservation = true;
-                    break;
-                }
-            }
+            $hasReservation = array_filter(
+                $this->reservationRepository->findByUserId($userId),
+                fn($r) => $r->getParkingId() === $request->parkingId  && $r->getStartDateTime() <= $entry && $r->getEndDateTime() >= $exit
+            );
 
-            // Vérifier si un abonnement couvre la session
-            $subscriptions = $this->subscriptionRepository->findByUserId($userId);
-            foreach ($subscriptions as $subscription) {
-                if ($subscription->getParkingId() === $request->parkingId &&
-                    $subscription->getStartDate() <= $entry &&
-                    ($subscription->getEndDate() === null || $subscription->getEndDate() >= $exit)) {
-                    $hasSubscription = true;
-                    break;
-                }
-            }
+            $hasSubscription = array_filter(
+                $this->subscriptionRepository->findByUserId($userId),
+                fn($s) => $s->getParkingId() === $request->parkingId && $s->getStartDate() <= $entry && ($s->getEndDate() === null || ($session->getExitDateTime() === null ? $s->getEndDate() >= new \DateTimeImmutable() : $s->getEndDate() >= $exit))
+            );
 
             if (!$hasReservation && !$hasSubscription) {
                 $result[] = $session;
