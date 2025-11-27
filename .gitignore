@@ -473,3 +473,16 @@ composer.lock
 *.scss.map
 
 .env
+
+### PHPUnit ###
+# Covers PHPUnit
+# Reference: https://phpunit.de/
+
+# Generated files
+.phpunit.result.cache
+.phpunit.cache
+
+# Build data
+/build/
+
+/coverage/
