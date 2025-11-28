@@ -8,4 +8,7 @@
             <directory>./tests/Functional</directory>
         </testsuite>
     </testsuites>
+    <php>
+    <env name="APP_ENV" value="test"/>
+    </php>
 </phpunit>
