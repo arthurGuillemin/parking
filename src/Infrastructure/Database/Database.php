@@ -23,7 +23,7 @@ class Database
     {
         if (self::$instance === null) {
 
-            // opur les tests sqlite 
+            // opur les tests sqlite
             if (!empty($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'test') {
                 self::$instance = new PDO('sqlite::memory:');
                 self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

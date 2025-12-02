@@ -54,4 +54,10 @@ class Subscription {
     public function getMonthlyPrice(): float {
         return $this->monthlyPrice;
     }
+
+    public function isActiveAt(\DateTimeInterface $at): bool {
+        return $this->status === 'active' &&
+            $this->startDate <= $at &&
+            ($this->endDate === null || $this->endDate >= $at);
+    }
 }

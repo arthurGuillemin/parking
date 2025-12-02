@@ -19,7 +19,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
         $this->db = Database::getInstance();
     }
 
-    //toruver un stationement avec son id 
+    //trouver un stationnement avec son id
 
     public function findById(int $id): ?ParkingSession
     {
@@ -37,12 +37,12 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             return $this->mapToParkingSession($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationement trouvé avec cet id : " . $e->getMessage());
+            throw new RuntimeException("Auncun stationnement trouvé avec cet id : " . $e->getMessage());
         }
     }
 
-    //toruver un stationement avec l'id utilisateur 
-    
+    //trouver un stationnement avec l'id utilisateur
+
     public function findActiveSessionByUserId(string $userId): ?ParkingSession
     {
         try {
@@ -60,10 +60,10 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             return $this->mapToParkingSession($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationement trouvé avec cet id d'utilisateur: " . $e->getMessage());
+            throw new RuntimeException("Auncun stationnement trouvé avec cet id d'utilisateur: " . $e->getMessage());
         }
     }
-    //toruver un stationement avec un id de resa
+    //trouver un stationnement avec un id de resa
     public function findByReservationId(int $reservationId): ?ParkingSession
     {
         try {
@@ -80,11 +80,11 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             return $this->mapToParkingSession($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationement trouvé avec cet id de resa: " . $e->getMessage());
+            throw new RuntimeException("Auncun stationnement trouvé avec cet id de resa: " . $e->getMessage());
         }
     }
 
-    //toruver toutes les sessions de stationnement d'un parking avec son id
+    //trouver toutes les sessions de stationnement d'un parking avec son id
 
     public function findByParkingId(int $parkingId): array
     {
@@ -99,10 +99,10 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             $rows = $stmt->fetchAll();
             return array_map([$this, 'mapToParkingSession'], $rows);
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationement trouvé avec cet id de parking: " . $e->getMessage());
+            throw new RuntimeException("Auncun stationnement trouvé avec cet id de parking: " . $e->getMessage());
         }
     }
-    //save un stationement 
+    //save un stationnement
 
     public function save(ParkingSession $session): ParkingSession
     {

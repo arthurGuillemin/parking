@@ -18,7 +18,7 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
     {
         $this->db = Database::getInstance();
     }
-    //trouver une plage horaire avec son id 
+    //trouver une plage horaire avec son id
     public function findById(int $id): ?OpeningHour
     {
         try {
@@ -35,7 +35,7 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
             return $this->mapToOpeningHour($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucune plage horaire touvée avec cet id: " . $e->getMessage());
+            throw new RuntimeException("aucune plage horaire trouvée avec cet id: " . $e->getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
             return array_map([$this, 'mapToOpeningHour'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucune plage horaire touvée avec cet id de parking: " . $e->getMessage());
+            throw new RuntimeException("aucune plage horaire trouvée avec cet id de parking: " . $e->getMessage());
         }
     }
 

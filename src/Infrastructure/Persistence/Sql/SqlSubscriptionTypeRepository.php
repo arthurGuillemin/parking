@@ -36,11 +36,11 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
             return $this->mapToSubscriptionType($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun type abbonement trouvé avec id: " . $e->getMessage());
+            throw new RuntimeException("aucun type abonnement trouvé avec id: " . $e->getMessage());
         }
     }
 
-        //trouver tout les types d'abonnemtn
+        //trouver tous les types d'abonnement
 
 
     public function findAll(): array
@@ -56,10 +56,10 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
             return array_map([$this, 'mapToSubscriptionType'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("erreur dans la recup des types abbonement : " . $e->getMessage());
+            throw new RuntimeException("erreur dans la recup des types abonnement : " . $e->getMessage());
         }
     }
-        //save un type d'abonnement 
+        //save un type d'abonnement
 
     public function save(SubscriptionType $type): SubscriptionType
     {
@@ -89,7 +89,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
             return $type;
 
         } catch (PDOException $e) {
-            throw new RuntimeException("erreru dans le save du type abbonement: " . $e->getMessage());
+            throw new RuntimeException("erreur dans le save du type abonnement: " . $e->getMessage());
         }
     }
 

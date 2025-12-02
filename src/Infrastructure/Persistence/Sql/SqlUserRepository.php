@@ -36,7 +36,7 @@ class SqlUserRepository implements UserRepositoryInterface
             return $this->mapToUser($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun user touvé avec cet id: " . $e->getMessage());
+            throw new RuntimeException("aucun user trouvé avec cet id: " . $e->getMessage());
         }
     }
 
@@ -58,10 +58,10 @@ class SqlUserRepository implements UserRepositoryInterface
             return $this->mapToUser($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun user toruvé avevc cet email: " . $e->getMessage());
+            throw new RuntimeException("aucun user trouvé avec cet email: " . $e->getMessage());
         }
     }
-        //save un user 
+        //save un user
 
     public function save(User $user): User
     {
