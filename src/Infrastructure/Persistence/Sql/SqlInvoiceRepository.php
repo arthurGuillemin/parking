@@ -132,7 +132,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
             $rows = $stmt->fetchAll();
             return array_map([$this, 'mapToInvoice'], $rows);
         } catch (PDOException $e) {
-            throw new RuntimeException("auncune facture trouvée avec cet id et ce daterange: " . $e->getMessage());
+            throw new RuntimeException("Aucune facture trouvée avec cet id et ce daterange: " . $e->getMessage());
         }
     }
 

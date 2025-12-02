@@ -37,7 +37,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             return $this->mapToParkingSession($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationnement trouvé avec cet id : " . $e->getMessage());
+            throw new RuntimeException("Aucun stationnement trouvé avec cet id : " . $e->getMessage());
         }
     }
 
@@ -60,7 +60,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             return $this->mapToParkingSession($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationnement trouvé avec cet id d'utilisateur: " . $e->getMessage());
+            throw new RuntimeException("Aucun stationnement trouvé avec cet id d'utilisateur: " . $e->getMessage());
         }
     }
     //trouver un stationnement avec un id de resa
@@ -80,7 +80,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             return $this->mapToParkingSession($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationnement trouvé avec cet id de resa: " . $e->getMessage());
+            throw new RuntimeException("Aucun stationnement trouvé avec cet id de resa: " . $e->getMessage());
         }
     }
 
@@ -99,7 +99,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             $rows = $stmt->fetchAll();
             return array_map([$this, 'mapToParkingSession'], $rows);
         } catch (PDOException $e) {
-            throw new RuntimeException("Auncun stationnement trouvé avec cet id de parking: " . $e->getMessage());
+            throw new RuntimeException("Aucun stationnement trouvé avec cet id de parking: " . $e->getMessage());
         }
     }
     //save un stationnement
