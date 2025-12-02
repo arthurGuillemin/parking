@@ -36,7 +36,7 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             return $this->mapToSubscription($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun abonnement rouvé avec id: " . $e->getMessage());
+            throw new RuntimeException("aucun abonnement trouvé avec id: " . $e->getMessage());
         }
     }
 
@@ -58,7 +58,7 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             return array_map([$this, 'mapToSubscription'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun abonnement rouvé avec cet id utilisateur: " . $e->getMessage());
+            throw new RuntimeException("aucun abonnement trouvé avec cet id utilisateur: " . $e->getMessage());
         }
     }
 
