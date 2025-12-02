@@ -18,7 +18,7 @@ class SqlPricingRuleRepository implements PricingRuleRepositoryInterface
     {
         $this->db = Database::getInstance();
     }
-    //trouver un tarif avec son id 
+    //trouver un tarif avec son id
 
     public function findById(int $id): ?PricingRule
     {
@@ -85,7 +85,7 @@ class SqlPricingRuleRepository implements PricingRuleRepositoryInterface
         }
     }
 
-    //save un tarif 
+    //save un tarif
 
     public function save(PricingRule $rule): PricingRule
     {

@@ -19,7 +19,7 @@ class SqlOwnerRepository implements OwnerRepositoryInterface
         $this->db = Database::getInstance();
     }
 
-    //trouver un owner avec son id 
+    //trouver un owner avec son id
 
     public function findById(string $id): ?Owner
     {

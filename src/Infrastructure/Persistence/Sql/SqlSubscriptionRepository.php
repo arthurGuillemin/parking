@@ -19,7 +19,7 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
         $this->db = Database::getInstance();
     }
 
-    //toruver un abbonement avec son id
+    //trouver un abonnement avec son id
     public function findById(int $id): ?Subscription
     {
         try {
@@ -36,11 +36,11 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             return $this->mapToSubscription($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun abbonement rouvé avec id: " . $e->getMessage());
+            throw new RuntimeException("aucun abonnement rouvé avec id: " . $e->getMessage());
         }
     }
 
-        //toruver un abbonement avec l' id de l'utiilsateur
+        //trouver un abonnement avec l'id de l'utilisateur
 
 
     public function findByUserId(string $userId): array
@@ -58,11 +58,11 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             return array_map([$this, 'mapToSubscription'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun abbonement rouvé avec cet id utilisateur: " . $e->getMessage());
+            throw new RuntimeException("aucun abonnement rouvé avec cet id utilisateur: " . $e->getMessage());
         }
     }
 
-        //toruver un abbonement actif avec un id utilisateur
+        //trouver un abonnement actif avec un id utilisateur
 
 
     public function findActiveByUserAndParking(string $userId, int $parkingId, DateTimeImmutable $date): array
@@ -87,11 +87,11 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             return array_map([$this, 'mapToSubscription'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun abbonement actif trouvé: " . $e->getMessage());
+            throw new RuntimeException("aucun abonnement actif trouvé: " . $e->getMessage());
         }
     }
 
-        //toruver un abbonement avec son id pour un mois donné
+        //trouver un abonnement avec son id pour un mois donné
 
     public function findByParkingIdAndMonth(int $parkingId, int $year, int $month): array
     {
@@ -116,11 +116,11 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             return array_map([$this, 'mapToSubscription'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun abbonement trouvé pour ce mois pour cet utilisateur: " . $e->getMessage());
+            throw new RuntimeException("aucun abonnement trouvé pour ce mois pour cet utilisateur: " . $e->getMessage());
         }
     }
 
-    //save un abonement
+    //save un abonnement
 
     public function save(Subscription $subscription): Subscription
     {

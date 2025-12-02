@@ -101,7 +101,7 @@ class SqlParkingRepository implements ParkingRepositoryInterface
                 'latitude'      => $parking->getLatitude(),
                 'longitude'     => $parking->getLongitude(),
                 'total_capacity'=> $parking->getTotalCapacity(),
-                'open_24_7'     => $parking->isOpen24_7() ? 1 : 0, 
+                'open_24_7'     => $parking->isOpen24_7() ? 1 : 0,
             ]);
             return $parking;
         } catch (PDOException $e) {

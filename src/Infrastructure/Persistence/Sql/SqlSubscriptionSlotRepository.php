@@ -18,7 +18,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         $this->db = Database::getInstance();
     }
-    //trouver un crenau d'abonnement avce son id
+    //trouver un créneau d'abonnement avec son id
     public function findById(int $id): ?SubscriptionSlot
     {
         try {
@@ -34,11 +34,11 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
             return $this->mapToSubscriptionSlot($row);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun creneau trouvé pour cet id: " . $e->getMessage());
+            throw new RuntimeException("aucun créneau trouvé pour cet id: " . $e->getMessage());
         }
     }
 
-        //trouver un crenau d'abonnement avce l' id du type
+        //trouver un créneau d'abonnement avec l'id du type
 
 
     public function findBySubscriptionTypeId(int $typeId): array
@@ -56,11 +56,11 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
             return array_map([$this, 'mapToSubscriptionSlot'], $rows);
 
         } catch (PDOException $e) {
-            throw new RuntimeException("aucun creneau trouvé pour cet id de type: " . $e->getMessage());
+            throw new RuntimeException("aucun créneau trouvé pour cet id de type: " . $e->getMessage());
         }
     }
 
-        //save un crenau d'abonnement 
+        //save un créneau d'abonnement
 
 
     public function save(SubscriptionSlot $slot): SubscriptionSlot
@@ -97,7 +97,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
             return $slot;
 
         } catch (PDOException $e) {
-            throw new RuntimeException("erreur dans le save de ce creneau: " . $e->getMessage());
+            throw new RuntimeException("erreur dans le save de ce créneau: " . $e->getMessage());
         }
     }
 

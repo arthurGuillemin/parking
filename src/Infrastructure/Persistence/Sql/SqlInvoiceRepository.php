@@ -18,7 +18,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     {
         $this->db = Database::getInstance();
     }
-    //toruver une facture avec son id
+    //trouver une facture avec son id
     public function findById(int $id): ?Invoice
     {
         try {
@@ -36,7 +36,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
         }
     }
 
-    //toruver une facutre ave l'id de resa
+    //trouver une facture ave l'id de resa
 
     public function findByReservationId(int $reservationId): ?Invoice
     {
@@ -51,10 +51,11 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
             if (!$row) return null;
             return $this->mapToInvoice($row);
         } catch (PDOException $e) {
-            throw new RuntimeException("acune facture trouvée avec cette id de reservation: " . $e->getMessage());
+            throw new RuntimeException("aucune facture trouvée avec cette id de reservation: " . $e->getMessage());
         }
     }
-    // trouver une facture avec l'id de sationemen t
+
+    // trouver une facture avec l'id de stationnement
     public function findBySessionId(int $sessionId): ?Invoice
     {
         try {
@@ -68,7 +69,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
             if (!$row) return null;
             return $this->mapToInvoice($row);
         } catch (PDOException $e) {
-            throw new RuntimeException("aucune facture trouvé pour cet id de stationement: " . $e->getMessage());
+            throw new RuntimeException("aucune facture trouvé pour cet id de stationnement: " . $e->getMessage());
         }
     }
 
@@ -131,7 +132,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
             $rows = $stmt->fetchAll();
             return array_map([$this, 'mapToInvoice'], $rows);
         } catch (PDOException $e) {
-            throw new RuntimeException(" auncune facture tourvée avec cet id et ce daterange: " . $e->getMessage());
+            throw new RuntimeException("auncune facture trouvée avec cet id et ce daterange: " . $e->getMessage());
         }
     }
 
