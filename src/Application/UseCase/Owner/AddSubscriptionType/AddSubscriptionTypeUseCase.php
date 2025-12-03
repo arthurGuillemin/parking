@@ -22,7 +22,7 @@ class AddSubscriptionTypeUseCase
      */
     public function execute(AddSubscriptionTypeRequest $request): SubscriptionType
     {
-        $type = new SubscriptionType(0, $request->name, $request->description, $request->parkingId);
+        $type = new SubscriptionType(0, $request->parkingId, $request->name, $request->description);
         return $this->subscriptionTypeRepository->save($type);
     }
 }

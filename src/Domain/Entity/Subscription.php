@@ -6,7 +6,7 @@ class Subscription {
     private int $id;
     private string $userId; // UUID
     private int $parkingId;
-    private int $typeId;
+    private ?int $typeId;
     private \DateTimeImmutable $startDate; // minimum 1 mois
     private ?\DateTimeImmutable $endDate; // max 1 an
     private string $status; // e.g., 'active', 'expired', 'cancelled'

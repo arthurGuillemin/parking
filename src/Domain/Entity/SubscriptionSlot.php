@@ -2,44 +2,50 @@
 
 namespace App\Domain\Entity;
 
-class SubscriptionSlot {
+class SubscriptionSlot
+{
     private int $id;
-    private int $subscriptionId;
-    private int $weekdayStart; // 1 (Lundi) à 7 (Dimanche)
-    private int $weekdayEnd;   // 1 (Lundi) à 7 (Dimanche)
-    private \DateTimeImmutable $startTime; // 'HH:MM:SS'
-    private \DateTimeImmutable $endTime;   // 'HH:MM:SS'
+    private int $subscriptionTypeId;
+    private int $weekday; // 1 (Lundi) à 7 (Dimanche) - UN SEUL JOUR
+    private \DateTimeImmutable $startTime;
+    private \DateTimeImmutable $endTime;
 
-    public function __construct(int $id, int $subscriptionId, int $weekdayStart, int $weekdayEnd, \DateTimeImmutable $startTime, \DateTimeImmutable $endTime) {
+    public function __construct(
+        int $id,
+        int $subscriptionTypeId,
+        int $weekday,
+        \DateTimeImmutable $startTime,
+        \DateTimeImmutable $endTime
+    ) {
         $this->id = $id;
-        $this->subscriptionId = $subscriptionId;
-        $this->weekdayStart = $weekdayStart;
-        $this->weekdayEnd = $weekdayEnd;
+        $this->subscriptionTypeId = $subscriptionTypeId;
+        $this->weekday = $weekday;
         $this->startTime = $startTime;
         $this->endTime = $endTime;
     }
 
-    public function getSubscriptionSlotId(): int {
+    public function getSubscriptionSlotId(): int
+    {
         return $this->id;
     }
 
-    public function getSubscriptionId(): int {
-        return $this->subscriptionId;
+    public function getSubscriptionTypeId(): int
+    {
+        return $this->subscriptionTypeId;
     }
 
-    public function getWeekdayStart(): int {
-        return $this->weekdayStart;
+    public function getWeekday(): int
+    {
+        return $this->weekday;
     }
 
-    public function getWeekdayEnd(): int {
-        return $this->weekdayEnd;
-    }
-
-    public function getStartTime(): \DateTimeImmutable {
+    public function getStartTime(): \DateTimeImmutable
+    {
         return $this->startTime;
     }
 
-    public function getEndTime(): \DateTimeImmutable {
+    public function getEndTime(): \DateTimeImmutable
+    {
         return $this->endTime;
     }
 }
