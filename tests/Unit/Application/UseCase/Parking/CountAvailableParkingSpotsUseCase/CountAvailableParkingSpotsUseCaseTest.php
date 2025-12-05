@@ -2,13 +2,13 @@
 
 namespace Unit\Application\UseCase\Parking\CountAvailableParkingSpotsUseCase;
 
-use PHPUnit\Framework\TestCase;
-use App\Application\UseCase\Parking\CountAvailableParkingSpotsUseCase\CountAvailableParkingSpotsUseCase;
-use App\Application\UseCase\Parking\CountAvailableParkingSpotsUseCase\CountAvailableParkingSpotsRequest;
+use App\Application\DTO\Parking\CountAvailableParkingSpotsRequest;
+use App\Application\UseCase\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsUseCase;
+use App\Domain\Entity\Parking;
 use App\Domain\Repository\ParkingRepositoryInterface;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Domain\Repository\SubscriptionRepositoryInterface;
-use App\Domain\Entity\Parking;
+use PHPUnit\Framework\TestCase;
 
 class CountAvailableParkingSpotsUseCaseTest extends TestCase
 {
@@ -31,7 +31,7 @@ class CountAvailableParkingSpotsUseCaseTest extends TestCase
         );
         $request = new CountAvailableParkingSpotsRequest(1, new \DateTimeImmutable());
         $result = $useCase->execute($request);
-        $this->assertEquals(8, $result);
+        $this->assertEquals(8, $result->availableSpots);
     }
 
     public function testThrowsExceptionIfParkingNotFound()
@@ -81,7 +81,7 @@ class CountAvailableParkingSpotsUseCaseTest extends TestCase
         );
         $request = new CountAvailableParkingSpotsRequest(1, $now);
         $result = $useCase->execute($request);
-        $this->assertEquals(9, $result);
+        $this->assertEquals(9, $result->availableSpots);
     }
 
     public function testInactiveSubscriptionDoesNotCountAsOccupied()
@@ -115,7 +115,7 @@ class CountAvailableParkingSpotsUseCaseTest extends TestCase
         );
         $request = new CountAvailableParkingSpotsRequest(1, $now);
         $result = $useCase->execute($request);
-        $this->assertEquals(10, $result);
+        $this->assertEquals(10, $result->availableSpots);
     }
 
     public function testOccupiedSpotsExceedCapacityReturnsZero()
@@ -137,7 +137,7 @@ class CountAvailableParkingSpotsUseCaseTest extends TestCase
         );
         $request = new CountAvailableParkingSpotsRequest(1, new \DateTimeImmutable());
         $result = $useCase->execute($request);
-        $this->assertEquals(0, $result);
+        $this->assertEquals(0, $result->availableSpots);
     }
 
     public function testSubscriptionWithoutIsActiveAtMethodCountsAsActive()
@@ -164,6 +164,6 @@ class CountAvailableParkingSpotsUseCaseTest extends TestCase
         );
         $request = new CountAvailableParkingSpotsRequest(1, $now);
         $result = $useCase->execute($request);
-        $this->assertEquals(9, $result);
+        $this->assertEquals(9, $result->availableSpots);
     }
 }
