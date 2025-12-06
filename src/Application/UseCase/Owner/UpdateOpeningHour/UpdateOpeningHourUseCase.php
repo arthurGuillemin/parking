@@ -14,23 +14,16 @@ class UpdateOpeningHourUseCase
         $this->openingHourRepository = $openingHourRepository;
     }
 
-    /**
-     * Update or add an opening hour for a parking and weekday.
-     *
-     * @param UpdateOpeningHourRequest $request
-     * @return OpeningHour
-     */
     public function execute(UpdateOpeningHourRequest $request): OpeningHour
     {
-        // On crée une nouvelle plage horaire (ou on écrase l'existante pour ce jour)
         $openingHour = new OpeningHour(
             0, // id auto-incrémenté par la DB
             $request->parkingId,
-            $request->weekday,
+            $request->weekdayStart,
+            $request->weekdayEnd,
             new \DateTimeImmutable($request->openingTime),
             new \DateTimeImmutable($request->closingTime)
         );
         return $this->openingHourRepository->save($openingHour);
     }
 }
-

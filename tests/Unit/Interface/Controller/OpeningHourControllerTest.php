@@ -15,14 +15,16 @@ class OpeningHourControllerTest extends TestCase
         $mockOpeningHour = $this->createMock(OpeningHour::class);
         $mockOpeningHour->method('getOpeningHourId')->willReturn(1);
         $mockOpeningHour->method('getParkingId')->willReturn(2);
-        $mockOpeningHour->method('getWeekday')->willReturn(3);
+        $mockOpeningHour->method('getWeekdayStart')->willReturn(3);
+        $mockOpeningHour->method('getWeekdayEnd')->willReturn(3);
         $mockOpeningHour->method('getOpeningTime')->willReturn(new \DateTimeImmutable('08:00:00'));
         $mockOpeningHour->method('getClosingTime')->willReturn(new \DateTimeImmutable('20:00:00'));
         $mockService->method('updateOpeningHour')->willReturn($mockOpeningHour);
         $controller = new OpeningHourController($mockService);
         $data = [
             'parkingId' => 2,
-            'weekday' => 3,
+            'weekdayStart' => 3,
+            'weekdayEnd' => 3,
             'openingTime' => '08:00:00',
             'closingTime' => '20:00:00'
         ];
@@ -30,7 +32,8 @@ class OpeningHourControllerTest extends TestCase
         $this->assertEquals([
             'id' => 1,
             'parkingId' => 2,
-            'weekday' => 3,
+            'weekdayStart' => 3,
+            'weekdayEnd' => 3,
             'openingTime' => '08:00:00',
             'closingTime' => '20:00:00',
         ], $result);
@@ -42,4 +45,3 @@ class OpeningHourControllerTest extends TestCase
         $controller->update(['parkingId' => 2]);
     }
 }
-

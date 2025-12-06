@@ -2,7 +2,7 @@
 
 namespace Unit\Application\UseCase\Parking\CountAvailableParkingSpotsUseCase;
 
-use App\Application\DTO\Parking\CountAvailableParkingSpotsRequest;
+use App\Application\DTO\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsRequest;
 use App\Application\UseCase\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsUseCase;
 use App\Domain\Entity\Parking;
 use App\Domain\Repository\ParkingRepositoryInterface;

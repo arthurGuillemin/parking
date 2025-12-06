@@ -2,8 +2,8 @@
 
 namespace App\Application\UseCase\Parking\CountAvailableParkingSpots;
 
-use App\Application\DTO\Parking\CountAvailableParkingSpotsRequest;
-use App\Application\DTO\Parking\CountAvailableParkingSpotsResponse;
+use App\Application\DTO\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsRequest;
+use App\Application\DTO\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsResponse;
 use App\Domain\Repository\ParkingRepositoryInterface;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Domain\Repository\SubscriptionRepositoryInterface;
@@ -27,7 +27,7 @@ class CountAvailableParkingSpotsUseCase {
     {
         $parking = $this->parkingRepository->findById($request->parkingId);
         if (!$parking) {
-            throw new \InvalidArgumentException('Parking non trouvé.');
+            throw new \InvalidArgumentException('Parking non disponible.');
         }
 
         $at = $request->at;
