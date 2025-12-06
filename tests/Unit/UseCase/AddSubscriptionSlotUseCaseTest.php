@@ -49,8 +49,8 @@ class AddSubscriptionSlotUseCaseTest extends TestCase
 
         $result = $this->useCase->execute($request);
 
-        $this->assertEquals(1, $result->getSubscriptionSlotId());
-        $this->assertEquals(3, $result->getWeekday());
+        $this->assertEquals(1, $result->id);
+        $this->assertEquals(3, $result->weekday);
     }
 
     /**
@@ -104,7 +104,7 @@ class AddSubscriptionSlotUseCaseTest extends TestCase
 
             $request = new AddSubscriptionSlotRequest(1, $weekday, $startTime, $endTime);
 
-            $savedSlot = new SubscriptionSlot(1,1,$weekday,$startTime,$endTime);
+            $savedSlot = new SubscriptionSlot(1, 1, $weekday, $startTime, $endTime);
 
             $repository->expects($this->once())
                 ->method('save')
@@ -112,7 +112,7 @@ class AddSubscriptionSlotUseCaseTest extends TestCase
 
             $result = $useCase->execute($request);
 
-            $this->assertEquals($weekday, $result->getWeekday());
+            $this->assertEquals($weekday, $result->weekday);
         }
     }
 }

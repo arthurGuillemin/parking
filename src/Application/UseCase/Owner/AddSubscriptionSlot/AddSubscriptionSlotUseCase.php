@@ -4,6 +4,7 @@ namespace App\Application\UseCase\Owner\AddSubscriptionSlot;
 
 use App\Domain\Entity\SubscriptionSlot;
 use App\Domain\Repository\SubscriptionSlotRepositoryInterface;
+use App\Application\UseCase\Owner\AddSubscriptionSlot\AddSubscriptionSlotResponse;
 
 class AddSubscriptionSlotUseCase
 {
@@ -18,10 +19,10 @@ class AddSubscriptionSlotUseCase
      * Add a time slot to a subscription type.
      *
      * @param AddSubscriptionSlotRequest $request
-     * @return SubscriptionSlot
+     * @return AddSubscriptionSlotResponse
      * @throws \InvalidArgumentException if times are invalid
      */
-    public function execute(AddSubscriptionSlotRequest $request): SubscriptionSlot
+    public function execute(AddSubscriptionSlotRequest $request): AddSubscriptionSlotResponse
     {
         // Validate weekday
         if ($request->weekday < 1 || $request->weekday > 7) {
@@ -41,6 +42,14 @@ class AddSubscriptionSlotUseCase
             $request->endTime
         );
 
-        return $this->slotRepository->save($slot);
+        $savedSlot = $this->slotRepository->save($slot);
+
+        return new AddSubscriptionSlotResponse(
+            $savedSlot->getSubscriptionSlotId(),
+            $savedSlot->getSubscriptionTypeId(),
+            $savedSlot->getWeekday(),
+            $savedSlot->getStartTime()->format('H:i:s'),
+            $savedSlot->getEndTime()->format('H:i:s')
+        );
     }
 }

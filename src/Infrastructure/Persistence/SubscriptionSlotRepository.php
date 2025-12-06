@@ -33,6 +33,12 @@ class SubscriptionSlotRepository implements SubscriptionSlotRepositoryInterface
         return array_map(fn($row) => $this->mapToEntity($row), $rows);
     }
 
+    public function delete(int $id): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM subscription_slots WHERE id = ?');
+        $stmt->execute([$id]);
+    }
+
     public function save(SubscriptionSlot $slot): SubscriptionSlot
     {
         if ($slot->getSubscriptionSlotId() === 0) {
@@ -57,7 +63,7 @@ class SubscriptionSlotRepository implements SubscriptionSlotRepositoryInterface
             $slot->getEndTime()->format('H:i:s'),
         ]);
 
-        $id = (int)$this->pdo->lastInsertId();
+        $id = (int) $this->pdo->lastInsertId();
 
         return new SubscriptionSlot(
             $id,
@@ -90,9 +96,9 @@ class SubscriptionSlotRepository implements SubscriptionSlotRepositoryInterface
     private function mapToEntity(array $data): SubscriptionSlot
     {
         return new SubscriptionSlot(
-            (int)$data['id'],
-            (int)$data['subscription_type_id'],
-            (int)$data['weekday'],
+            (int) $data['id'],
+            (int) $data['subscription_type_id'],
+            (int) $data['weekday'],
             new \DateTimeImmutable($data['start_time']),
             new \DateTimeImmutable($data['end_time'])
         );

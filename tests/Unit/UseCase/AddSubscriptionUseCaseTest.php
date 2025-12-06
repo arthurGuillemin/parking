@@ -54,9 +54,9 @@ class AddSubscriptionUseCaseTest extends TestCase
 
         $result = $this->useCase->execute($request);
 
-        $this->assertEquals(1, $result->getSubscriptionId());
-        $this->assertEquals('user-123', $result->getUserId());
-        $this->assertEquals('active', $result->getStatus());
+        $this->assertEquals(1, $result->id);
+        $this->assertEquals('user-123', $result->userId);
+        $this->assertEquals('active', $result->status);
     }
 
     /**
@@ -139,8 +139,8 @@ class AddSubscriptionUseCaseTest extends TestCase
         $result = $this->useCase->execute($request);
 
         // End date should be 1 year after start
-        $expectedEnd = $startDate->add(new \DateInterval('P1Y'));
-        $this->assertEquals($expectedEnd, $result->getEndDate());
+        $expectedEnd = $startDate->add(new \DateInterval('P1Y'))->format('Y-m-d H:i:s');
+        $this->assertEquals($expectedEnd, $result->endDate);
     }
 
     /**
@@ -177,6 +177,6 @@ class AddSubscriptionUseCaseTest extends TestCase
 
         $result = $this->useCase->execute($request);
 
-        $this->assertNull($result->getTypeId());
+        $this->assertNull($result->typeId);
     }
 }

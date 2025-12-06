@@ -6,18 +6,32 @@ use App\Application\UseCase\User\AddSubscription\AddSubscriptionUseCase;
 use App\Application\UseCase\User\AddSubscription\AddSubscriptionRequest;
 use App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsUseCase;
 use App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsRequest;
+use App\Application\UseCase\User\GetSubscription\GetSubscriptionUseCase;
+use App\Application\UseCase\User\GetSubscription\GetSubscriptionRequest;
+use App\Application\UseCase\User\CancelSubscription\CancelSubscriptionUseCase;
+use App\Application\UseCase\User\CancelSubscription\CancelSubscriptionRequest;
+use App\Interface\Presenter\SubscriptionPresenter;
 
 class SubscriptionController
 {
     private AddSubscriptionUseCase $addSubscriptionUseCase;
     private ListUserSubscriptionsUseCase $listUserSubscriptionsUseCase;
+    private GetSubscriptionUseCase $getSubscriptionUseCase;
+    private CancelSubscriptionUseCase $cancelSubscriptionUseCase;
+    private SubscriptionPresenter $presenter;
 
     public function __construct(
         AddSubscriptionUseCase $addSubscriptionUseCase,
-        ListUserSubscriptionsUseCase $listUserSubscriptionsUseCase
+        ListUserSubscriptionsUseCase $listUserSubscriptionsUseCase,
+        GetSubscriptionUseCase $getSubscriptionUseCase,
+        CancelSubscriptionUseCase $cancelSubscriptionUseCase,
+        SubscriptionPresenter $presenter
     ) {
         $this->addSubscriptionUseCase = $addSubscriptionUseCase;
         $this->listUserSubscriptionsUseCase = $listUserSubscriptionsUseCase;
+        $this->getSubscriptionUseCase = $getSubscriptionUseCase;
+        $this->cancelSubscriptionUseCase = $cancelSubscriptionUseCase;
+        $this->presenter = $presenter;
     }
 
     public function subscribe(array $data): array
@@ -34,25 +48,16 @@ class SubscriptionController
 
         $request = new AddSubscriptionRequest(
             $data['userId'],
-            (int)$data['parkingId'],
+            (int) $data['parkingId'],
             $data['typeId'] ?? null,
             $startDate,
             $endDate,
-            (float)$data['monthlyPrice']
+            (float) $data['monthlyPrice']
         );
 
-        $subscription = $this->addSubscriptionUseCase->execute($request);
+        $response = $this->addSubscriptionUseCase->execute($request);
 
-        return [
-            'id' => $subscription->getSubscriptionId(),
-            'userId' => $subscription->getUserId(),
-            'parkingId' => $subscription->getParkingId(),
-            'typeId' => $subscription->getTypeId(),
-            'startDate' => $subscription->getStartDate()->format('Y-m-d'),
-            'endDate' => $subscription->getEndDate()?->format('Y-m-d'),
-            'status' => $subscription->getStatus(),
-            'monthlyPrice' => $subscription->getMonthlyPrice(),
-        ];
+        return $this->presenter->present($response);
     }
 
     public function list(array $data): array
@@ -62,19 +67,11 @@ class SubscriptionController
         }
 
         $request = new ListUserSubscriptionsRequest($data['userId']);
-        $subscriptions = $this->listUserSubscriptionsUseCase->execute($request);
+        $responses = $this->listUserSubscriptionsUseCase->execute($request);
 
-        return array_map(function ($sub) {
-            return [
-                'id' => $sub->getSubscriptionId(),
-                'parkingId' => $sub->getParkingId(),
-                'typeId' => $sub->getTypeId(),
-                'startDate' => $sub->getStartDate()->format('Y-m-d'),
-                'endDate' => $sub->getEndDate()?->format('Y-m-d'),
-                'status' => $sub->getStatus(),
-                'monthlyPrice' => $sub->getMonthlyPrice(),
-            ];
-        }, $subscriptions);
+        return array_map(function ($response) {
+            return $this->presenter->present($response);
+        }, $responses);
     }
 
     public function getById(array $data): array
@@ -83,8 +80,10 @@ class SubscriptionController
             throw new \InvalidArgumentException('Le paramètre id est obligatoire.');
         }
 
-        // À implémenter : GetSubscriptionUseCase
-        return [];
+        $request = new GetSubscriptionRequest((int) $data['id']);
+        $response = $this->getSubscriptionUseCase->execute($request);
+
+        return $this->presenter->present($response);
     }
 
     public function cancel(array $data): array
@@ -93,7 +92,9 @@ class SubscriptionController
             throw new \InvalidArgumentException('Le paramètre id est obligatoire.');
         }
 
-        // À implémenter : CancelSubscriptionUseCase
-        return ['success' => true, 'message' => 'Abonnement annulé.'];
+        $request = new CancelSubscriptionRequest((int) $data['id']);
+        $response = $this->cancelSubscriptionUseCase->execute($request);
+
+        return $this->presenter->present($response);
     }
 }

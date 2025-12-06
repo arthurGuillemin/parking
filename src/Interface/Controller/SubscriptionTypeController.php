@@ -4,14 +4,29 @@ namespace App\Interface\Controller;
 
 use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeUseCase;
 use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeRequest;
+use App\Application\UseCase\Owner\ListSubscriptionTypes\ListSubscriptionTypesUseCase;
+use App\Application\UseCase\Owner\ListSubscriptionTypes\ListSubscriptionTypesRequest;
+use App\Application\UseCase\Owner\GetSubscriptionType\GetSubscriptionTypeUseCase;
+use App\Application\UseCase\Owner\GetSubscriptionType\GetSubscriptionTypeRequest;
+use App\Interface\Presenter\SubscriptionTypePresenter;
 
 class SubscriptionTypeController
 {
+    private SubscriptionTypePresenter $presenter;
     private AddSubscriptionTypeUseCase $addSubscriptionTypeUseCase;
+    private ListSubscriptionTypesUseCase $listSubscriptionTypesUseCase;
+    private GetSubscriptionTypeUseCase $getSubscriptionTypeUseCase;
 
-    public function __construct(AddSubscriptionTypeUseCase $addSubscriptionTypeUseCase)
-    {
+    public function __construct(
+        AddSubscriptionTypeUseCase $addSubscriptionTypeUseCase,
+        ListSubscriptionTypesUseCase $listSubscriptionTypesUseCase,
+        GetSubscriptionTypeUseCase $getSubscriptionTypeUseCase,
+        SubscriptionTypePresenter $presenter
+    ) {
         $this->addSubscriptionTypeUseCase = $addSubscriptionTypeUseCase;
+        $this->listSubscriptionTypesUseCase = $listSubscriptionTypesUseCase;
+        $this->getSubscriptionTypeUseCase = $getSubscriptionTypeUseCase;
+        $this->presenter = $presenter;
     }
 
     public function add(array $data): array
@@ -21,26 +36,25 @@ class SubscriptionTypeController
         }
 
         $request = new AddSubscriptionTypeRequest(
-            (int)$data['parkingId'],
+            (int) $data['parkingId'],
             $data['name'],
             $data['description'] ?? null
         );
 
-        $type = $this->addSubscriptionTypeUseCase->execute($request);
+        $response = $this->addSubscriptionTypeUseCase->execute($request);
 
-        return [
-            'id' => $type->getSubscriptionTypeId(),
-            'parkingId' => $type->getParkingId(),
-            'name' => $type->getName(),
-            'description' => $type->getDescription(),
-        ];
+        return $this->presenter->present($response);
     }
 
     public function list(array $data): array
     {
-        // À implémenter : ListSubscriptionTypesUseCase
-        // Retourner tous les types d'abonnement
-        return [];
+        $parkingId = !empty($data['parkingId']) ? (int) $data['parkingId'] : null;
+        $request = new ListSubscriptionTypesRequest($parkingId);
+        $responses = $this->listSubscriptionTypesUseCase->execute($request);
+
+        return array_map(function ($response) {
+            return $this->presenter->present($response);
+        }, $responses);
     }
 
     public function getById(array $data): array
@@ -49,7 +63,9 @@ class SubscriptionTypeController
             throw new \InvalidArgumentException('Le paramètre id est obligatoire.');
         }
 
-        // À implémenter : GetSubscriptionTypeUseCase
-        return [];
+        $request = new GetSubscriptionTypeRequest((int) $data['id']);
+        $response = $this->getSubscriptionTypeUseCase->execute($request);
+
+        return $this->presenter->present($response);
     }
 }
