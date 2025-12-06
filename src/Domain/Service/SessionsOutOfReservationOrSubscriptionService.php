@@ -15,12 +15,14 @@ class SessionsOutOfReservationOrSubscriptionService
     public function __construct(
         ParkingSessionRepositoryInterface $parkingSessionRepository,
         ReservationRepositoryInterface $reservationRepository,
-        SubscriptionRepositoryInterface $subscriptionRepository
+        SubscriptionRepositoryInterface $subscriptionRepository,
+        \App\Domain\Service\SubscriptionCoverageService $coverageService
     ) {
         $this->useCase = new ListSessionsOutOfReservationOrSubscriptionUseCase(
             $parkingSessionRepository,
             $reservationRepository,
-            $subscriptionRepository
+            $subscriptionRepository,
+            $coverageService
         );
     }
 
@@ -29,4 +31,3 @@ class SessionsOutOfReservationOrSubscriptionService
         return $this->useCase->execute($request);
     }
 }
-

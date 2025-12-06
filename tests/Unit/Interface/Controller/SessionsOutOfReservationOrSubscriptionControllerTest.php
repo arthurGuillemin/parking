@@ -3,15 +3,14 @@ namespace Unit\Interface\Controller;
 
 use PHPUnit\Framework\TestCase;
 use App\Interface\Controller\SessionsOutOfReservationOrSubscriptionController;
-use App\Domain\Service\SessionsOutOfReservationOrSubscriptionService;
-use App\Application\UseCase\Owner\ListSessionsOutOfReservationOrSubscription\ListSessionsOutOfReservationOrSubscriptionRequest;
+use App\Application\UseCase\Owner\ListSessionsOutOfReservationOrSubscription\ListSessionsOutOfReservationOrSubscriptionUseCase;
 use App\Domain\Entity\ParkingSession;
 
 class SessionsOutOfReservationOrSubscriptionControllerTest extends TestCase
 {
     public function testListReturnsArray()
     {
-        $mockService = $this->createMock(SessionsOutOfReservationOrSubscriptionService::class);
+        $mockUseCase = $this->createMock(ListSessionsOutOfReservationOrSubscriptionUseCase::class);
         $mockSession = $this->createMock(ParkingSession::class);
         $mockSession->method('getSessionId')->willReturn(1);
         $mockSession->method('getUserId')->willReturn('user');
@@ -21,8 +20,8 @@ class SessionsOutOfReservationOrSubscriptionControllerTest extends TestCase
         $mockSession->method('getExitDateTime')->willReturn(null);
         $mockSession->method('getFinalAmount')->willReturn(20.0);
         $mockSession->method('isPenaltyApplied')->willReturn(false);
-        $mockService->method('listSessions')->willReturn([$mockSession]);
-        $controller = new SessionsOutOfReservationOrSubscriptionController($mockService);
+        $mockUseCase->method('execute')->willReturn([$mockSession]);
+        $controller = new SessionsOutOfReservationOrSubscriptionController($mockUseCase);
         $data = ['parkingId' => 2];
         $result = $controller->list($data);
         $this->assertEquals([
@@ -41,8 +40,8 @@ class SessionsOutOfReservationOrSubscriptionControllerTest extends TestCase
     public function testListThrowsOnMissingFields()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $controller = new SessionsOutOfReservationOrSubscriptionController($this->createMock(SessionsOutOfReservationOrSubscriptionService::class));
+        $mockUseCase = $this->createMock(ListSessionsOutOfReservationOrSubscriptionUseCase::class);
+        $controller = new SessionsOutOfReservationOrSubscriptionController($mockUseCase);
         $controller->list([]);
     }
 }
-

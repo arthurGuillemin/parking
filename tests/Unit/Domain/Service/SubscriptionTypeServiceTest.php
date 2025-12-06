@@ -5,8 +5,8 @@ use PHPUnit\Framework\TestCase;
 use App\Domain\Service\SubscriptionTypeService;
 use App\Domain\Repository\SubscriptionTypeRepositoryInterface;
 use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeUseCase;
+use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeResponse;
 use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeRequest;
-use App\Domain\Entity\SubscriptionType;
 
 class SubscriptionTypeServiceTest extends TestCase
 {
@@ -25,15 +25,17 @@ class SubscriptionTypeServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['execute'])
             ->getMock();
-        $mockSubscriptionType = $this->createMock(SubscriptionType::class);
-        $mockUseCase->method('execute')->willReturn($mockSubscriptionType);
+        $mockResponse = new AddSubscriptionTypeResponse(1, 2, 'Premium', 'desc');
+        $mockUseCase->method('execute')->willReturn($mockResponse);
         $reflection = new \ReflectionClass($service);
         $property = $reflection->getProperty('addSubscriptionTypeUseCase');
-        $property->setAccessible(true);
         $property->setValue($service, $mockUseCase);
         $mockRequest = $this->createMock(AddSubscriptionTypeRequest::class);
         $result = $service->addSubscriptionType($mockRequest);
-        $this->assertInstanceOf(SubscriptionType::class, $result);
+        $this->assertInstanceOf(AddSubscriptionTypeResponse::class, $result);
+        $this->assertEquals(1, $result->id);
+        $this->assertEquals(2, $result->parkingId);
+        $this->assertEquals('Premium', $result->name);
+        $this->assertEquals('desc', $result->description);
     }
 }
-

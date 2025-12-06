@@ -9,10 +9,10 @@ class SubscriptionTypeTest extends TestCase
 {
     public function testGetters()
     {
-        $type = new SubscriptionType(1, 'Premium', 'Full access');
+        $type = new SubscriptionType(1, 2, 'Annual', 'Full access');
         $this->assertEquals(1, $type->getSubscriptionTypeId());
-        $this->assertEquals('Premium', $type->getName());
+        $this->assertEquals(2, $type->getParkingId());
+        $this->assertEquals('Annual', $type->getName());
         $this->assertEquals('Full access', $type->getDescription());
     }
 }
-

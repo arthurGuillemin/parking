@@ -16,6 +16,7 @@ class ListSessionsOutOfReservationOrSubscriptionUseCaseTest extends TestCase
         $sessionRepo = $this->createMock(ParkingSessionRepositoryInterface::class);
         $reservationRepo = $this->createMock(ReservationRepositoryInterface::class);
         $subscriptionRepo = $this->createMock(SubscriptionRepositoryInterface::class);
+        $coverageService = $this->createMock(\App\Domain\Service\SubscriptionCoverageService::class);
         $session = $this->createMock(ParkingSession::class);
         $session->method('getUserId')->willReturn('user-uuid');
         $session->method('getEntryDateTime')->willReturn(new \DateTimeImmutable('-1 hour'));
@@ -23,7 +24,7 @@ class ListSessionsOutOfReservationOrSubscriptionUseCaseTest extends TestCase
         $sessionRepo->method('findByParkingId')->willReturn([$session]);
         $reservationRepo->method('findByUserId')->willReturn([]);
         $subscriptionRepo->method('findByUserId')->willReturn([]);
-        $useCase = new ListSessionsOutOfReservationOrSubscriptionUseCase($sessionRepo, $reservationRepo, $subscriptionRepo);
+        $useCase = new ListSessionsOutOfReservationOrSubscriptionUseCase($sessionRepo, $reservationRepo, $subscriptionRepo, $coverageService);
         $request = new ListSessionsOutOfReservationOrSubscriptionRequest(1);
         $result = $useCase->execute($request);
         $this->assertIsArray($result);

@@ -3,37 +3,46 @@ namespace Unit\Interface\Controller;
 
 use PHPUnit\Framework\TestCase;
 use App\Interface\Controller\SubscriptionTypeController;
-use App\Domain\Service\SubscriptionTypeService;
-use App\Domain\Entity\SubscriptionType;
+use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeUseCase;
+use App\Interface\Presenter\SubscriptionTypePresenter;
+use App\Application\UseCase\Owner\AddSubscriptionType\AddSubscriptionTypeResponse;
+use App\Application\UseCase\Owner\ListSubscriptionTypes\ListSubscriptionTypesUseCase;
+use App\Application\UseCase\Owner\GetSubscriptionType\GetSubscriptionTypeUseCase;
 
 class SubscriptionTypeControllerTest extends TestCase
 {
     public function testAddReturnsArray()
     {
-        $mockService = $this->createMock(SubscriptionTypeService::class);
-        $mockType = $this->createMock(SubscriptionType::class);
-        $mockType->method('getSubscriptionTypeId')->willReturn(1);
-        $mockType->method('getName')->willReturn('Premium');
-        $mockType->method('getDescription')->willReturn('desc');
-        $mockService->method('addSubscriptionType')->willReturn($mockType);
-        $controller = new SubscriptionTypeController($mockService);
+        $mockUseCase = $this->createMock(AddSubscriptionTypeUseCase::class);
+        $mockPresenter = $this->createMock(SubscriptionTypePresenter::class);
+        $mockResponse = new AddSubscriptionTypeResponse(1, 2, 'Annual', 'desc');
+        $mockUseCase->method('execute')->willReturn($mockResponse);
+        $mockPresenter->method('present')->willReturn([
+            'id' => 1,
+            'parkingId' => 2,
+            'name' => 'Annual',
+            'description' => 'desc',
+        ]);
+        $controller = new SubscriptionTypeController($mockUseCase, $this->createMock(ListSubscriptionTypesUseCase::class), $this->createMock(GetSubscriptionTypeUseCase::class), $mockPresenter);
         $data = [
             'parkingId' => 2,
-            'name' => 'Premium',
+            'name' => 'Annual',
             'description' => 'desc'
         ];
         $result = $controller->add($data);
         $this->assertEquals([
             'id' => 1,
-            'name' => 'Premium',
+            'parkingId' => 2,
+            'name' => 'Annual',
             'description' => 'desc',
         ], $result);
     }
     public function testAddThrowsOnMissingFields()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $controller = new SubscriptionTypeController($this->createMock(SubscriptionTypeService::class));
+        $mockUseCase = $this->createMock(AddSubscriptionTypeUseCase::class);
+        $mockPresenter = $this->createMock(SubscriptionTypePresenter::class);
+        $controller = new SubscriptionTypeController($mockUseCase, $this->createMock(ListSubscriptionTypesUseCase::class), $this->createMock(GetSubscriptionTypeUseCase::class), $mockPresenter);
         $controller->add(['parkingId' => 2]);
     }
 }
-
