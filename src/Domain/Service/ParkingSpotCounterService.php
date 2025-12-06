@@ -2,8 +2,8 @@
 
 namespace App\Domain\Service;
 
-use App\Application\UseCase\Parking\CountAvailableParkingSpotsUseCase\CountAvailableParkingSpotsUseCase;
-use App\Application\UseCase\Parking\CountAvailableParkingSpotsUseCase\CountAvailableParkingSpotsRequest;
+use App\Application\DTO\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsRequest;
+use App\Application\UseCase\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsUseCase;
 
 class ParkingSpotCounterService
 {
@@ -17,6 +17,7 @@ class ParkingSpotCounterService
     public function getAvailableSpots(int $parkingId, \DateTimeImmutable $at): int
     {
         $request = new CountAvailableParkingSpotsRequest($parkingId, $at);
-        return $this->countAvailableParkingSpotsUseCase->execute($request);
+        $response = $this->countAvailableParkingSpotsUseCase->execute($request);
+        return $response->availableSpots;
     }
 }

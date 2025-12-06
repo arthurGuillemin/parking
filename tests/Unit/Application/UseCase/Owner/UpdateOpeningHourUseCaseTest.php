@@ -15,9 +15,8 @@ class UpdateOpeningHourUseCaseTest extends TestCase
         $openingHour = $this->createMock(OpeningHour::class);
         $repo->method('save')->willReturn($openingHour);
         $useCase = new UpdateOpeningHourUseCase($repo);
-        $request = new UpdateOpeningHourRequest(1, 1, '08:00:00', '18:00:00');
+        $request = new UpdateOpeningHourRequest(1, 1, 5, '08:00:00', '18:00:00');
         $result = $useCase->execute($request);
         $this->assertSame($openingHour, $result);
     }
 }
-

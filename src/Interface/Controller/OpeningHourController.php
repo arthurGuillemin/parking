@@ -17,12 +17,13 @@ class OpeningHourController
 
     public function update(array $data): array
     {
-        if (empty($data['parkingId']) || !isset($data['weekday']) || empty($data['openingTime']) || empty($data['closingTime'])) {
+        if (empty($data['parkingId']) || !isset($data['weekdayStart']) || !isset($data['weekdayEnd']) || empty($data['openingTime']) || empty($data['closingTime'])) {
             throw new \InvalidArgumentException('Champs requis manquants');
         }
         $request = new UpdateOpeningHourRequest(
             (int)$data['parkingId'],
-            (int)$data['weekday'],
+            (int)$data['weekdayStart'],
+            (int)$data['weekdayEnd'],
             $data['openingTime'],
             $data['closingTime']
         );
@@ -30,10 +31,10 @@ class OpeningHourController
         return [
             'id' => $openingHour->getOpeningHourId(),
             'parkingId' => $openingHour->getParkingId(),
-            'weekday' => $openingHour->getWeekday(),
+            'weekdayStart' => $openingHour->getWeekdayStart(),
+            'weekdayEnd' => $openingHour->getWeekdayEnd(),
             'openingTime' => $openingHour->getOpeningTime()->format('H:i:s'),
             'closingTime' => $openingHour->getClosingTime()->format('H:i:s'),
         ];
     }
 }
-

@@ -5,14 +5,16 @@ namespace App\Domain\Entity;
 class OpeningHour {
     private int $id;
     private int $parkingId;
-    private int $weekday; // 1 (Lundi) à 7 (Dimanche)
+    private int $weekdayStart; // 1 (Lundi) à 7 (Dimanche)
+    private int $weekdayEnd;   // 1 (Lundi) à 7 (Dimanche)
     private \DateTimeImmutable $openingTime; // format 'HH:MM:SS'
     private \DateTimeImmutable $closingTime; // format 'HH:MM:SS'
 
-    public function __construct(int $id, int $parkingId, int $weekday, \DateTimeImmutable $openingTime, \DateTimeImmutable $closingTime) {
+    public function __construct(int $id, int $parkingId, int $weekdayStart, int $weekdayEnd, \DateTimeImmutable $openingTime, \DateTimeImmutable $closingTime) {
         $this->id = $id;
         $this->parkingId = $parkingId;
-        $this->weekday = $weekday;
+        $this->weekdayStart = $weekdayStart;
+        $this->weekdayEnd = $weekdayEnd;
         $this->openingTime = $openingTime;
         $this->closingTime = $closingTime;
     }
@@ -25,8 +27,12 @@ class OpeningHour {
         return $this->parkingId;
     }
 
-    public function getWeekday(): int {
-        return $this->weekday;
+    public function getWeekdayStart(): int {
+        return $this->weekdayStart;
+    }
+
+    public function getWeekdayEnd(): int {
+        return $this->weekdayEnd;
     }
 
     public function getOpeningTime(): \DateTimeImmutable {

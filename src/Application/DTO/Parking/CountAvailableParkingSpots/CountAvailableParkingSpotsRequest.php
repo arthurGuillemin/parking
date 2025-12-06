@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\DTO\Parking;
+namespace App\Application\DTO\Parking\CountAvailableParkingSpots;
 
 // DTO pour la requête de comptage des places de parking disponibles
 readonly class CountAvailableParkingSpotsRequest

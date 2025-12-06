@@ -16,7 +16,7 @@ class OpeningHourServiceTest extends TestCase
         $openingHour = $this->createMock(OpeningHour::class);
         $openingHourRepository->method('save')->willReturn($openingHour);
         $service = new OpeningHourService($openingHourRepository);
-        $request = new UpdateOpeningHourRequest(1, 1, '08:00:00', '18:00:00');
+        $request = new UpdateOpeningHourRequest(1, 1, 1, '08:00:00', '18:00:00');
         $result = $service->updateOpeningHour($request);
         $this->assertSame($openingHour, $result);
     }
