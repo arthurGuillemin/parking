@@ -2,27 +2,28 @@
 
 namespace App\Interface\Controller;
 
-use App\Domain\Service\SessionsOutOfReservationOrSubscriptionService;
+use App\Application\UseCase\Owner\ListSessionsOutOfReservationOrSubscription\ListSessionsOutOfReservationOrSubscriptionUseCase;
 use App\Application\UseCase\Owner\ListSessionsOutOfReservationOrSubscription\ListSessionsOutOfReservationOrSubscriptionRequest;
-use Exception;
 
 class SessionsOutOfReservationOrSubscriptionController
 {
-    private SessionsOutOfReservationOrSubscriptionService $service;
+    private ListSessionsOutOfReservationOrSubscriptionUseCase $useCase;
 
-    public function __construct(SessionsOutOfReservationOrSubscriptionService $service)
+    public function __construct(ListSessionsOutOfReservationOrSubscriptionUseCase $useCase)
     {
-        $this->service = $service;
+        $this->useCase = $useCase;
     }
 
     public function list(array $data): array
     {
         if (empty($data['parkingId'])) {
-            throw new \InvalidArgumentException('Le champ est obligatoire.');
+            throw new \InvalidArgumentException('Le champ parkingId est obligatoire.');
         }
+
         $request = new ListSessionsOutOfReservationOrSubscriptionRequest((int)$data['parkingId']);
-        $sessions = $this->service->listSessions($request);
-        return array_map(function($session) {
+        $sessions = $this->useCase->execute($request);
+
+        return array_map(function ($session) {
             return [
                 'id' => $session->getSessionId(),
                 'userId' => $session->getUserId(),
@@ -36,4 +37,3 @@ class SessionsOutOfReservationOrSubscriptionController
         }, $sessions);
     }
 }
-
