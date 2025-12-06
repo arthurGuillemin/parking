@@ -72,7 +72,7 @@ class GetAvailableSpotsUseCase
         $occupied = 0;
         foreach ($reservations as $reservation) {
             if (
-                ($reservation->getStatus() === 'active' || $reservation->getStatus() === 'pending') &&
+                ($reservation->getStatus() === 'active') &&
                 $reservation->getStartDateTime() <= $request->at &&
                 $reservation->getEndDateTime() > $request->at &&
                 !in_array($reservation->getReservationId(), $sessionReservationIds)
