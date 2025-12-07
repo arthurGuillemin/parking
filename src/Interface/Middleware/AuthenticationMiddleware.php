@@ -22,7 +22,9 @@ class AuthenticationMiddleware
             $token = $matches[1];
         } else {
             // 2. Fallback sur la session (pour compatibilité)
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $token = $_SESSION['jwt_token'] ?? null;
         }
 

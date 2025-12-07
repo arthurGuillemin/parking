@@ -20,17 +20,18 @@ class RefreshTokenController
             echo json_encode(['error' => 'No refresh token']);
             return;
         }
+        // La méthode decode() de JwtService vérifie l'expiration et la validité du token (exp, nbf, signature, etc.)
         $payload = $this->jwtService->decode($refreshToken);
-        if (!$payload || empty($payload['type']) || $payload['type'] !== 'refresh') {
+        // Validation explicite du type de token
+        if (!$payload || !isset($payload['type']) || $payload['type'] !== 'refresh') {
             http_response_code(401);
             echo json_encode(['error' => 'Invalid refresh token']);
             return;
         }
-        // Génère un nouveau access token
+        // À ce stade, le token est valide, non expiré, et de type 'refresh'.
         $accessPayload = $payload;
         unset($accessPayload['exp'], $accessPayload['iat'], $accessPayload['type']);
         $accessToken = $this->jwtService->generate(array_merge($accessPayload, ['type' => 'access']));
         echo json_encode(['token' => $accessToken]);
     }
 }
-
