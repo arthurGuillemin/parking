@@ -5,6 +5,7 @@ use App\Application\DTO\LoginResponse;
 use App\Domain\Auth\TokenGeneratorInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\Domain\Repository\OwnerRepositoryInterface;
+use App\Domain\Service\JwtService;
 
 class LoginUseCase
 {
@@ -47,12 +48,15 @@ class LoginUseCase
             'role' => $role,
         ];
         $token = $this->tokenGenerator->generate(array_merge($payload, ['type' => 'access']));
-        $expiresIn = 3600;
+        $expiresIn = JwtService::ACCESS_TOKEN_TTL;
         $refreshToken = $this->tokenGenerator->generate(array_merge($payload, ['type' => 'refresh']));
+        $cookieSecure = getenv('COOKIE_SECURE') !== false
+            ? filter_var(getenv('COOKIE_SECURE'), FILTER_VALIDATE_BOOLEAN)
+            : (getenv('APP_ENV') === 'production');
         setcookie('refresh_token', $refreshToken, [
-            'expires' => time() + 604800,
+            'expires' => time() + JwtService::REFRESH_TOKEN_TTL,
             'httponly' => true,
-            'secure' => true,
+            'secure' => $cookieSecure,
             'samesite' => 'Strict',
             'path' => '/',
         ]);
