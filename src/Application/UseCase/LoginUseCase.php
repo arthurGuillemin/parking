@@ -50,14 +50,10 @@ class LoginUseCase
         $token = $this->tokenGenerator->generate(array_merge($payload, ['type' => 'access']));
         $expiresIn = JwtService::ACCESS_TOKEN_TTL;
         $refreshToken = $this->tokenGenerator->generate(array_merge($payload, ['type' => 'refresh']));
-        $cookieSecure = getenv('COOKIE_SECURE') !== false
-            ? filter_var(getenv('COOKIE_SECURE'), FILTER_VALIDATE_BOOLEAN)
-            : (getenv('APP_ENV') === 'production');
         setcookie('refresh_token', $refreshToken, [
             'expires' => time() + JwtService::REFRESH_TOKEN_TTL,
             'httponly' => true,
-            'secure' => $cookieSecure,
-            'samesite' => 'Strict',
+            'samesite' => 'Lax',
             'path' => '/',
         ]);
         return new LoginResponse($token, $expiresIn);

@@ -47,4 +47,27 @@ class RefreshTokenControllerTest extends TestCase
             $_COOKIE = $originalCookie;
         }
     }
+
+    public function testRefreshFailsWithAccessTokenType()
+    {
+        $originalCookie = $_COOKIE;
+        try {
+            $jwtService = $this->createMock(JwtService::class);
+            $payload = [
+                'user_id' => 1,
+                'email' => 'test@example.com',
+                'role' => 'user',
+                'type' => 'access', // Mauvais type exemple
+            ];
+            $_COOKIE['refresh_token'] = 'access.jwt.token';
+            $jwtService->method('decode')->willReturn($payload);
+            $controller = new RefreshTokenController($jwtService);
+            ob_start();
+            $controller->refresh();
+            $output = ob_get_clean();
+            $this->assertStringContainsString('Invalid refresh token', $output);
+        } finally {
+            $_COOKIE = $originalCookie;
+        }
+    }
 }

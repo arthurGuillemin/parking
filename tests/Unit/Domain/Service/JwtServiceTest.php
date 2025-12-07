@@ -55,7 +55,7 @@ class JwtServiceTest extends TestCase
     {
         putenv('JWT_SECRET_KEY');
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("L'environnement variable JWT_SECRET_KEY doit être définie avec une valeur non vide.");
+        $this->expectExceptionMessage("La variable d'environnement JWT_SECRET_KEY doit être définie avec une valeur non vide.");
         $service = new JwtService();
         $payload = ['user_id' => 1, 'role' => 'user', 'type' => 'access'];
         $service->generate($payload);

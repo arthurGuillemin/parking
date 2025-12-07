@@ -8,7 +8,7 @@ use Firebase\JWT\Key;
 
 class JwtService implements TokenGeneratorInterface {
 
-    private string $secretKey = '';
+    private string $secretKey;
     private string $algorithm = 'HS256';
 
     public const ACCESS_TOKEN_TTL = 3600;
@@ -18,7 +18,7 @@ class JwtService implements TokenGeneratorInterface {
     {
         $secret = getenv('JWT_SECRET_KEY');
         if (!is_string($secret) || trim($secret) === '') {
-            throw new \RuntimeException("L'environnement variable JWT_SECRET_KEY doit être définie avec une valeur non vide.");
+            throw new \RuntimeException("La variable d'environnement JWT_SECRET_KEY doit être définie avec une valeur non vide.");
         }
         $this->secretKey = $secret;
     }
