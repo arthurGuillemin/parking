@@ -4,37 +4,57 @@ namespace App\Application\UseCase\User\Register;
 
 use App\Domain\Entity\User;
 use App\Domain\Repository\UserRepositoryInterface;
-use Ramsey\Uuid\Uuid; // composer require ramsey/uuid
+use App\Domain\Security\PasswordHasherInterface;
+use App\Domain\Service\UserRegistrationValidator;
+use Ramsey\Uuid\Uuid;
 
 class UserRegisterUseCase
 {
-    private UserRepositoryInterface $ownerRepository;
+    private UserRepositoryInterface $userRepository;
+    private UserRegistrationValidator $validator;
+    private PasswordHasherInterface $passwordHasher;
 
-    public function __construct(UserRepositoryInterface $ownerRepository)
-    {
-        $this->ownerRepository = $ownerRepository;
+    public function __construct(
+        UserRepositoryInterface $userRepository,
+        UserRegistrationValidator $validator,
+        PasswordHasherInterface $passwordHasher
+    ) {
+        $this->userRepository   = $userRepository;
+        $this->validator        = $validator;
+        $this->passwordHasher   = $passwordHasher;
     }
 
     /**
-     * Register a new owner account.
+     *  Nouvel utilisateur 
      *
-     * @param UserRegisterRequest $request
-     * @return User
-     * @throws \InvalidArgumentException si l email est déjà utilisé
+     * @throws \InvalidArgumentException si les données sont invalides ou si l'email est déjà utilisé
      */
     public function execute(UserRegisterRequest $request): User
     {
-        if ($this->ownerRepository->findByEmail($request->email)) {
+        // 1. Validation métier (email, mot de passe, prénom, nom)
+        $errors = $this->validator->validate(
+            email: $request->email,
+            password: $request->password,
+            firstName: $request->firstName,
+            lastName: $request->lastName
+        );
+
+        if (!empty($errors)) {
+            throw new \InvalidArgumentException(
+                'Données d\'inscription invalides : ' . implode(' | ', $errors)
+            );
+        }
+
+        // 2. Vérifier l'unicité de l'email
+        if ($this->userRepository->findByEmail($request->email)) {
             throw new \InvalidArgumentException('Un compte avec cet email existe déjà.');
         }
-        if (strlen($request->password) < 8) {
-            throw new \InvalidArgumentException('Le mot de passe doit contenir au moins 8 caractères.');
-        }
-        if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('L adresse email n est pas valide.');
-        }
-        $passwordHash = password_hash($request->password, PASSWORD_DEFAULT);
-        $owner = new User(
+
+        // 3. Hash du mot de passe (via l'interface de domaine)
+        $passwordHash = $this->passwordHasher->hash($request->password);
+
+        // 4. Création de l'entité User
+        $user = new User(
             Uuid::uuid4()->toString(),
             $request->email,
             $passwordHash,
@@ -42,6 +62,8 @@ class UserRegisterUseCase
             $request->lastName,
             new \DateTimeImmutable()
         );
-        return $this->ownerRepository->save($owner);
+
+        // 5. Persistance
+        return $this->userRepository->save($user);
     }
 }
