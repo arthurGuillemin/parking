@@ -26,7 +26,7 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE id = :id
             ");
@@ -48,10 +48,10 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE user_id = :user_id
-                ORDER BY start_date_time DESC
+                ORDER BY start_datetime DESC
             ");
             $stmt->execute(['user_id' => $userId]);
 
@@ -68,12 +68,12 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE parking_id = :parking_id
-                  AND start_date_time < :end
-                  AND end_date_time > :start
-                ORDER BY start_date_time
+                  AND start_datetime < :end
+                  AND end_datetime > :start
+                ORDER BY start_datetime
             ");
             $stmt->execute([
                 'parking_id' => $parkingId,
@@ -93,10 +93,10 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE parking_id = :parking_id
-                ORDER BY start_date_time DESC
+                ORDER BY start_datetime DESC
             ");
             $stmt->execute(['parking_id' => $parkingId]);
 
@@ -120,8 +120,8 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                     UPDATE reservations
                     SET user_id = :user_id,
                         parking_id = :parking_id,
-                        start_date_time = :start_date_time,
-                        end_date_time = :end_date_time,
+                        start_datetime = :start_date_time,
+                        end_datetime = :end_date_time,
                         status = :status,
                         calculated_amount = :calculated_amount,
                         final_amount = :final_amount
@@ -129,7 +129,7 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO reservations (id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount)
+                    INSERT INTO reservations (id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount)
                     VALUES (:id, :user_id, :parking_id, :start_date_time, :end_date_time, :status, :calculated_amount, :final_amount)
                 ");
             }
