@@ -23,7 +23,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, subscription_id, weekday_start, weekday_end, start_time, end_time
+                SELECT id, subscriptionTypeId, weekday, start_time, end_time
                 FROM subscription_slots
                 WHERE id = :id
             ");
@@ -45,10 +45,10 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, subscription_id, weekday_start, weekday_end, start_time, end_time
+                SELECT id, subscriptionTypeId, weekday, start_time, end_time
                 FROM subscription_slots
-                WHERE subscription_id = :typeId
-                ORDER BY weekday_start, start_time
+                WHERE subscriptionTypeId = :typeId
+                ORDER BY weekday, start_time
             ");
             $stmt->execute(['typeId' => $typeId]);
             $rows = $stmt->fetchAll();
@@ -71,25 +71,23 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
             if ($existing) {
                 $stmt = $this->db->prepare("
                     UPDATE subscription_slots
-                    SET subscription_id = :subscription_id,
-                        weekday_start = :weekday_start,
-                        weekday_end = :weekday_end,
+                    SET subscriptionTypeId = :subscriptionTypeId,
+                        weekday = :weekday,
                         start_time = :start_time,
                         end_time = :end_time
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscription_slots (id, subscription_id, weekday_start, weekday_end, start_time, end_time)
-                    VALUES (:id, :subscription_id, :weekday_start, :weekday_end, :start_time, :end_time)
+                    INSERT INTO subscription_slots (id, subscriptionTypeId, weekday, start_time, end_time)
+                    VALUES (:id, :subscriptionTypeId, :weekday, :start_time, :end_time)
                 ");
             }
 
             $stmt->execute([
                 'id' => $slot->getSubscriptionSlotId(),
-                'subscription_id' => $slot->getSubscriptionId(),
-                'weekday_start' => $slot->getWeekdayStart(),
-                'weekday_end' => $slot->getWeekdayEnd(),
+                'subscriptionTypeId' => $slot->getSubscriptionSlotId(),
+                'weekday' => $slot->getWeekday(),
                 'start_time' => $slot->getStartTime()->format('H:i:s'),
                 'end_time' => $slot->getEndTime()->format('H:i:s'),
             ]);
@@ -101,13 +99,32 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
         }
     }
 
+    // supprimer un crénau horaire
+    public function delete(int $id): void
+{
+    try {
+        $stmt = $this->db->prepare("
+            DELETE FROM subscription_slots
+            WHERE id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new RuntimeException("Aucun créneau trouvé avec l'id {$id} à supprimer.");
+        }
+
+    } catch (PDOException $e) {
+        throw new RuntimeException("Erreur lors de la suppression du créneau: " . $e->getMessage());
+    }
+}
+
+
     private function mapToSubscriptionSlot(array $row): SubscriptionSlot
     {
         return new SubscriptionSlot(
             id: (int)$row['id'],
-            subscriptionId: (int)$row['subscription_id'],
-            weekdayStart: (int)$row['weekday_start'],
-            weekdayEnd: (int)$row['weekday_end'],
+            subscriptionTypeId: (int)$row['subscriptionTypeId'],
+            weekday: (int)$row['weekday'],
             startTime: new DateTimeImmutable($row['start_time']),
             endTime: new DateTimeImmutable($row['end_time'])
         );
