@@ -23,7 +23,7 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, parking_id, weekday, opening_time, closing_time
+                SELECT id, parking_id, weekdayStart , weekdayStart, opening_time, closing_time
                 FROM opening_hours
                 WHERE id = :id
             ");
@@ -45,10 +45,10 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, parking_id, weekday, opening_time, closing_time
+                SELECT id, parking_id, weekdayStart, weekdayEnd, opening_time, closing_time
                 FROM opening_hours
                 WHERE parking_id = :parking_id
-                ORDER BY weekday
+                ORDER BY weekdayStart
             ");
             $stmt->execute(['parking_id' => $parkingId]);
 
@@ -70,21 +70,23 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
                 $stmt = $this->db->prepare("
                     UPDATE opening_hours
                     SET parking_id = :parking_id,
-                        weekday = :weekday,
+                        weekdayStart = :weekdayStart,
+                        weekdayEnd = :weekdayEnd,
                         opening_time = :opening_time,
                         closing_time = :closing_time
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO opening_hours (id, parking_id, weekday, opening_time, closing_time)
-                    VALUES (:id, :parking_id, :weekday, :opening_time, :closing_time)
+                    INSERT INTO opening_hours (id, parking_id, weekdayStart, weekdayEnd opening_time, closing_time)
+                    VALUES (:id, :parking_id, :weekdayStart, :weekdayEnd, :opening_time, :closing_time)
                 ");
             }
             $stmt->execute([
                 'id'           => $hour->getOpeningHourId(),
                 'parking_id'   => $hour->getParkingId(),
-                'weekday'      => $hour->getWeekday(),
+                'weekdayStart'      => $hour->getWeekdayStart(),
+                'weekdayEnd' => $hour->getWeekdayEnd(),
                 'opening_time' => $hour->getOpeningTime()->format('H:i:s'),
                 'closing_time' => $hour->getClosingTime()->format('H:i:s'),
             ]);
@@ -99,7 +101,8 @@ class SqlOpeningHourRepository implements OpeningHourRepositoryInterface
         return new OpeningHour(
             id: (int)$row['id'],
             parkingId: (int)$row['parking_id'],
-            weekday: (int)$row['weekday'],
+            weekdayStart: (int)$row['weekdayStart'],
+            weekdayEnd: (int)$row['weekdayEnd'],
             openingTime: new DateTimeImmutable($row['opening_time']),
             closingTime: new DateTimeImmutable($row['closing_time'])
         );

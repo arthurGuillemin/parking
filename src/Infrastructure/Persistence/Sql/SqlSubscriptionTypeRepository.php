@@ -24,7 +24,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, name, description
+                SELECT id, parking_id, name, description
                 FROM subscription_types
                 WHERE id = :id
             ");
@@ -47,7 +47,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->query("
-                SELECT id, name, description
+                SELECT id, parking_id, name, description
                 FROM subscription_types
                 ORDER BY name
             ");
@@ -75,8 +75,8 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscription_types (id, name, description)
-                    VALUES (:id, :name, :description)
+                    INSERT INTO subscription_types (id, parking_id, name, description)
+                    VALUES (:id,  :parking_id ,:name, :description)
                 ");
             }
 
@@ -84,6 +84,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
                 'id' => $type->getSubscriptionTypeId(),
                 'name' => $type->getName(),
                 'description' => $type->getDescription(),
+                'parking_id' =>$type->getParkingId(),
             ]);
 
             return $type;
@@ -97,6 +98,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         return new SubscriptionType(
             id: (int)$row['id'],
+            parkingId:$row['parking_id'],
             name: $row['name'],
             description: $row['description']
         );
