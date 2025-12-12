@@ -2,7 +2,8 @@
 
 namespace App\Domain\Entity;
 
-class Reservation {
+class Reservation
+{
     private int $id;
     private string $userId; // UUID
     private int $parkingId;
@@ -12,7 +13,8 @@ class Reservation {
     private ?float $calculatedAmount; // calculé à la création
     private ?float $finalAmount; // mis à jour après le stationnement
 
-    public function __construct(int $id, string $userId, int $parkingId, \DateTimeImmutable $startDateTime, \DateTimeImmutable $endDateTime, string $status, ?float $calculatedAmount, ?float $finalAmount) {
+    public function __construct(int $id, string $userId, int $parkingId, \DateTimeImmutable $startDateTime, \DateTimeImmutable $endDateTime, string $status, ?float $calculatedAmount, ?float $finalAmount)
+    {
         $this->id = $id;
         $this->userId = $userId;
         $this->parkingId = $parkingId;
@@ -23,35 +25,50 @@ class Reservation {
         $this->finalAmount = $finalAmount;
     }
 
-    public function getReservationId(): int {
+    public function getReservationId(): int
+    {
         return $this->id;
     }
 
-    public function getUserId(): string {
+    public function getUserId(): string
+    {
         return $this->userId;
     }
 
-    public function getParkingId(): int {
+    public function getParkingId(): int
+    {
         return $this->parkingId;
     }
 
-    public function getStartDateTime(): \DateTimeImmutable {
+    public function getStartDateTime(): \DateTimeImmutable
+    {
         return $this->startDateTime;
     }
 
-    public function getEndDateTime(): \DateTimeImmutable {
+    public function getEndDateTime(): \DateTimeImmutable
+    {
         return $this->endDateTime;
     }
 
-    public function getStatus(): string {
+    public function getStatus(): string
+    {
         return $this->status;
     }
 
-    public function getCalculatedAmount(): ?float {
+    public function getCalculatedAmount(): ?float
+    {
         return $this->calculatedAmount;
     }
 
-    public function getFinalAmount(): ?float {
+    public function getFinalAmount(): ?float
+    {
         return $this->finalAmount;
+    }
+
+    public function complete(\DateTimeImmutable $endTime, float $amount): void
+    {
+        $this->status = 'completed';
+        $this->endDateTime = $endTime;
+        $this->finalAmount = $amount;
     }
 }
