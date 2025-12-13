@@ -8,7 +8,9 @@
     "ramsey/uuid": "^4.9",
       "ext-pdo": "*",
       "ext-xdebug": "*",
-    "firebase/php-jwt": "^6.11"
+    "firebase/php-jwt": "^6.11",
+    "php-di/php-di": "^7.1",
+    "league/route": "^6.2"
   },
   "autoload": {
     "psr-4": {

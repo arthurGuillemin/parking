@@ -1,105 +1,124 @@
-CREATE TABLE IF NOT EXISTS UTILISATEUR (
-  Id_Utilisateur INT PRIMARY KEY,
-  Email VARCHAR(255) UNIQUE NOT NULL,
-  Password VARCHAR(255) NOT NULL,
-  Nom VARCHAR(255) NOT NULL,
-  Prenom VARCHAR(255) NOT NULL,
-  Date_creation DATETIME NOT NULL
+-- Tables correspondant au code PHP (English naming, UUIDs for users/owners)
+
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR(36) PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  creation_date DATETIME NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS PROPRIETAIRE_PARKING (
-  Id_Proprietaire INT PRIMARY KEY,
-  Email VARCHAR(255) UNIQUE NOT NULL,
-  Password VARCHAR(255) NOT NULL,
-  Nom VARCHAR(255) NOT NULL,
-  Prenom VARCHAR(255) NOT NULL,
-  Date_creation DATETIME NOT NULL
+CREATE TABLE IF NOT EXISTS owners (
+  id VARCHAR(36) PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  creation_date DATETIME NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS PARKING (
-  Id_Parking INT PRIMARY KEY,
-  Id_Proprietaire INT NOT NULL REFERENCES PROPRIETAIRE_PARKING(Id_Proprietaire),
-  Nom VARCHAR(255) NOT NULL,
-  Adresse VARCHAR(255) NOT NULL,
-  Latitude DECIMAL(10, 8) NOT NULL,
-  Longitude DECIMAL(11, 8) NOT NULL,
-  Capacite_total INT NOT NULL,
-  Ouvert_24_7 BOOLEAN DEFAULT FALSE NOT NULL
+CREATE TABLE IF NOT EXISTS parkings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  owner_id VARCHAR(36) NOT NULL, -- UUID references owners.id, but foreign keys might fail if types differ. ensuring VARCHAR(36)
+  name VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  latitude DECIMAL(10, 8) NOT NULL,
+  longitude DECIMAL(11, 8) NOT NULL,
+  total_capacity INT NOT NULL,
+  open_24_7 BOOLEAN DEFAULT FALSE NOT NULL,
+  FOREIGN KEY (owner_id) REFERENCES owners(id)
 );
 
-CREATE TABLE IF NOT EXISTS TYPE_ABONNEMENT (
-  Id_Type INT PRIMARY KEY,
-  Nom VARCHAR(255) NOT NULL,
-  Description TEXT NULL
+CREATE TABLE IF NOT EXISTS subscription_types (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  description TEXT NULL
 );
 
-CREATE TABLE IF NOT EXISTS ABONNEMENT (
-  Id_Abonnement INT PRIMARY KEY,
-  Id_Utilisateur INT NOT NULL REFERENCES UTILISATEUR(Id_Utilisateur),
-  Id_Parking INT NOT NULL REFERENCES PARKING(Id_Parking),
-  Id_Type INT NOT NULL REFERENCES TYPE_ABONNEMENT(Id_Type),
-  Date_debut DATE NOT NULL,
-  Date_fin DATE NOT NULL,
-  Prix_mensuel DECIMAL(10, 2) NOT NULL,
-  Statut VARCHAR(50) NOT NULL
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(36) NOT NULL,
+  parking_id INT NOT NULL,
+  type_id INT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NULL,
+  status VARCHAR(50) NOT NULL,
+  monthly_price DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (parking_id) REFERENCES parkings(id),
+  FOREIGN KEY (type_id) REFERENCES subscription_types(id)
 );
 
-CREATE TABLE IF NOT EXISTS CRENEAU_ABONNEMENT (
-  Id_Creneau INT PRIMARY KEY,
-  Id_Type INT NOT NULL REFERENCES TYPE_ABONNEMENT(Id_Type),
-  Jour_semaine_debut TINYINT NOT NULL,
-  Heure_debut TIME NOT NULL,
-  Jour_semaine_fin TINYINT NOT NULL,
-  Heure_fin TIME NOT NULL
+-- Note: In the code, SubscriptionSlotRepository uses 'subscription_id' to filter by type.
+-- Assuming 'subscription_id' references 'subscription_types' to define slots for a type.
+CREATE TABLE IF NOT EXISTS subscription_slots (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  subscription_id INT NOT NULL, 
+  weekday_start TINYINT NOT NULL,
+  weekday_end TINYINT NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  FOREIGN KEY (subscription_id) REFERENCES subscription_types(id)
 );
 
-CREATE TABLE IF NOT EXISTS RESERVATION (
-  Id_Reservation INT PRIMARY KEY,
-  Id_Utilisateur INT NOT NULL REFERENCES UTILISATEUR(Id_Utilisateur),
-  Id_Parking INT NOT NULL REFERENCES PARKING(Id_Parking),
-  Date_heure_debut DATETIME NOT NULL,
-  Date_heure_fin DATETIME NOT NULL,
-  Statut VARCHAR(50) NOT NULL,
-  Montant_calcule DECIMAL(10, 2) NOT NULL,
-  Montant_final DECIMAL(10, 2) NOT NULL
+CREATE TABLE IF NOT EXISTS reservations (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(36) NOT NULL,
+  parking_id INT NOT NULL,
+  start_date_time DATETIME NOT NULL,
+  end_date_time DATETIME NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  calculated_amount DECIMAL(10, 2) NOT NULL,
+  final_amount DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (parking_id) REFERENCES parkings(id)
 );
 
-CREATE TABLE IF NOT EXISTS STATIONNEMENT (
-  Id_Stationnement INT PRIMARY KEY,
-  Id_Utilisateur INT NOT NULL REFERENCES UTILISATEUR(Id_Utilisateur),
-  Id_Parking INT NOT NULL REFERENCES PARKING(Id_Parking),
-  Id_Reservation INT NULL REFERENCES RESERVATION(Id_Reservation),
-  Date_heure_entree DATETIME NOT NULL,
-  Date_heure_sortie DATETIME NULL,
-  Montant_final DECIMAL(10, 2) NULL,
-  Penalite_appliquee BOOLEAN DEFAULT FALSE NOT NULL
+CREATE TABLE IF NOT EXISTS parking_sessions (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(36) NOT NULL,
+  parking_id INT NOT NULL,
+  reservation_id INT NULL,
+  entry_date_time DATETIME NOT NULL,
+  exit_date_time DATETIME NULL,
+  final_amount DECIMAL(10, 2) NULL,
+  penalty_applied BOOLEAN DEFAULT FALSE NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (parking_id) REFERENCES parkings(id),
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id)
 );
 
-CREATE TABLE IF NOT EXISTS REGLE_TARIFAIRE (
-  Id_Regle INT PRIMARY KEY,
-  Id_Parking INT NOT NULL REFERENCES PARKING(Id_Parking),
-  Duree_debut_minute INT NOT NULL,
-  Duree_fin_minute INT NULL,
-  Prix_par_tranche DECIMAL(10, 2) NOT NULL,
-  Tranche_minute INT DEFAULT 15 NOT NULL,
-  Date_application DATE NOT NULL
+CREATE TABLE IF NOT EXISTS pricing_rules (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  parking_id INT NOT NULL,
+  start_duration_minute INT NOT NULL,
+  end_duration_minute INT NULL,
+  price_per_slice DECIMAL(10, 2) NOT NULL,
+  slice_in_minutes INT DEFAULT 15 NOT NULL,
+  effective_date DATETIME NOT NULL,
+  FOREIGN KEY (parking_id) REFERENCES parkings(id)
 );
 
-CREATE TABLE IF NOT EXISTS HORAIRE_OUVERTURE (
-  Id_Horaire INT PRIMARY KEY,
-  Id_Parking INT NOT NULL REFERENCES PARKING(Id_Parking),
-  Jour_semaine TINYINT NOT NULL,
-  Heure_ouverture TIME NOT NULL,
-  Heure_fermeture TIME NOT NULL
+CREATE TABLE IF NOT EXISTS opening_hours (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  parking_id INT NOT NULL,
+  weekday TINYINT NOT NULL,
+  opening_time TIME NOT NULL,
+  closing_time TIME NOT NULL,
+  FOREIGN KEY (parking_id) REFERENCES parkings(id)
 );
 
-CREATE TABLE IF NOT EXISTS FACTURE (
-  Id_Facture INT PRIMARY KEY,
-  Id_Reservation INT NULL REFERENCES RESERVATION(Id_Reservation),
-  Id_Stationnement INT NULL REFERENCES STATIONNEMENT(Id_Stationnement),
-  Date_emission DATETIME NOT NULL,
-  Montant_HT DECIMAL(10, 2) NOT NULL,
-  Montant_TTC DECIMAL(10, 2) NOT NULL,
-  Detail_json TEXT NULL,
-  Type_facture VARCHAR(50) NOT NULL
+CREATE TABLE IF NOT EXISTS invoices (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  reservation_id INT NULL,
+  session_id INT NULL,
+  issue_date DATETIME NOT NULL,
+  amount_ht DECIMAL(10, 2) NOT NULL,
+  amount_ttc DECIMAL(10, 2) NOT NULL,
+  details_json TEXT NULL,
+  invoice_type VARCHAR(50) NOT NULL,
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id),
+  FOREIGN KEY (session_id) REFERENCES parking_sessions(id)
 );
+

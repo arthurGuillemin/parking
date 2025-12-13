@@ -40,7 +40,7 @@ class UserRegisterUseCaseTest extends TestCase
 
                 // On simule la génération d'un ID par la BDD
                 return new User(
-                    $user->getUserId(),          
+                    $user->getUserId(),
                     $user->getEmail(),
                     $user->getPassword(),
                     $user->getFirstName(),
@@ -52,9 +52,9 @@ class UserRegisterUseCaseTest extends TestCase
 
         // Fake PasswordHasher
         $hasher = new class implements PasswordHasherInterface {
-            public function hash(string $plainPassword): string
+            public function hash(string $password): string
             {
-                return 'hashed:' . $plainPassword;
+                return 'hashed:' . $password;
             }
         };
 
@@ -112,9 +112,9 @@ class UserRegisterUseCaseTest extends TestCase
         };
 
         $hasher = new class implements PasswordHasherInterface {
-            public function hash(string $plainPassword): string
+            public function hash(string $password): string
             {
-                return 'hashed:' . $plainPassword;
+                return 'hashed:' . $password;
             }
         };
 
@@ -159,9 +159,9 @@ class UserRegisterUseCaseTest extends TestCase
         };
 
         $hasher = new class implements PasswordHasherInterface {
-            public function hash(string $plainPassword): string
+            public function hash(string $password): string
             {
-                return 'hashed:' . $plainPassword;
+                return 'hashed:' . $password;
             }
         };
 
