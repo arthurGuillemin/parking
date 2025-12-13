@@ -6,7 +6,8 @@ use App\Domain\Auth\TokenGeneratorInterface;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-class JwtService implements TokenGeneratorInterface {
+class JwtService implements TokenGeneratorInterface
+{
 
     private string $secretKey;
     private string $algorithm = 'HS256';
@@ -16,7 +17,7 @@ class JwtService implements TokenGeneratorInterface {
 
     public function __construct()
     {
-        $secret = getenv('JWT_SECRET_KEY');
+        $secret = $_ENV['JWT_SECRET_KEY'] ?? $_SERVER['JWT_SECRET_KEY'] ?? getenv('JWT_SECRET_KEY');
         if (!is_string($secret) || trim($secret) === '') {
             throw new \RuntimeException("La variable d'environnement JWT_SECRET_KEY doit être définie avec une valeur non vide.");
         }
@@ -25,10 +26,16 @@ class JwtService implements TokenGeneratorInterface {
 
     public function generate(array $payload): string
     {
-        $payload['iat'] = time();
+        $now = time();
+        $payload['iat'] = $now; // Issued at
+        $payload['nbf'] = $now; // Not before (token valide immédiatement)
+
         if (!isset($payload['exp'])) {
-            $payload['exp'] = $payload['type'] === 'refresh' ? time() + self::REFRESH_TOKEN_TTL : time() + self::ACCESS_TOKEN_TTL;
+            $payload['exp'] = ($payload['type'] ?? 'access') === 'refresh'
+                ? $now + self::REFRESH_TOKEN_TTL
+                : $now + self::ACCESS_TOKEN_TTL;
         }
+
         return JWT::encode($payload, $this->secretKey, $this->algorithm);
     }
 

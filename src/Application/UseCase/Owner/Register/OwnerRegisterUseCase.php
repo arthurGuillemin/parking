@@ -15,13 +15,6 @@ class OwnerRegisterUseCase
         $this->ownerRepository = $ownerRepository;
     }
 
-    /**
-     * Register a new owner account.
-     *
-     * @param OwnerRegisterRequest $request
-     * @return Owner
-     * @throws \InvalidArgumentException si l email est déjà utilisé
-     */
     public function execute(OwnerRegisterRequest $request): Owner
     {
         if ($this->ownerRepository->findByEmail($request->email)) {
@@ -31,7 +24,7 @@ class OwnerRegisterUseCase
             throw new \InvalidArgumentException('Le mot de passe doit contenir au moins 8 caractères.');
         }
         if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('L adresse email n est pas valide.');
+            throw new \InvalidArgumentException("L'adresse email n est pas valide.");
         }
         $passwordHash = password_hash($request->password, PASSWORD_DEFAULT);
         $owner = new Owner(

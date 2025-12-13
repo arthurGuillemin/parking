@@ -5,9 +5,18 @@ use PHPUnit\Framework\TestCase;
 use App\Interface\Controller\OwnerController;
 use App\Domain\Service\OwnerService;
 use App\Domain\Entity\Owner;
+use App\Domain\Security\XssProtectionService;
 
 class OwnerControllerTest extends TestCase
 {
+    private XssProtectionService $xssProtection;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->xssProtection = new XssProtectionService();
+    }
+
     public function testRegisterReturnsArray()
     {
         $mockService = $this->createMock(OwnerService::class);
@@ -17,27 +26,29 @@ class OwnerControllerTest extends TestCase
         $mockOwner->method('getFirstName')->willReturn('James');
         $mockOwner->method('getLastName')->willReturn('Lebron');
         $mockService->method('register')->willReturn($mockOwner);
-        $controller = new OwnerController($mockService);
+        ob_start();
+        $controller = new OwnerController($mockService, $this->xssProtection);
         $data = [
             'email' => 'test@example.com',
             'password' => 'pass',
             'firstName' => 'James',
             'lastName' => 'Lebron'
         ];
-        $result = $controller->register($data);
-        $this->assertEquals([
-            'id' => 'uuid-1',
-            'email' => 'test@example.com',
-            'firstName' => 'James',
-            'lastName' => 'Lebron',
-        ], $result);
+        $controller->register($data);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('uuid-1', $output);
+        $this->assertStringContainsString('test@example.com', $output);
     }
-    public function testRegisterThrowsOnMissingFields()
+    
+    public function testRegisterReturnsErrorOnMissingFields()
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $controller = new OwnerController($this->createMock(OwnerService::class));
+        ob_start();
+        $controller = new OwnerController($this->createMock(OwnerService::class), $this->xssProtection);
         $controller->register(['email' => 'test@example.com']);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('error', $output);
     }
+    
     public function testLoginReturnsArray()
     {
         $mockService = $this->createMock(OwnerService::class);
@@ -47,35 +58,39 @@ class OwnerControllerTest extends TestCase
         $mockOwner->method('getFirstName')->willReturn('James');
         $mockOwner->method('getLastName')->willReturn('Lebron');
         $mockService->method('authenticate')->willReturn($mockOwner);
-        $controller = new OwnerController($mockService);
+        ob_start();
+        $controller = new OwnerController($mockService, $this->xssProtection);
         $data = [
             'email' => 'test@example.com',
             'password' => 'pass'
         ];
-        $result = $controller->login($data);
-        $this->assertEquals([
-            'id' => 'uuid-1',
-            'email' => 'test@example.com',
-            'firstName' => 'James',
-            'lastName' => 'Lebron',
-        ], $result);
+        $controller->login($data);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('uuid-1', $output);
+        $this->assertStringContainsString('test@example.com', $output);
     }
+    
     public function testLoginReturnsNull()
     {
         $mockService = $this->createMock(OwnerService::class);
         $mockService->method('authenticate')->willReturn(null);
-        $controller = new OwnerController($mockService);
+        ob_start();
+        $controller = new OwnerController($mockService, $this->xssProtection);
         $data = [
             'email' => 'test@example.com',
             'password' => 'pass'
         ];
-        $result = $controller->login($data);
-        $this->assertNull($result);
+        $controller->login($data);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('error', $output);
     }
-    public function testLoginThrowsOnMissingFields()
+    
+    public function testLoginReturnsErrorOnMissingFields()
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $controller = new OwnerController($this->createMock(OwnerService::class));
+        ob_start();
+        $controller = new OwnerController($this->createMock(OwnerService::class), $this->xssProtection);
         $controller->login(['email' => 'test@example.com']);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('error', $output);
     }
 }

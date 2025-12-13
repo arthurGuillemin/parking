@@ -4,13 +4,27 @@ use App\Interface\Controller\dbHealthController;
 
 return [
     ['GET', '/', 'HomeController::index'],
+    ['GET', '/health', dbHealthController::class, 'check'],
+
+    // Authentification utilisateur
     ['GET', '/login', 'AuthController::loginForm'],
     ['POST', '/login', 'AuthController::login'],
-    ['GET', '/parkings', 'ParkingController::list'],
-    ['GET', '/reservation', 'ReservationController::show'],
-    ['GET', '/health', dbHealthController::class, 'check'],
+    ['POST', '/logout', 'AuthController::logout'],
+    ['POST', '/token/refresh', 'RefreshTokenController::refresh'],
+
+    // Inscription utilisateur
+    ['GET', '/register', 'RegisterController::registerForm'],
+    ['POST', '/user/register', 'RegisterController::register'],
+
+    // Owner routes
+    ['GET', '/owner/register', 'OwnerController::registerForm'],
+    // Authentification propriétaire
     ['POST', '/owner/register', 'OwnerController::register'],
     ['POST', '/owner/login', 'OwnerController::login'],
+
+    // Routes utilisateur
+    ['GET', '/parkings', 'ParkingController::list'],
+    ['GET', '/reservation', 'ReservationController::show'],
     ['POST', '/parking/add', 'ParkingController::add'],
     ['POST', '/pricing-rule/update', 'PricingRuleController::update'],
     ['POST', '/opening-hour/update', 'OpeningHourController::update'],
