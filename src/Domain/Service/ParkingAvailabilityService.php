@@ -17,18 +17,10 @@ class ParkingAvailabilityService
     private OpeningHourRepositoryInterface $openingHourRepository;
 
     public function __construct(
-        ParkingRepositoryInterface $parkingRepository,
-        ParkingSessionRepositoryInterface $parkingSessionRepository,
-        OpeningHourRepositoryInterface $openingHourRepository,
-        ReservationRepositoryInterface $reservationRepository,
-        SubscriptionRepositoryInterface $subscriptionRepository
+        GetAvailableSpotsUseCase $getAvailableSpotsUseCase,
+        OpeningHourRepositoryInterface $openingHourRepository
     ) {
-        $this->getAvailableSpotsUseCase = new GetAvailableSpotsUseCase(
-            $parkingRepository,
-            $parkingSessionRepository,
-            $reservationRepository,
-            $subscriptionRepository
-        );
+        $this->getAvailableSpotsUseCase = $getAvailableSpotsUseCase;
         $this->openingHourRepository = $openingHourRepository;
     }
 
@@ -56,7 +48,7 @@ class ParkingAvailabilityService
     private function isOpenAt(Parking $parking, \DateTimeImmutable $dateTime): bool
     {
         $openingHours = $this->openingHourRepository->findByParkingId($parking->getParkingId());
-        $weekday = (int)$dateTime->format('N');
+        $weekday = (int) $dateTime->format('N');
         $time = $dateTime->format('H:i:s');
         foreach ($openingHours as $openingHour) {
             if ($weekday >= $openingHour->getWeekdayStart() && $weekday <= $openingHour->getWeekdayEnd()) {

@@ -112,16 +112,24 @@
                 <input type="password" id="password" name="password" required>
             </div>
             <button type="submit">Se connecter</button>
+            <div id="message"></div>
         </form>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
+            const messageDiv = document.getElementById('message');
+
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
+
+                // Reset message
+                messageDiv.className = '';
+                messageDiv.innerHTML = '';
+
                 fetch('/login', {
                     method: 'POST',
                     headers: {
@@ -129,16 +137,41 @@
                     },
                     body: JSON.stringify(data)
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert(data.error);
-                        } else {
-                            window.location.href = '/';
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.error || 'Erreur de connexion');
+                            });
                         }
+                        return response.json();
                     })
-                    .catch(error => console.error('Error:', error));
-            });
+                    .then(result => {
+                        messageDiv.className = 'success';
+                        messageDiv.innerHTML = 'Connexion réussie ! Redirection...';
+
+                        if (result.token) {
+                            localStorage.setItem('auth_token', result.token);
+                        }
+
+                        // Store user info and redirect
+                        setTimeout(() => {
+                            if (result.role === 'owner') {
+                                localStorage.setItem('owner_user', JSON.stringify({
+                                    firstName: result.firstName,
+                                    lastName: result.lastName
+                                }));
+                                window.location.href = '/owner/dashboard';
+                            } else {
+                                window.location.href = '/parkings';
+                            }
+                        }, 1000);
+            })
+                .catch(error => {
+                    messageDiv.className = 'error';
+                    messageDiv.innerHTML = error.message || 'Une erreur inattendue est survenue.';
+                    console.error('Error:', error);
+                });
+        });
         });
     </script>
 </body>

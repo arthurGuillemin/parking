@@ -25,14 +25,18 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE id = :id
+
+
+
             ");
             $stmt->execute(['id' => $id]);
 
             $row = $stmt->fetch();
-            if (!$row) return null;
+            if (!$row)
+                return null;
 
             return $this->mapToParkingSession($row);
 
@@ -42,20 +46,22 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     }
 
     //trouver un stationnement avec l'id utilisateur
+    //trouver un stationnement avec l'id utilisateur
 
     public function findActiveSessionByUserId(string $userId): ?ParkingSession
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
                 FROM parking_sessions
-                WHERE user_id = :user_id AND exit_date_time IS NULL
+                WHERE user_id = :user_id AND exit_time IS NULL
                 LIMIT 1
             ");
             $stmt->execute(['user_id' => $userId]);
 
             $row = $stmt->fetch();
-            if (!$row) return null;
+            if (!$row)
+                return null;
 
             return $this->mapToParkingSession($row);
 
@@ -63,19 +69,42 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             throw new RuntimeException("Aucun stationnement trouvé avec cet id d'utilisateur: " . $e->getMessage());
         }
     }
+
+    public function findByUserId(string $userId): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
+                FROM parking_sessions
+                WHERE user_id = :user_id
+                ORDER BY entry_time DESC
+            ");
+            $stmt->execute(['user_id' => $userId]);
+
+            $rows = $stmt->fetchAll();
+            return array_map([$this, 'mapToParkingSession'], $rows);
+
+        } catch (PDOException $e) {
+            throw new RuntimeException("Erreur de récupération de l'historique : " . $e->getMessage());
+        }
+    }
     //trouver un stationnement avec un id de resa
     public function findByReservationId(int $reservationId): ?ParkingSession
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE reservation_id = :reservation_id
+
+
+
             ");
             $stmt->execute(['reservation_id' => $reservationId]);
 
             $row = $stmt->fetch();
-            if (!$row) return null;
+            if (!$row)
+                return null;
 
             return $this->mapToParkingSession($row);
 
@@ -90,10 +119,13 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE parking_id = :parking_id
-                ORDER BY entry_date_time DESC
+                ORDER BY entry_time DESC
+
+
+
             ");
             $stmt->execute(['parking_id' => $parkingId]);
             $rows = $stmt->fetchAll();
@@ -115,26 +147,32 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
                     SET user_id = :user_id,
                         parking_id = :parking_id,
                         reservation_id = :reservation_id,
-                        entry_date_time = :entry_date_time,
-                        exit_date_time = :exit_date_time,
+                        entry_time = :entry_time,
+                        exit_time = :exit_time,
                         final_amount = :final_amount,
                         penalty_applied = :penalty_applied
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO parking_sessions (id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied)
-                    VALUES (:id, :user_id, :parking_id, :reservation_id, :entry_date_time, :exit_date_time, :final_amount, :penalty_applied)
+                    INSERT INTO parking_sessions (id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied)
+                    VALUES (:id, :user_id, :parking_id, :reservation_id, :entry_time, :exit_time, :final_amount, :penalty_applied)
                 ");
             }
+
+
+
             $stmt->execute([
-                'id'              => $session->getSessionId(),
-                'user_id'         => $session->getUserId(),
-                'parking_id'      => $session->getParkingId(),
-                'reservation_id'  => $session->getReservationId(),
-                'entry_date_time' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
-                'exit_date_time'  => $session->getExitDateTime()?->format('Y-m-d H:i:s'),
-                'final_amount'    => $session->getFinalAmount(),
+                'id' => $session->getSessionId(),
+                'user_id' => $session->getUserId(),
+                'parking_id' => $session->getParkingId(),
+                'reservation_id' => $session->getReservationId(),
+                'entry_time' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
+                'exit_time' => $session->getExitDateTime()?->format('Y-m-d H:i:s'),
+
+
+
+                'final_amount' => $session->getFinalAmount(),
                 'penalty_applied' => $session->isPenaltyApplied() ? 1 : 0,
             ]);
 
@@ -148,14 +186,17 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     private function mapToParkingSession(array $row): ParkingSession
     {
         return new ParkingSession(
-            id: (int)$row['id'],
+            id: (int) $row['id'],
             userId: $row['user_id'],
-            parkingId: (int)$row['parking_id'],
-            reservationId: $row['reservation_id'] !== null ? (int)$row['reservation_id'] : null,
-            entryDateTime: new DateTimeImmutable($row['entry_date_time']),
-            exitDateTime: $row['exit_date_time'] !== null ? new DateTimeImmutable($row['exit_date_time']) : null,
-            finalAmount: $row['final_amount'] !== null ? (float)$row['final_amount'] : null,
-            penaltyApplied: (bool)$row['penalty_applied']
+            parkingId: (int) $row['parking_id'],
+            reservationId: $row['reservation_id'] !== null ? (int) $row['reservation_id'] : null,
+            entryDateTime: new DateTimeImmutable($row['entry_time']),
+            exitDateTime: $row['exit_time'] !== null ? new DateTimeImmutable($row['exit_time']) : null,
+
+
+
+            finalAmount: $row['final_amount'] !== null ? (float) $row['final_amount'] : null,
+            penaltyApplied: (bool) $row['penalty_applied']
         );
     }
 }

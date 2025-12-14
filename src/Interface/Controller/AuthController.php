@@ -61,10 +61,26 @@ class AuthController
 
     public function logout(): void
     {
-        header('Content-Type: application/json; charset=UTF-8');
-
         // Supprimer le cookie refresh token
         setcookie('refresh_token', '', [
+            'expires' => time() - 3600,
+            'httponly' => true,
+            'secure' => ($_ENV['APP_ENV'] ?? 'development') === 'production',
+            'samesite' => 'Lax',
+            'path' => '/',
+        ]);
+
+        // Supprimer le cookie auth_token
+        setcookie('auth_token', '', [
+            'expires' => time() - 3600,
+            'httponly' => true,
+            'secure' => ($_ENV['APP_ENV'] ?? 'development') === 'production',
+            'samesite' => 'Lax',
+            'path' => '/',
+        ]);
+
+        // Supprimer le cookie owner_token
+        setcookie('owner_token', '', [
             'expires' => time() - 3600,
             'httponly' => true,
             'secure' => ($_ENV['APP_ENV'] ?? 'development') === 'production',
@@ -77,8 +93,8 @@ class AuthController
             session_destroy();
         }
 
-        http_response_code(200);
-        echo json_encode(['message' => 'Déconnexion réussie'], JSON_UNESCAPED_UNICODE);
+        header('Location: /login');
+        exit;
     }
 
     private function isValidPassword(string $password): bool
@@ -112,11 +128,22 @@ class AuthController
             'path' => '/',
         ]);
 
+        // Configuration sécurisée du cookie access token (auth_token)
+        setcookie('auth_token', $response->token, [
+            'expires' => time() + \App\Domain\Service\JwtService::ACCESS_TOKEN_TTL,
+            'httponly' => true,
+            'secure' => $isSecure,
+            'samesite' => 'Lax',
+            'path' => '/',
+        ]);
+
         http_response_code(200);
         echo json_encode([
             'token' => $response->token,
             'expires_in' => $response->expiresIn,
-            'role' => $response->role ?? 'user'
+            'role' => $response->role ?? 'user',
+            'firstName' => $response->firstName,
+            'lastName' => $response->lastName
         ], JSON_UNESCAPED_UNICODE);
     }
 

@@ -31,14 +31,40 @@ class UpdateOpeningHourUseCase
     public function execute(UpdateOpeningHourRequest $request): OpeningHour
     {
         [$weekdayStart, $weekdayEnd] = $this->validateWeekdays($request->weekdayStart, $request->weekdayEnd);
-        $openingHour = new OpeningHour(
-            0, // id auto-incrémenté par la DB
-            $request->parkingId,
-            $weekdayStart,
-            $weekdayEnd,
-            new \DateTimeImmutable($request->openingTime),
-            new \DateTimeImmutable($request->closingTime)
-        );
+
+        // Check for existing opening hours for this parking
+        $existingHours = $this->openingHourRepository->findByParkingId($request->parkingId);
+
+        $openingHour = null;
+
+        if (count($existingHours) > 0) {
+            // Update the first existing record
+            $first = $existingHours[0];
+            $openingHour = new OpeningHour(
+                $first->getOpeningHourId(),
+                $request->parkingId,
+                $weekdayStart,
+                $weekdayEnd,
+                new \DateTimeImmutable($request->openingTime),
+                new \DateTimeImmutable($request->closingTime)
+            );
+
+            // Delete duplicates if any
+            for ($i = 1; $i < count($existingHours); $i++) {
+                $this->openingHourRepository->delete($existingHours[$i]->getOpeningHourId());
+            }
+        } else {
+            // Create new
+            $openingHour = new OpeningHour(
+                0,
+                $request->parkingId,
+                $weekdayStart,
+                $weekdayEnd,
+                new \DateTimeImmutable($request->openingTime),
+                new \DateTimeImmutable($request->closingTime)
+            );
+        }
+
         return $this->openingHourRepository->save($openingHour);
     }
 }

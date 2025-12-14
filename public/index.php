@@ -35,11 +35,11 @@ function resolveController(string $controllerClass, ServiceContainer $container)
     if (!str_starts_with($controllerClass, 'App\\')) {
         $controllerClass = 'App\\Interface\\Controller\\' . $controllerClass;
     }
-    
+
     if (!$container->has($controllerClass)) {
         throw new \RuntimeException("Controller not found in container: $controllerClass");
     }
-    
+
     return $container->get($controllerClass);
 }
 
@@ -49,10 +49,10 @@ function callControllerMethod(object $controller, string $methodName, array $dat
     if (!method_exists($controller, $methodName)) {
         throw new \RuntimeException("Method $methodName not found in " . get_class($controller));
     }
-    
+
     $reflection = new ReflectionMethod($controller, $methodName);
     $params = $reflection->getParameters();
-    
+
     if (empty($params)) {
         return $controller->$methodName();
     } elseif (count($params) === 1) {
@@ -73,7 +73,7 @@ function matchRoute(string $routePath, string $uri): ?array
     // Convertir le pattern de route en regex
     $pattern = preg_replace('/:(\w+)/', '(?P<$1>[^/]+)', $routePath);
     $pattern = '#^' . $pattern . '$#';
-    
+
     if (preg_match($pattern, $uri, $matches)) {
         // Retourner les paramètres capturés
         $params = [];
@@ -84,7 +84,7 @@ function matchRoute(string $routePath, string $uri): ?array
         }
         return $params;
     }
-    
+
     return null;
 }
 
@@ -92,12 +92,12 @@ function matchRoute(string $routePath, string $uri): ?array
 $matched = false;
 foreach ($routes as $route) {
     [$method, $path, $handler] = $route;
-    
+
     // Vérifier la méthode HTTP
     if ($method !== $requestMethod) {
         continue;
     }
-    
+
     // Vérifier si la route correspond (avec ou sans paramètres)
     $params = null;
     if ($path === $uri) {
@@ -105,32 +105,41 @@ foreach ($routes as $route) {
     } else {
         $params = matchRoute($path, $uri);
     }
-    
+
     if ($params !== null) {
         $matched = true;
-        
+
         try {
             // Préparation des données
             $data = array_merge($_GET, $_POST, $params);
-            
+
             // Gestion du handler
+            $result = null;
             if (is_string($handler) && str_contains($handler, '::')) {
                 // Format "Controller::method"
                 [$controllerClass, $methodName] = explode('::', $handler);
                 $controller = resolveController($controllerClass, $container);
-                callControllerMethod($controller, $methodName, $data);
+                $result = callControllerMethod($controller, $methodName, $data);
             } elseif (is_array($handler) && count($handler) >= 2) {
                 // Format [Class, 'method']
                 [$controllerClass, $methodName] = $handler;
                 $controller = resolveController($controllerClass, $container);
-                callControllerMethod($controller, $methodName, $data);
+                $result = callControllerMethod($controller, $methodName, $data);
             } elseif (is_callable($handler)) {
                 // Handler callable
-                $handler($data);
+                $result = $handler($data);
             }
-            
+
+            // Output handling
+            if (is_array($result) || is_object($result)) {
+                header('Content-Type: application/json; charset=UTF-8');
+                echo json_encode($result, JSON_UNESCAPED_UNICODE);
+            } elseif (is_string($result)) {
+                echo $result;
+            }
+
             exit;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             error_log("Route error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             http_response_code(500);
             header('Content-Type: application/json; charset=UTF-8');

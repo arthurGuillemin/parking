@@ -4,7 +4,8 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\ParkingSession;
 
-interface ParkingSessionRepositoryInterface {
+interface ParkingSessionRepositoryInterface
+{
     public function findById(int $id): ?ParkingSession;
 
     public function findActiveSessionByUserId(string $userId): ?ParkingSession;
@@ -17,4 +18,6 @@ interface ParkingSessionRepositoryInterface {
      * Retourne toutes les sessions de stationnement d'un parking.
      */
     public function findByParkingId(int $parkingId): array;
+
+    public function findByUserId(string $userId): array;
 }

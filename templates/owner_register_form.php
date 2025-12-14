@@ -134,7 +134,9 @@
             <div id="message"></div>
         </form>
         <div class="link">
-            <a href="/owner/login">Déjà propriétaire ? Se connecter</a>
+            <div class="link">
+                <a href="/login">Déjà propriétaire ? Se connecter</a>
+            </div>
         </div>
     </div>
 
@@ -186,7 +188,7 @@
                         // Assuming /owner/login exists or will exist. 
                         // If not, maybe redirect to home or stay here.
                         // For now, let's try /owner/login as per standard flow.
-                        window.location.href = '/owner/login';
+                        window.location.href = '/login';
                     }, 2000);
                 } else {
                     messageDiv.className = 'error';

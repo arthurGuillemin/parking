@@ -8,7 +8,9 @@ readonly class LoginResponse
         public string $token,
         public string $refreshToken,
         public int $expiresIn,
-        public ?string $role = null
+        public ?string $role = null,
+        public ?string $firstName = null,
+        public ?string $lastName = null,
     ) {
     }
 }

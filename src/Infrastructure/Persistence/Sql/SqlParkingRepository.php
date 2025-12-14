@@ -86,23 +86,50 @@ class SqlParkingRepository implements ParkingRepositoryInterface
                         open_24_7 = :open_24_7
                     WHERE id = :id
                 ");
+                $params = [
+                    'id' => $parking->getParkingId(),
+                    'owner_id' => $parking->getOwnerId(),
+                    'name' => $parking->getName(),
+                    'address' => $parking->getAddress(),
+                    'latitude' => $parking->getLatitude(),
+                    'longitude' => $parking->getLongitude(),
+                    'total_capacity' => $parking->getTotalCapacity(),
+                    'open_24_7' => $parking->isOpen24_7() ? 1 : 0,
+                ];
+                $stmt->execute($params);
             } else {
                 // sinon on insert
                 $stmt = $this->db->prepare("
-                    INSERT INTO parkings (id, owner_id, name, address, latitude, longitude, total_capacity, open_24_7)
-                    VALUES (:id, :owner_id, :name, :address, :latitude, :longitude, :total_capacity, :open_24_7)
+                    INSERT INTO parkings (owner_id, name, address, latitude, longitude, total_capacity, open_24_7)
+                    VALUES (:owner_id, :name, :address, :latitude, :longitude, :total_capacity, :open_24_7)
+                    RETURNING id
                 ");
+                $params = [
+                    'owner_id' => $parking->getOwnerId(),
+                    'name' => $parking->getName(),
+                    'address' => $parking->getAddress(),
+                    'latitude' => $parking->getLatitude(),
+                    'longitude' => $parking->getLongitude(),
+                    'total_capacity' => $parking->getTotalCapacity(),
+                    'open_24_7' => $parking->isOpen24_7() ? 1 : 0,
+                ];
+                $stmt->execute($params);
+                $newId = (int) $stmt->fetchColumn();
+
+                // Update parking ID using reflection or setter if available. 
+                // Since Parking entity is immutable-ish (only getters usually), we might need to recreate it or add a set method.
+                // Assuming we can't easily change private property, let's create a NEW instance with the ID.
+                return new Parking(
+                    $newId,
+                    $parking->getOwnerId(),
+                    $parking->getName(),
+                    $parking->getAddress(),
+                    $parking->getLatitude(),
+                    $parking->getLongitude(),
+                    $parking->getTotalCapacity(),
+                    $parking->isOpen24_7()
+                );
             }
-            $stmt->execute([
-                'id'            => $parking->getParkingId(),
-                'owner_id'      => $parking->getOwnerId(),
-                'name'          => $parking->getName(),
-                'address'       => $parking->getAddress(),
-                'latitude'      => $parking->getLatitude(),
-                'longitude'     => $parking->getLongitude(),
-                'total_capacity'=> $parking->getTotalCapacity(),
-                'open_24_7'     => $parking->isOpen24_7() ? 1 : 0,
-            ]);
             return $parking;
         } catch (PDOException $e) {
             throw new RuntimeException("Failed to save parking: " . $e->getMessage());
@@ -112,14 +139,14 @@ class SqlParkingRepository implements ParkingRepositoryInterface
     private function mapToParking(array $row): Parking
     {
         return new Parking(
-            id: (int)$row['id'],
+            id: (int) $row['id'],
             ownerId: $row['owner_id'],
             name: $row['name'],
             address: $row['address'],
-            latitude: (float)$row['latitude'],
-            longitude: (float)$row['longitude'],
-            totalCapacity: (int)$row['total_capacity'],
-            open_24_7: (bool)$row['open_24_7']
+            latitude: (float) $row['latitude'],
+            longitude: (float) $row['longitude'],
+            totalCapacity: (int) $row['total_capacity'],
+            open_24_7: (bool) $row['open_24_7']
         );
     }
 }
