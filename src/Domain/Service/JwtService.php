@@ -60,4 +60,13 @@ class JwtService implements TokenGeneratorInterface
             return null;
         }
     }
+    public function validateToken(string $token): ?string
+    {
+        $decoded = $this->decode($token);
+        // Check for 'user_id' as that's what LoginUseCase uses
+        if (!$decoded || !isset($decoded['user_id'])) {
+            return null;
+        }
+        return $decoded['user_id'];
+    }
 }

@@ -72,7 +72,7 @@ class GetAvailableSpotsUseCase
         $occupied = 0;
         foreach ($reservations as $reservation) {
             if (
-                ($reservation->getStatus() === 'active') &&
+                ($reservation->getStatus() === 'confirmed' || $reservation->getStatus() === 'pending') &&
                 $reservation->getStartDateTime() <= $request->at &&
                 $reservation->getEndDateTime() > $request->at &&
                 !in_array($reservation->getReservationId(), $sessionReservationIds)
@@ -85,8 +85,8 @@ class GetAvailableSpotsUseCase
 
     private function countActiveSubscriptions(GetAvailableSpotsRequest $request, array $sessionUserIds): int
     {
-        $year = (int)$request->at->format('Y');
-        $month = (int)$request->at->format('m');
+        $year = (int) $request->at->format('Y');
+        $month = (int) $request->at->format('m');
         $subscriptions = $this->subscriptionRepository->findByParkingIdAndMonth($request->parkingId, $year, $month);
         $occupied = 0;
         foreach ($subscriptions as $subscription) {

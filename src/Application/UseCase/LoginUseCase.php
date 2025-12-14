@@ -76,7 +76,14 @@ class LoginUseCase
         $access = $this->tokenGenerator->generate(array_merge($payload, ['type' => 'access']));
         $refresh = $this->tokenGenerator->generate(array_merge($payload, ['type' => 'refresh']));
 
-        return new LoginResponse($access, $refresh, JwtService::ACCESS_TOKEN_TTL, $role);
+        return new LoginResponse(
+            $access,
+            $refresh,
+            JwtService::ACCESS_TOKEN_TTL,
+            $role,
+            $entity->getFirstName(),
+            $entity->getLastName()
+        );
     }
 
 }

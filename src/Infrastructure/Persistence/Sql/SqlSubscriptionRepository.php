@@ -31,7 +31,8 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
             $stmt->execute(['id' => $id]);
 
             $row = $stmt->fetch();
-            if (!$row) return null;
+            if (!$row)
+                return null;
 
             return $this->mapToSubscription($row);
 
@@ -40,7 +41,7 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
         }
     }
 
-        //trouver un abonnement avec l'id de l'utilisateur
+    //trouver un abonnement avec l'id de l'utilisateur
 
 
     public function findByUserId(string $userId): array
@@ -62,7 +63,32 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
         }
     }
 
-        //trouver un abonnement actif avec un id utilisateur
+    public function findActiveByUserId(string $userId): array
+    {
+        try {
+            $today = date('Y-m-d');
+            $stmt = $this->db->prepare("
+                SELECT id, user_id, parking_id, type_id, start_date, end_date, status, monthly_price
+                FROM subscriptions
+                WHERE user_id = :user_id
+                  AND start_date <= :today
+                  AND (end_date IS NULL OR end_date >= :today)
+                  AND status = 'active'
+            ");
+            $stmt->execute([
+                'user_id' => $userId,
+                'today' => $today
+            ]);
+
+            $rows = $stmt->fetchAll();
+            return array_map([$this, 'mapToSubscription'], $rows);
+
+        } catch (PDOException $e) {
+            throw new RuntimeException("Erreur lors de la recherche des abonnements actifs: " . $e->getMessage());
+        }
+    }
+
+    //trouver un abonnement actif avec un id utilisateur
 
 
     public function findActiveByUserAndParking(string $userId, int $parkingId, DateTimeImmutable $date): array
@@ -91,7 +117,7 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
         }
     }
 
-        //trouver un abonnement avec son id pour un mois donné
+    //trouver un abonnement avec son id pour un mois donné
 
     public function findByParkingIdAndMonth(int $parkingId, int $year, int $month): array
     {
@@ -167,14 +193,14 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
     private function mapToSubscription(array $row): Subscription
     {
         return new Subscription(
-            id: (int)$row['id'],
+            id: (int) $row['id'],
             userId: $row['user_id'],
-            parkingId: (int)$row['parking_id'],
-            typeId: $row['type_id'] !== null ? (int)$row['type_id'] : null,
+            parkingId: (int) $row['parking_id'],
+            typeId: $row['type_id'] !== null ? (int) $row['type_id'] : null,
             startDate: new DateTimeImmutable($row['start_date']),
             endDate: $row['end_date'] !== null ? new DateTimeImmutable($row['end_date']) : null,
             status: $row['status'],
-            monthlyPrice: (float)$row['monthly_price']
+            monthlyPrice: (float) $row['monthly_price']
         );
     }
 }

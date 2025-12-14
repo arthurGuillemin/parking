@@ -17,9 +17,14 @@ class OwnerController
         $this->xssProtection = $xssProtection;
     }
 
+    public function dashboard(): void
+    {
+        require dirname(__DIR__, 3) . '/templates/owner_dashboard.php';
+    }
+
     public function registerForm(): void
     {
-        require __DIR__ . '/../../../../templates/owner_register_form.php';
+        require dirname(__DIR__, 3) . '/templates/owner_register_form.php';
     }
 
     public function register(array $data = []): array
@@ -79,6 +84,11 @@ class OwnerController
         }
     }
 
+    public function loginForm(): void
+    {
+        require dirname(__DIR__, 3) . '/templates/owner_login.php';
+    }
+
     public function login(array $data = []): ?array
     {
         header('Content-Type: application/json; charset=UTF-8');
@@ -101,21 +111,21 @@ class OwnerController
         }
 
         try {
-            $owner = $this->ownerService->authenticate($email, $password);
-            if ($owner) {
+            $loginResponse = $this->ownerService->authenticate($email, $password);
+            if ($loginResponse) {
                 http_response_code(200);
                 echo json_encode([
-                    'id' => $owner->getOwnerId(),
-                    'email' => $owner->getEmail(),
-                    'firstName' => $owner->getFirstName(),
-                    'lastName' => $owner->getLastName(),
+                    'token' => $loginResponse->token,
+                    'refreshToken' => $loginResponse->refreshToken,
+                    'expiresIn' => $loginResponse->expiresIn,
+                    'role' => $loginResponse->role,
                 ], JSON_UNESCAPED_UNICODE);
 
                 return [
-                    'id' => $owner->getOwnerId(),
-                    'email' => $owner->getEmail(),
-                    'firstName' => $owner->getFirstName(),
-                    'lastName' => $owner->getLastName(),
+                    'token' => $loginResponse->token,
+                    'refreshToken' => $loginResponse->refreshToken,
+                    'expiresIn' => $loginResponse->expiresIn,
+                    'role' => $loginResponse->role,
                 ];
             }
 
@@ -130,4 +140,3 @@ class OwnerController
         }
     }
 }
-

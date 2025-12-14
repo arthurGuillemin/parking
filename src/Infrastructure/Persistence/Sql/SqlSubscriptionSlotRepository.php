@@ -30,7 +30,8 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
             $stmt->execute(['id' => $id]);
             $row = $stmt->fetch();
 
-            if (!$row) return null;
+            if (!$row)
+                return null;
             return $this->mapToSubscriptionSlot($row);
 
         } catch (PDOException $e) {
@@ -38,7 +39,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
         }
     }
 
-        //trouver un créneau d'abonnement avec l'id du type
+    //trouver un créneau d'abonnement avec l'id du type
 
 
     public function findBySubscriptionTypeId(int $typeId): array
@@ -60,7 +61,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
         }
     }
 
-        //save un créneau d'abonnement
+    //save un créneau d'abonnement
 
 
     public function save(SubscriptionSlot $slot): SubscriptionSlot
@@ -101,13 +102,23 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
         }
     }
 
+    public function delete(int $id): void
+    {
+        try {
+            $stmt = $this->db->prepare('DELETE FROM subscription_slots WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+        } catch (PDOException $e) {
+            throw new RuntimeException("erreur lors de la suppression du créneau: " . $e->getMessage());
+        }
+    }
+
     private function mapToSubscriptionSlot(array $row): SubscriptionSlot
     {
         return new SubscriptionSlot(
-            id: (int)$row['id'],
-            subscriptionId: (int)$row['subscription_id'],
-            weekdayStart: (int)$row['weekday_start'],
-            weekdayEnd: (int)$row['weekday_end'],
+            id: (int) $row['id'],
+            subscriptionId: (int) $row['subscription_id'],
+            weekdayStart: (int) $row['weekday_start'],
+            weekdayEnd: (int) $row['weekday_end'],
             startTime: new DateTimeImmutable($row['start_time']),
             endTime: new DateTimeImmutable($row['end_time'])
         );

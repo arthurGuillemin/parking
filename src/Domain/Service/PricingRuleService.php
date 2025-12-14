@@ -22,5 +22,10 @@ class PricingRuleService
     {
         return $this->updatePricingRuleUseCase->execute($request);
     }
+
+    public function getPricingRulesByParkingId(int $parkingId): array
+    {
+        return $this->pricingRuleRepository->findByParkingId($parkingId);
+    }
 }
 

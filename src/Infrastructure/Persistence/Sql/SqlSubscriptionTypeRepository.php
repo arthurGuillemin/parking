@@ -24,14 +24,15 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, name, description
+                SELECT id, name, description, monthly_price
                 FROM subscription_types
                 WHERE id = :id
             ");
             $stmt->execute(['id' => $id]);
             $row = $stmt->fetch();
 
-            if (!$row) return null;
+            if (!$row)
+                return null;
 
             return $this->mapToSubscriptionType($row);
 
@@ -40,14 +41,12 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
         }
     }
 
-        //trouver tous les types d'abonnement
-
-
+    //trouver tous les types d'abonnement
     public function findAll(): array
     {
         try {
             $stmt = $this->db->query("
-                SELECT id, name, description
+                SELECT id, name, description, monthly_price
                 FROM subscription_types
                 ORDER BY name
             ");
@@ -59,8 +58,8 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
             throw new RuntimeException("erreur dans la recup des types abonnement : " . $e->getMessage());
         }
     }
-        //save un type d'abonnement
 
+    //save un type d'abonnement
     public function save(SubscriptionType $type): SubscriptionType
     {
         try {
@@ -70,13 +69,14 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
                 $stmt = $this->db->prepare("
                     UPDATE subscription_types
                     SET name = :name,
-                        description = :description
+                        description = :description,
+                        monthly_price = :monthly_price
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscription_types (id, name, description)
-                    VALUES (:id, :name, :description)
+                    INSERT INTO subscription_types (id, name, description, monthly_price)
+                    VALUES (:id, :name, :description, :monthly_price)
                 ");
             }
 
@@ -84,6 +84,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
                 'id' => $type->getSubscriptionTypeId(),
                 'name' => $type->getName(),
                 'description' => $type->getDescription(),
+                'monthly_price' => $type->getMonthlyPrice(),
             ]);
 
             return $type;
@@ -96,9 +97,11 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     private function mapToSubscriptionType(array $row): SubscriptionType
     {
         return new SubscriptionType(
-            id: (int)$row['id'],
+            id: (int) $row['id'],
+            parkingId: 0, // Still 0 as per schema
             name: $row['name'],
-            description: $row['description']
+            description: $row['description'],
+            monthlyPrice: (float) $row['monthly_price']
         );
     }
 }
