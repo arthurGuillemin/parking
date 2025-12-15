@@ -57,7 +57,6 @@ class ReservationRepository implements ReservationRepositoryInterface
 
     public function countOverlapping(int $parkingId, \DateTimeImmutable $start, \DateTimeImmutable $end): int
     {
-        // Reservation Overlap: Start < RequestEnd AND End > RequestStart
         $stmt = $this->pdo->prepare(
             'SELECT COUNT(*) FROM reservations 
              WHERE parking_id = ? 
@@ -81,15 +80,8 @@ class ReservationRepository implements ReservationRepositoryInterface
              AND parking_id = ? 
              AND start_date <= ? 
              AND end_date >= ?
-             AND status = "active" OR status = "pending"' // pending or active? Prompt says "réservation active". But created status is 'pending'? 
-            // Logic in UseCase sets 'pending'. But 'active' implies confirmed?
-            // Usually 'pending' means booked but not yet started/paid if post-payment.
-            // I'll assume standard states. Entry allows if valid.
-            // If status is 'completed' or 'cancelled', denied.
+             AND status = "active" OR status = "pending"'
         );
-        // Wait, SQL OR precedence. AND ... AND ... AND (.. OR ..)
-        // Correct query:
-        // status IN ('pending', 'active')
         $stmt = $this->pdo->prepare(
             "SELECT * FROM reservations 
              WHERE user_id = ? 

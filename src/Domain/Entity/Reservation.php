@@ -9,7 +9,7 @@ class Reservation
     private int $parkingId;
     private \DateTimeImmutable $startDateTime;
     private \DateTimeImmutable $endDateTime;
-    private string $status; // e.g., 'pending', 'active', 'completed', 'cancelled'
+    private string $status;
     private ?float $calculatedAmount; // calculé à la création
     private ?float $finalAmount; // mis à jour après le stationnement
 

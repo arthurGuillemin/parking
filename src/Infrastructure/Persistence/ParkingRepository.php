@@ -83,8 +83,6 @@ class ParkingRepository implements ParkingRepositoryInterface
 
     private function update(Parking $parking): Parking
     {
-        // ... (Omitting update logic for now as tests mostly insert)
-        // Implementing basic update
         $stmt = $this->pdo->prepare(
             'UPDATE parkings 
              SET owner_id=?, name=?, address=?, latitude=?, longitude=?, total_capacity=?, open_24_7=? 

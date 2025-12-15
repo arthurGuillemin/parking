@@ -7,7 +7,7 @@ use App\Domain\Entity\Reservation;
 use App\Domain\Repository\ParkingRepositoryInterface;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Domain\Service\CheckAvailabilityService;
-use App\Domain\Repository\PricingRuleRepositoryInterface; // Optional usage
+use App\Domain\Repository\PricingRuleRepositoryInterface;
 
 class MakeReservationUseCase
 {
@@ -35,13 +35,12 @@ class MakeReservationUseCase
             throw new \Exception("Parking not found");
         }
 
-        // 1. Check Availability
+        // vérifier si le parking est disponible
         if (!$this->checkAvailabilityService->checkAvailability($parking, $request->startDateTime, $request->endDateTime)) {
             throw new \Exception("Parking is full during this period.");
         }
 
-        // 2. Calculate Price
-        // Find applicable rule for start time
+        // calculer le prix
         $rule = $this->pricingRuleRepository->findApplicableRule($parking->getParkingId(), $request->startDateTime);
         $amount = 0.0;
 
@@ -50,24 +49,20 @@ class MakeReservationUseCase
             $slices = ceil($durationMinutes / $rule->getSliceInMinutes());
             $amount = $slices * $rule->getPricePerSlice();
         } else {
-            // Fallback or Exception. For now default to 0.0 or throw?
-            // Assuming free if no rule or just 0 for MVP
+            $amount = 0.0;
         }
 
-        // 3. Create Reservation
-        // ID is random int for now (or auto-increment handled by repo/db), typically 0 if repo generates it.
+        // créer la réservation
         $reservation = new Reservation(
             0,
             $request->userId,
             $request->parkingId,
             $request->startDateTime,
             $request->endDateTime,
-            'pending', // Status
+            'pending',
             $amount,
-            null // finalAmount is null until updated? Or should match calculated? Requirements say "facturé sur la totalité".
+            null
         );
-        // Requirement: "Un utilisateur ... se voit quand même facturé sur la totalité".
-        // Use calculatedAmount as the reference.
 
         $savedReservation = $this->reservationRepository->save($reservation);
 

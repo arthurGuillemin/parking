@@ -17,7 +17,6 @@ class PricingRuleRepository implements PricingRuleRepositoryInterface
 
     public function findById(int $id): ?PricingRule
     {
-        // ... (stub)
         return null;
     }
 
@@ -28,8 +27,6 @@ class PricingRuleRepository implements PricingRuleRepositoryInterface
 
     public function findApplicableRule(int $parkingId, \DateTimeImmutable $date): ?PricingRule
     {
-        // Stub to return a default rule for tests/dev?
-        // Implementing table query if needed.
         $stmt = $this->pdo->prepare(
             'SELECT * FROM pricing_rules WHERE parking_id = ? ORDER BY effective_date DESC LIMIT 1'
         );

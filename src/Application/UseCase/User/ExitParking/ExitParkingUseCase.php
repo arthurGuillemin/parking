@@ -22,7 +22,7 @@ class ExitParkingUseCase
 
     public function execute(ExitParkingRequest $request): ParkingSessionResponse
     {
-        // 1. Find Active Session
+        // vérifier si le user est dans un parking
         $session = $this->parkingSessionRepository->findActiveSessionByUserId($request->userId);
         if (!$session) {
             throw new \Exception("User is not currently in a parking session.");
@@ -32,22 +32,16 @@ class ExitParkingUseCase
             throw new \Exception("User is in a different parking.");
         }
 
-        // 2. Get Reservation
+        // récupérer la réservation
         $reservationId = $session->getReservationId();
         if (!$reservationId) {
-            // Handle case without reservation (e.g. ad-hoc entry if allowed, but here we cover reservation flow)
-            // Default amount?
             $amount = 0.0;
         } else {
             $reservation = $this->reservationRepository->findById($reservationId);
             if ($reservation) {
                 $amount = $reservation->getCalculatedAmount() ?? 0.0;
 
-                // 3. Close Reservation and Release Spot
-                // Requirement: "redevenant disponible pour d’autres utilisateurs"
-                // So we update the reservation end time to Now (releasing the slot).
-                // Requirement: "se voit quand même facturé sur la totalité"
-                // We keep the calculated amount.
+                // fermer la réservation et libére le parking
                 $reservation->complete(new \DateTimeImmutable(), $amount);
                 $this->reservationRepository->save($reservation);
             } else {
@@ -55,7 +49,7 @@ class ExitParkingUseCase
             }
         }
 
-        // 4. Close Session
+        // fermer la session
         $now = new \DateTimeImmutable();
         $session->close($now, $amount);
         $savedSession = $this->parkingSessionRepository->save($session);

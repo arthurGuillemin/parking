@@ -26,15 +26,14 @@ class EnterParkingUseCase
 
     public function execute(EnterParkingRequest $request): ParkingSessionResponse
     {
-        // 1. Check if user is already inside
+        // vérifier si le user est déjà dans un parking 
         $existingSession = $this->parkingSessionRepository->findActiveSessionByUserId($request->userId);
         if ($existingSession) {
             throw new \Exception("User is already in a parking session.");
         }
 
-        // 2. Check for Active Reservation
-        // "Un utilisateur ne peut entrer ... que s’il dispose d’une réservation active"
-        // Active means: Start <= Now <= End
+        // vérifier si le parking est disponible
+        // "Un utilisateur ne peut entrer que s’il dispose d’une réservation active"
         $now = new \DateTimeImmutable();
         $reservation = $this->reservationRepository->findActiveReservation($request->userId, $request->parkingId, $now);
 
@@ -42,16 +41,16 @@ class EnterParkingUseCase
             throw new \Exception("No active reservation found for this parking at the current time.");
         }
 
-        // 3. Create Parking Session
+        // Créer une session de parking
         $session = new ParkingSession(
             0,
             $request->userId,
             $request->parkingId,
             $reservation->getReservationId(),
             $now,
-            null, // exitDateTime
-            null, // finalAmount (calculated at exit)
-            false // penaltyApplied
+            null,
+            null,
+            false
         );
 
         $savedSession = $this->parkingSessionRepository->save($session);

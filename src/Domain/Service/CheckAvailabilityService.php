@@ -16,14 +16,10 @@ class CheckAvailabilityService
 
     public function checkAvailability(Parking $parking, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
     {
-        // 1. Get Total Capacity
+        // récupérer la capacité du parking
         $capacity = $parking->getTotalCapacity();
 
-        // 2. Count overlapping reservations
-        // This count assumes that any reservation overlapping the interval [start, end] consumes 1 spot at some point.
-        // A more granular check would be checking max concurrent reservations at any minute,
-        // but typically "overlapping" covers the worst case if standard simplistic query is used.
-        // If the query is "count distinct reservations that overlap", it implies that if we have 10 spots, and 10 res overlap, we are full.
+        // compter les réservations qui se chevauchent
         $overlappingCount = $this->reservationRepository->countOverlapping(
             $parking->getParkingId(),
             $start,
