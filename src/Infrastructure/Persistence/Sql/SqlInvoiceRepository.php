@@ -132,6 +132,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
                 INNER JOIN parkings p ON r.parking_id = p.id
                 WHERE p.id = :parking_id
                   AND i.issue_date BETWEEN :start AND :end
+                  AND r.status = 'completed'
             ");
             $stmt->execute([
                 'parking_id' => $parkingId,

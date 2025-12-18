@@ -20,9 +20,9 @@ class GetMonthlyRevenueUseCase
      * Get the monthly revenue for a parking (reservations + subscriptions).
      *
      * @param GetMonthlyRevenueRequest $request
-     * @return float
+     * @return array
      */
-    public function execute(GetMonthlyRevenueRequest $request): float
+    public function execute(GetMonthlyRevenueRequest $request): array
     {
         $start = new \DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $request->year, $request->month));
         $end = $start->modify('+1 month');
@@ -30,17 +30,23 @@ class GetMonthlyRevenueUseCase
 
         // 1. Additionner les factures de réservation et de session du mois
         $invoices = $this->invoiceRepository->findByParkingIdAndDateRange($request->parkingId, $start, $end);
+        $reservationsRevenue = 0.0;
         foreach ($invoices as $invoice) {
-            $total += $invoice->getAmountTtc();
+            $reservationsRevenue += $invoice->getAmountTtc();
         }
 
         // 2. Additionner les abonnements actifs sur la période
+        $subscriptionsRevenue = 0.0;
         $subscriptions = $this->subscriptionRepository->findByParkingIdAndMonth($request->parkingId, $request->year, $request->month);
         foreach ($subscriptions as $subscription) {
-            $total += $subscription->getMonthlyPrice();
+            $subscriptionsRevenue += $subscription->getMonthlyPrice();
         }
 
-        return $total;
+        return [
+            'total' => $reservationsRevenue + $subscriptionsRevenue,
+            'reservations' => $reservationsRevenue,
+            'subscriptions' => $subscriptionsRevenue
+        ];
     }
 }
 

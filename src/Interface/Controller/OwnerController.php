@@ -10,16 +10,27 @@ class OwnerController
 {
     private OwnerService $ownerService;
     private XssProtectionService $xssProtection;
+    private \App\Domain\Service\JwtService $jwtService;
 
-    public function __construct(OwnerService $ownerService, XssProtectionService $xssProtection)
+    public function __construct(OwnerService $ownerService, XssProtectionService $xssProtection, \App\Domain\Service\JwtService $jwtService)
     {
         $this->ownerService = $ownerService;
         $this->xssProtection = $xssProtection;
+        $this->jwtService = $jwtService;
     }
 
     public function dashboard(): void
     {
+        $this->checkAuth();
         require dirname(__DIR__, 3) . '/templates/owner_dashboard.php';
+    }
+
+    private function checkAuth(): void
+    {
+        if (!isset($_COOKIE['auth_token']) || !$this->jwtService->validateToken($_COOKIE['auth_token'])) {
+            header('Location: /login');
+            exit;
+        }
     }
 
     public function registerForm(): void

@@ -100,8 +100,19 @@
             </div>
 
             <div class="form-group">
-                <label for="address">Adresse complète</label>
-                <input type="text" id="address" name="address" required placeholder="123 rue de la Paix, Paris">
+                <label for="street">Numéro et Rue</label>
+                <input type="text" id="street" required placeholder="123 rue de la Paix" style="margin-bottom: 15px;">
+
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex:1">
+                        <label for="zipCode">Code Postal</label>
+                        <input type="text" id="zipCode" required placeholder="75000">
+                    </div>
+                    <div style="flex:2">
+                        <label for="city">Ville</label>
+                        <input type="text" id="city" required placeholder="Paris">
+                    </div>
+                </div>
             </div>
 
             <div class="form-group" style="display: flex; gap: 20px;">
@@ -139,7 +150,20 @@
             const data = Object.fromEntries(formData);
 
             // Fix checkbox handling: checkbox value is 'on' if checked, missing if not
-            data.open_24_7 = document.getElementById('open_24_7').checked;
+            // Concatenate address fields
+            const street = document.getElementById('street').value;
+            const zip = document.getElementById('zipCode').value;
+            const city = document.getElementById('city').value;
+
+            // Build the final data object manually to ensure structure
+            const data = {
+                name: formData.get('name'),
+                address: `${street}, ${zip} ${city}`,
+                latitude: formData.get('latitude'),
+                longitude: formData.get('longitude'),
+                totalCapacity: formData.get('totalCapacity'),
+                open_24_7: document.getElementById('open_24_7').checked
+            };
 
             // We need ownerId. 
             // APPROACH: The backend should ideally infer ownerId from the session/token.
