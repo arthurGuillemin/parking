@@ -85,17 +85,56 @@
                             ${statusBadge}
                         </div>
                         <p>📍 ${escapeHtml(parking.address)}</p>
-                        <p>🚗 Capacité: ${parking.totalCapacity} places</p>
+
+                        <p>🚗 Capacité: ${parking.totalCapacity} places 
+                           <span id="avail-container-${parking.id}" style="display:none; margin-left:10px;">
+                               (<span id="avail-${parking.id}" style="font-weight:bold;">...</span> disponibles)
+                           </span>
+                           <div style="margin-top:5px; font-size:0.9em; display:flex; gap:5px; align-items:center;">
+                               <label>Voir dispo pour :</label>
+                               <input type="datetime-local" id="date-${parking.id}" 
+                                      value="${new Date().toISOString().slice(0, 16)}" 
+                                      style="padding:2px; border:1px solid #ccc; border-radius:3px;"
+                                      onchange="fetchAvailability(${parking.id})">
+                           </div>
+                        </p>
                         <div class="card-actions">
                             <a href="/parking/${parking.id}/manage" class="btn btn-success btn-sm">Gérer</a>
                         </div>
                     `;
                     list.appendChild(card);
+                    fetchAvailability(parking.id);
                 });
-
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('parkingList').innerHTML = '<div class="empty-state" style="color:red">Erreur lors du chargement des parkings.</div>';
+            }
+        }
+
+        async function fetchAvailability(parkingId) {
+            try {
+                // Get date from input or default to now
+                const input = document.getElementById(`date-${parkingId}`);
+                let dateStr = input ? input.value : new Date().toISOString(); // local time from input
+
+                // If input is datetime-local, it doesn't have timezone. 
+                // We should append ':00Z' or handle it. toISOString() uses UTC.
+                // Input value example: "2023-12-15T14:30"
+                // Let's ensure full ISO format.
+                if (input && input.value) {
+                    dateStr = new Date(input.value).toISOString();
+                }
+
+                const res = await fetch(`/parking/available-spots?parkingId=${parkingId}&at=${dateStr}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.availableSpots !== undefined) {
+                        document.getElementById(`avail-${parkingId}`).innerText = data.availableSpots;
+                        document.getElementById(`avail-container-${parkingId}`).style.display = 'inline';
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load availability for " + parkingId, e);
             }
         }
 

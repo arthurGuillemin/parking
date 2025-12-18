@@ -4,17 +4,20 @@ namespace App\Interface\Controller;
 
 use App\Domain\Service\ParkingService;
 use App\Domain\Service\JwtService;
+use App\Domain\Security\XssProtectionService;
 use Exception;
 
 class ParkingController
 {
     private ParkingService $parkingService;
     private JwtService $jwtService;
+    private XssProtectionService $xssProtection;
 
-    public function __construct(ParkingService $parkingService, JwtService $jwtService)
+    public function __construct(ParkingService $parkingService, JwtService $jwtService, XssProtectionService $xssProtection)
     {
         $this->parkingService = $parkingService;
         $this->jwtService = $jwtService;
+        $this->xssProtection = $xssProtection;
     }
 
     public function add(array $data): void
@@ -56,15 +59,20 @@ class ParkingController
             if (!isset($data['longitude'])) {
                 throw new \InvalidArgumentException('Champs requis manquants: longitude');
             }
-            if (!isset($data['totalCapacity'])) {
+            if (isset($data['totalCapacity']) && $data['totalCapacity'] === '') { // Allow 0, check empty string or null
                 throw new \InvalidArgumentException('Champs requis manquants: totalCapacity');
             }
+
+            // Sanitize inputs
+            $name = $this->xssProtection->sanitize($data['name']);
+            $address = $this->xssProtection->sanitize($data['address']);
+
 
             $open_24_7 = isset($data['open_24_7']) ? (bool) $data['open_24_7'] : false;
             $parking = $this->parkingService->addParking(
                 $data['ownerId'],
-                $data['name'],
-                $data['address'],
+                $name,
+                $address,
                 (float) $data['latitude'],
                 (float) $data['longitude'],
                 (int) $data['totalCapacity'],
@@ -101,6 +109,14 @@ class ParkingController
             }
 
             // TODO: check owner permissions
+
+            // Sanitize
+            if (isset($data['name'])) {
+                $data['name'] = $this->xssProtection->sanitize($data['name']);
+            }
+            if (isset($data['address'])) {
+                $data['address'] = $this->xssProtection->sanitize($data['address']);
+            }
 
             $parking = $this->parkingService->updateParking((int) $data['id'], $data);
 
@@ -188,6 +204,16 @@ class ParkingController
 
         // Verify owner owns this parking... (TODO: Add check using session/token)
 
+        $this->checkAuth();
+
         require dirname(__DIR__, 3) . '/templates/parking_manage.php';
+    }
+
+    private function checkAuth(): void
+    {
+        if (!isset($_COOKIE['auth_token']) || !$this->jwtService->validateToken($_COOKIE['auth_token'])) {
+            header('Location: /login');
+            exit;
+        }
     }
 }

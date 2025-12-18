@@ -161,6 +161,44 @@
             color: green;
             margin-top: 10px;
         }
+
+        /* Badges & Utilities */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .text-muted {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .fw-bold {
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -267,38 +305,29 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Heure d'ouverture</label>
-                        <div style="display:flex; gap:5px;">
-                            <select name="openingTimeHour" required style="flex:1;">
-                                <?php for ($i = 0; $i < 24; $i++):
-                                    $h = str_pad($i, 2, '0', STR_PAD_LEFT); ?>
-                                    <option value="<?= $h ?>"><?= $h ?>h</option>
-                                <?php endfor; ?>
-                            </select>
-                            <select name="openingTimeMinute" required style="flex:1;">
-                                <option value="00">00</option>
-                                <option value="15">15</option>
-                                <option value="30">30</option>
-                                <option value="45">45</option>
-                            </select>
-                        </div>
+                        <select name="openingTime" required>
+                            <?php for ($h = 0; $h < 24; $h++):
+                                for ($m = 0; $m < 60; $m += 15):
+                                    $time = sprintf('%02d:%02d', $h, $m);
+                                    echo "<option value=\"$time\">$time</option>";
+                                endfor;
+                            endfor; ?>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Heure de fermeture</label>
-                        <div style="display:flex; gap:5px;">
-                            <select name="closingTimeHour" required style="flex:1;">
-                                <?php for ($i = 0; $i < 24; $i++):
-                                    $h = str_pad($i, 2, '0', STR_PAD_LEFT); ?>
-                                    <option value="<?= $h ?>" <?= $i == 23 ? 'selected' : '' ?>><?= $h ?>h</option>
-                                <?php endfor; ?>
-                            </select>
-                            <select name="closingTimeMinute" required style="flex:1;">
-                                <option value="00">00</option>
-                                <option value="15" selected>15</option>
-                                <option value="30">30</option>
-                                <option value="45">45</option>
-                                <option value="59">59</option>
-                            </select>
-                        </div>
+                        <select name="closingTime" required>
+                            <?php for ($h = 0; $h < 24; $h++):
+                                for ($m = 0; $m < 60; $m += 15):
+                                    $time = sprintf('%02d:%02d', $h, $m);
+                                    // Default closer to evening? or just start at 00:00.
+                                    // Let's pre-select a reasonable default or just let user choose.
+                                    // Maybe 18:00 as default closing?
+                                    $selected = ($time === '18:00') ? 'selected' : '';
+                                    echo "<option value=\"$time\" $selected>$time</option>";
+                                endfor;
+                            endfor; ?>
+                        </select>
                     </div>
                 </div>
                 <button type="submit" class="btn-success">Ajouter cette plage</button>
@@ -318,16 +347,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Début</th>
-                        <th>Fin</th>
-                        <th>Statut</th>
+
+                        <th>État & Date</th>
+                        <th>Durée</th>
                         <th>Montant</th>
                     </tr>
                 </thead>
                 <tbody id="reservationsTable">
                     <tr>
-                        <td colspan="5">Chargement...</td>
+                        <td colspan="4">Chargement...</td>
                     </tr>
                 </tbody>
             </table>
@@ -342,15 +370,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Entrée</th>
-                        <th>Sortie</th>
-                        <th>Pénalité ?</th>
+
+                        <th>Véhicule / Session</th>
+                        <th>Durée</th>
+                        <th>Pénalité</th>
                     </tr>
                 </thead>
                 <tbody id="sessionsTable">
                     <tr>
-                        <td colspan="4">Chargement...</td>
+                        <td colspan="3">Chargement...</td>
                     </tr>
                 </tbody>
             </table>
@@ -391,10 +419,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID Session</th>
                         <th>Utilisateur</th>
-                        <th>Entrée</th>
-                        <th>Pénalité ?</th>
+                        <th>Date d'Entrée</th>
+                        <th>Statut</th>
                     </tr>
                 </thead>
                 <tbody id="alertsTable">
@@ -425,6 +452,7 @@
                         <input type="number" id="revMonth" value="12" style="width:60px">
                     </div>
                     <div id="monthlyRev" class="stat-value">0.00 €</div>
+                    <div id="monthlyBreakdown" style="font-size:0.8em; color:#666; margin-top:5px; height: 40px;"></div>
                     <button onclick="checkRevenue()" class="btn-sm">Calculer</button>
                 </div>
             </div>
@@ -510,19 +538,20 @@
                 const list = await response.json();
                 tbody.innerHTML = '';
                 if (!list || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;">Aucune alerte pour le moment.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">Aucune alerte pour le moment.</td></tr>';
                     return;
                 }
                 list.forEach(s => {
                     tbody.innerHTML += `
                         <tr style="background-color: #fff5f5;">
-                            <td>${s.id}</td>
-                            <td>${s.userId}</td>
-                            <td>${s.entryDateTime}</td>
-                            <td style="color:red; font-weight:bold;">${s.penaltyApplied ? 'OUI' : 'NON'}</td>
+                            <td><small>${s.userId}</small></td>
+                            <td>${formatDate(s.entryDateTime)}</td>
+                            <td>
+                                <span class="badge badge-danger">Intrus / Hors délai</span>
+                            </td>
                         </tr>`;
                 });
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="4">Erreur</td></tr>'; }
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Erreur</td></tr>'; }
         }
 
         // --- PRICING ---
@@ -686,15 +715,12 @@
             const data = Object.fromEntries(formData);
             data.parkingId = parkingId;
 
-            // Combine Hour and Minute
-            data.openingTime = `${data.openingTimeHour}:${data.openingTimeMinute}`;
-            data.closingTime = `${data.closingTimeHour}:${data.closingTimeMinute}`;
+            // Combine Hour and Minute (NOT NEEDED ANYMORE)
+            // data.openingTime = `${data.openingTimeHour}:${data.openingTimeMinute}`;
+            // data.closingTime = `${data.closingTimeHour}:${data.closingTimeMinute}`;
 
-            // Cleanup separate fields
-            delete data.openingTimeHour;
-            delete data.openingTimeMinute;
-            delete data.closingTimeHour;
-            delete data.closingTimeMinute;
+            // Cleanup separate fields (NOT NEEDED ANYMORE)
+            // delete data.openingTimeHour; ...
 
             const msg = document.getElementById('hoursMsg');
             msg.innerHTML = 'Ajout...';
@@ -731,73 +757,63 @@
             }
         });
 
+        // --- HELPERS ---
+        function formatDate(str) {
+            if (!str) return '-';
+            const d = new Date(str);
+            return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+                ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatMoney(amount) {
+            return (amount ? parseFloat(amount).toFixed(2) : '0.00') + ' €';
+        }
+
+        function getDuration(start, end) {
+            const d1 = new Date(start);
+            const d2 = end ? new Date(end) : new Date();
+            const diffMs = d2 - d1;
+            const diffMins = Math.floor(diffMs / 60000);
+            const hrs = Math.floor(diffMins / 60);
+            const mins = diffMins % 60;
+            return `${hrs}h ${mins}m`;
+        }
+
         // --- RESERVATIONS ---
         async function loadReservations() {
             const tbody = document.getElementById('reservationsTable');
-            tbody.innerHTML = '<tr><td colspan="5">Chargement...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4">Chargement...</td></tr>';
             try {
-                // Assuming we use existing listByParking logic, passing range covering "forever" or just recent
-                // The prompt didn't specify date filters, let's grab all or default
                 const res = await fetch(`/reservation/list?parkingId=${parkingId}`);
-                // NOTE: The route is configured as GET /reservation/list linked to ReservationController::listByParking
-                // However, existing controller checks $_POST/JSON in `listByParking`.
-                // Wait, Controller usually expects array $data.
-                // Framework league/route usually maps params.
-                // If the controller reads from body, checking GET might fail if it relies strict on input.
-                // Let's check `ReservationController` implementation again.
-                // Step 317: uses $data['parkingId']. Framework maps $_GET to $data?
-                // If not, we might need POST. Let's try GET with query params first.
-                // Actually most Controllers here use helper methods that check $data.
-
-                // If it fails, I'll switch to POST to be safe or fix route handling.
-                // Let's assume POST for listing is safer given existing controller structure checking body often.
-                // But `list` implies GET... Let's try GET.
-
-                // Wait, in `ReservationController.php`:
-                // `public function listByParking(array $data)`
-                // If I use `league/route`, how is `$data` populated?
-                // Usually via `ServerRequestInterface` or similar.
-                // But here the code seems custom.
-                // If the existing code expects strict array injection, the Router/Dispatcher must do it.
-                // Looking at `OwnerController::register`, it handles `file_get_contents` manually if data empty.
-                // `ReservationController` (Step 317) just `if (empty($data['parkingId']))`.
-
-                // I will use POST for all data-fetching to match the style of other controllers
-                // if I suspect they don't auto-parse GET query params into `$data`.
-                // Actually `ReservationController::listByParking` might NOT have the `json_decode` fallback!
-                // Let's check Step 317 again.
-                // Step 317: `public function listByParking(array $data)`... simple check.
-                // It DOES NOT have the `input = file_get_contents` block.
-                // This means the router or a middleware MUST inject `$data`.
-                // If I call it via HTTP, I rely on the framework gluing them.
-                // If the framework doesn't do it, this will crash.
-                // But `ReservationController::listByParking` is mapped in routes?
-                // Step 302: `['GET', '/reservation/list', 'ReservationController::listByParking']`
-                // If mapped as GET, the router likely passes `$_GET` as `$data`.
-                // I will assume GET works with query params.
-
-                const response = await fetch(`/reservation/list?parkingId=${parkingId}`);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const list = await response.json();
+                if (!res.ok) throw new Error('Network response was not ok');
+                const list = await res.json();
 
                 tbody.innerHTML = '';
                 if (!list || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">Aucune réservation pour le moment.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;">Aucune réservation pour le moment.</td></tr>';
                     return;
                 }
                 list.forEach(r => {
+                    let badgeClass = 'badge-info';
+                    let statusLabel = r.status;
+                    if (r.status === 'confirmed') { badgeClass = 'badge-success'; statusLabel = 'Confirmée'; }
+                    if (r.status === 'cancelled') { badgeClass = 'badge-danger'; statusLabel = 'Annulée'; }
+                    if (r.status === 'completed') { badgeClass = 'badge-secondary'; statusLabel = 'Terminée'; }
+
                     tbody.innerHTML += `
                         <tr>
-                            <td>${r.id}</td>
-                            <td>${r.startDateTime}</td>
-                            <td>${r.endDateTime}</td>
-                            <td>${r.status}</td>
-                            <td>${r.finalAmount || r.calculatedAmount || '-'} €</td>
+                            <td>
+                                <span class="badge ${badgeClass}">${statusLabel}</span><br>
+                                <span class="text-muted">Du ${formatDate(r.startDateTime)}</span><br>
+                                <span class="text-muted">Au ${formatDate(r.endDateTime)}</span>
+                            </td>
+                            <td>${getDuration(r.startDateTime, r.endDateTime)}</td>
+                            <td class="fw-bold">${r.finalAmount ? formatMoney(r.finalAmount) : (r.calculatedAmount ? '~' + formatMoney(r.calculatedAmount) : '-')}</td>
                         </tr>`;
                 });
             } catch (e) {
                 console.error(e);
-                tbody.innerHTML = '<tr><td colspan="5" style="color:red">Erreur de chargement.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="color:red">Erreur de chargement.</td></tr>';
             }
         }
 
@@ -809,19 +825,34 @@
                 const list = await response.json();
                 tbody.innerHTML = '';
                 if (!list || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;">Aucun stationnement pour le moment.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">Aucun stationnement pour le moment.</td></tr>';
                     return;
                 }
                 list.forEach(s => {
+                    const isOngoing = !s.exitDateTime;
+                    const statusBadge = isOngoing
+                        ? '<span class="badge badge-success">En cours</span>'
+                        : '<span class="badge badge-secondary">Terminé</span>';
+
+                    const penaltyParams = s.penaltyApplied
+                        ? '<span class="badge badge-danger">⚠️ Pénalité incluse</span>'
+                        : '<span style="color:green">✔ OK</span>';
+
                     tbody.innerHTML += `
                         <tr>
-                            <td>${s.id}</td>
-                            <td>${s.entryDateTime}</td>
-                            <td>${s.exitDateTime || 'En cours'}</td>
-                            <td>${s.penaltyApplied ? 'OUI' : 'Non'}</td>
+                            <td>
+                                ${statusBadge}<br>
+                                <span class="text-muted">Entrée: ${formatDate(s.entryDateTime)}</span>
+                                ${!isOngoing ? '<br><span class="text-muted">Sortie: ' + formatDate(s.exitDateTime) + '</span>' : ''}
+                            </td>
+                            <td>${getDuration(s.entryDateTime, s.exitDateTime)}</td>
+                            <td>
+                                ${penaltyParams}
+                                ${!isOngoing && s.finalAmount ? '<br><strong>' + formatMoney(s.finalAmount) + '</strong>' : ''}
+                            </td>
                         </tr>`;
                 });
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="4">Erreur</td></tr>'; }
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Erreur</td></tr>'; }
         }
 
         // --- REVENUE & AVAIL ---
@@ -840,14 +871,22 @@
         async function checkRevenue() {
             const y = document.getElementById('revYear').value;
             const m = document.getElementById('revMonth').value;
-            const el = document.getElementById('monthlyRev');
-            el.innerHTML = '...';
             try {
-                // GET /parking/monthly-revenue?parkingId=X&year=Y&month=M
-                const res = await fetch(`/parking/monthly-revenue?parkingId=${parkingId}&year=${y}&month=${m}`);
-                const json = await res.json();
-                el.innerHTML = (json.revenue || 0).toFixed(2) + ' €';
-            } catch (e) { el.innerHTML = 'Err'; }
+                const res = await fetch(`/monthly-revenue/get?parkingId=${parkingId}&year=${y}&month=${m}`);
+                const data = await res.json();
+                document.getElementById('monthlyRev').textContent = formatMoney(data.revenue);
+
+                // Show breakdown
+                if (data.breakdown) {
+                    const r = formatMoney(data.breakdown.reservations);
+                    const s = formatMoney(data.breakdown.subscriptions);
+                    document.getElementById('monthlyBreakdown').innerHTML =
+                        `Réservations: <strong>${r}</strong><br>Abonnements: <strong>${s}</strong>`;
+                } else {
+                    document.getElementById('monthlyBreakdown').innerHTML = '';
+                }
+
+            } catch (e) { console.error(e); }
         }
 
     </script>

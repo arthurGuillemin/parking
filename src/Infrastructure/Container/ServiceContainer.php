@@ -155,7 +155,8 @@ class ServiceContainer implements ContainerInterface
         $this->factories[OwnerController::class] = function () {
             return new OwnerController(
                 $this->get(OwnerService::class),
-                $this->get(XssProtectionService::class)
+                $this->get(XssProtectionService::class),
+                $this->get(JwtService::class)
             );
         };
 
@@ -166,7 +167,8 @@ class ServiceContainer implements ContainerInterface
         $this->factories[\App\Interface\Controller\ParkingController::class] = function () {
             return new \App\Interface\Controller\ParkingController(
                 $this->get(ParkingService::class),
-                $this->get(JwtService::class)
+                $this->get(JwtService::class),
+                $this->get(XssProtectionService::class)
             );
         };
 

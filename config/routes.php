@@ -24,9 +24,14 @@ return [
     ['GET', '/owner/parkings', 'ParkingController::listOwnedParkings'], // API for Dashboard
 
     ['GET', '/parking/add', 'ParkingController::addForm'], // Add Parking Page
-    /* <br/><b>Warning</b>:  Undefined array key "name" in <b>/Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php</b> on line <b>40</b><br/><br/><b>Warning</b>:  Undefined array key "address" in <b>/Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php</b> on line <b>41</b><br/><br/><b>Warning</b>:  Undefined array key "latitude" in <b>/Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php</b> on line <b>42</b><br/><br/><b>Warning</b>:  Undefined array key "longitude" in <b>/Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php</b> on line <b>43</b><br/><br/><b>Warning</b>:  Undefined array key "totalCapacity" in <b>/Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php</b> on line <b>44</b><br/><br/><b>Warning</b>:  http_response_code(): Cannot set response code - headers already sent (output started at /Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php: 40)in<b>/Users/antoine/Developer/parking/src/Interface/Controller/ParkingController.php</b> on line <b>56</b><br/>{
-    "error": "Erreur serveur: App\\Domain\\Service\\ParkingService::addParking(): Argument #2 ($name) must be of type string, null given, called in \/Users\/antoine\/Developer\/parking\/src\/Interface\/Controller\/ParkingController.php on line 38"
-} */
+    /* • Voir la liste des réservations d'un parking
+• Voir la liste des stationnements d'un parking
+• Voir le nombre de place disponible dans un parking à une date précise (timestamp)
+• Obtenir le chiffre d'affaire mensuel d'un parking (somme de toutes les réservations
+terminées du mois + les abonnements)
+• Ajouter un type d'abonnement sur un parking
+• Voir la liste des conducteurs qui sont garés hors des créneaux de réservation ou
+d'abonnement pour un parking donné */
     ['GET', '/parking/:id/manage', 'ParkingController::manage'], // Manage Parking Page
 
     // Authentification propriétaire
@@ -49,7 +54,7 @@ return [
     ['GET', '/reservation/list', 'ReservationController::listByParking'],
     ['GET', '/parking-session/list', 'ParkingSessionController::listByParking'],
     ['GET', '/parking/available-spots', 'ParkingAvailabilityController::getAvailableSpots'],
-    ['GET', '/parking/monthly-revenue', 'MonthlyRevenueController::get'],
+    ['GET', '/monthly-revenue/get', 'MonthlyRevenueController::get'],
     ['POST', '/subscription-type/add', 'SubscriptionTypeController::add'],
     ['GET', '/subscription-type/list', 'SubscriptionTypeController::list'],
     ['GET', '/subscription-type/:id', 'SubscriptionTypeController::getById'],

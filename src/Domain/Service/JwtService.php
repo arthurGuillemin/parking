@@ -12,7 +12,7 @@ class JwtService implements TokenGeneratorInterface
     private string $secretKey;
     private string $algorithm = 'HS256';
 
-    public const ACCESS_TOKEN_TTL = 3600;
+    public const ACCESS_TOKEN_TTL = 600; // 10 minutes
     public const REFRESH_TOKEN_TTL = 604800;
 
     public function __construct()
