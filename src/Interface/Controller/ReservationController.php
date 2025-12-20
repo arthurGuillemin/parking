@@ -4,85 +4,42 @@ namespace App\Interface\Controller;
 
 use App\Domain\Service\ReservationService;
 use App\Application\UseCase\Owner\ListReservations\ListReservationsRequest;
+use App\Application\UseCase\User\MakeReservation\MakeReservationUseCase;
+use App\Application\UseCase\User\MakeReservation\MakeReservationRequest;
 use Exception;
 
 class ReservationController
 {
     private ReservationService $reservationService;
-    private \App\Domain\Service\ParkingService $parkingService; // Need to fetch parking name etc
-    private \App\Domain\Service\JwtService $jwtService;
-    private \App\Domain\Repository\UserRepositoryInterface $userRepository; // Add dependency
+    private MakeReservationUseCase $makeReservationUseCase;
 
-    public function __construct(
-        ReservationService $reservationService,
-        \App\Domain\Service\ParkingService $parkingService,
-        \App\Domain\Service\JwtService $jwtService,
-        \App\Domain\Repository\UserRepositoryInterface $userRepository
-    ) {
+    public function __construct(ReservationService $reservationService, MakeReservationUseCase $makeReservationUseCase)
+    {
         $this->reservationService = $reservationService;
-        $this->parkingService = $parkingService;
-        $this->jwtService = $jwtService;
-        $this->userRepository = $userRepository;
+        $this->makeReservationUseCase = $makeReservationUseCase;
     }
 
-    public function show(array $params): void
+    public function create(array $data): array
     {
-        $parkingId = $_GET['parkingId'] ?? null;
-        if (!$parkingId) {
-            header('Location: /parkings');
-            return;
+        if (empty($data['userId']) || empty($data['parkingId']) || empty($data['start']) || empty($data['end'])) {
+            throw new \InvalidArgumentException('Tous les champs (userId, parkingId, start, end) sont obligatoires.');
         }
 
-        $parking = $this->parkingService->getParkingById((int) $parkingId);
-        if (!$parking) {
-            die("Parking not found");
-        }
+        $request = new MakeReservationRequest(
+            $data['userId'],
+            (int) $data['parkingId'],
+            new \DateTimeImmutable($data['start']),
+            new \DateTimeImmutable($data['end'])
+        );
 
-        // Pass info to view
-        require dirname(__DIR__, 3) . '/templates/reservation_create.php';
-    }
+        $response = $this->makeReservationUseCase->execute($request);
 
-    public function create(array $data): void
-    {
-        // Auth check
-        $userId = null;
-        if (isset($_COOKIE['auth_token'])) {
-            $payload = $this->jwtService->decode($_COOKIE['auth_token']);
-            if ($payload) {
-                $userId = $payload['user_id'] ?? null;
-            }
-        }
-
-        // Verify USER exists (prevent Owner/User conflict)
-        if ($userId) {
-            $user = $this->userRepository->findById($userId);
-            if (!$user) {
-                // ID exists in token but not in Users table -> Likely an Owner or invalid token.
-                $userId = null;
-            }
-        }
-
-        if (!$userId) {
-            // Redirect to login with return url?
-            header('Location: /login?error=auth_required'); // Make it explicit
-            return;
-        }
-
-        try {
-            $parkingId = (int) $_POST['parkingId'];
-            $start = new \DateTimeImmutable($_POST['start']);
-            $end = new \DateTimeImmutable($_POST['end']);
-
-            $reservation = $this->reservationService->createReservation($parkingId, $userId, $start, $end);
-
-            // Redirect to success or list
-            // For now simple echo
-            // header('Location: /reservation/list'); 
-            echo "Réservation confirmée ! Prix estimé : " . $reservation->getCalculatedAmount() . "€";
-
-        } catch (\Exception $e) {
-            die("Erreur: " . $e->getMessage());
-        }
+        return [
+            'id' => $response->id,
+            'status' => $response->status,
+            'calculatedAmount' => $response->amount,
+            'message' => 'Réservation créée avec succès.'
+        ];
     }
 
     public function listByParking(array $data): array
@@ -108,4 +65,3 @@ class ReservationController
         }, $reservations);
     }
 }
-

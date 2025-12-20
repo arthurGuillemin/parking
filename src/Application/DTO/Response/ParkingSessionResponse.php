@@ -2,28 +2,26 @@
 
 namespace App\Application\DTO\Response;
 
+use App\Domain\Entity\ParkingSession;
+
 class ParkingSessionResponse
 {
     public int $id;
+    public string $userId;
     public int $parkingId;
-    public string $vehiclePlate;
-    public string $entryTime;
-    public ?string $exitTime;
-    public ?float $pricePaid;
+    public ?int $reservationId;
+    public string $entryDateTime;
+    public ?string $exitDateTime;
+    public ?float $amount;
 
-    public function __construct(
-        int $id,
-        int $parkingId,
-        string $vehiclePlate,
-        string $entryTime,
-        ?string $exitTime,
-        ?float $pricePaid
-    ) {
-        $this->id = $id;
-        $this->parkingId = $parkingId;
-        $this->vehiclePlate = $vehiclePlate;
-        $this->entryTime = $entryTime;
-        $this->exitTime = $exitTime;
-        $this->pricePaid = $pricePaid;
+    public function __construct(ParkingSession $session)
+    {
+        $this->id = $session->getSessionId();
+        $this->userId = $session->getUserId();
+        $this->parkingId = $session->getParkingId();
+        $this->reservationId = $session->getReservationId();
+        $this->entryDateTime = $session->getEntryDateTime()->format(\DateTimeInterface::ATOM);
+        $this->exitDateTime = $session->getExitDateTime() ? $session->getExitDateTime()->format(\DateTimeInterface::ATOM) : null;
+        $this->amount = $session->getFinalAmount();
     }
 }

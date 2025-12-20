@@ -6,7 +6,7 @@ use App\Domain\Repository\ParkingSessionRepositoryInterface;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Domain\Repository\SubscriptionRepositoryInterface;
 use App\Domain\Entity\ParkingSession;
-use App\Domain\Service\ParkingAvailabilityService; // To check spot availability if needed? For now just validation.
+use App\Application\DTO\Response\ParkingSessionResponse;
 use DateTimeImmutable;
 use RuntimeException;
 
@@ -26,7 +26,7 @@ class EnterParkingUseCase
         $this->subscriptionRepository = $subscriptionRepository;
     }
 
-    public function execute(EnterParkingRequest $request): ParkingSession
+    public function execute(EnterParkingRequest $request): ParkingSessionResponse
     {
         // 1. Check if user already inside
         $activeSession = $this->sessionRepository->findActiveSessionByUserId($request->userId);
@@ -43,7 +43,7 @@ class EnterParkingUseCase
             if (!$reservation || $reservation->getUserId() !== $request->userId || $reservation->getParkingId() !== $request->parkingId) {
                 throw new RuntimeException("Réservation invalide.");
             }
-            // Check time validity (allow entry 15 mins before?)
+            // Check time validity (allow entry 15 mins before)
             $now = new DateTimeImmutable();
             if ($now < $reservation->getStartDateTime()->modify('-15 minutes')) {
                 throw new RuntimeException("Il est trop tôt pour entrer (max 15 min avant).");
@@ -58,7 +58,6 @@ class EnterParkingUseCase
             foreach ($subscriptions as $sub) {
                 if ($sub->getParkingId() === $request->parkingId) {
                     $hasAccess = true;
-                    // Note: Should strictly check time slots here, but simplifying for now.
                     break;
                 }
             }
@@ -69,26 +68,19 @@ class EnterParkingUseCase
         }
 
         // 3. Create Session
-        // Note: ID generation usually handled by database (SERIAL), but Entity might require an ID.
-        // If SQL repository uses INSERT without ID (auto-inc), we might pass 0 or null?
-        // Checking ParkingSession entity structure.
-
-        // Simulating ID generation for entity object before save? 
-        // Or Repository save returns new object with ID.
-        // Assuming Repository handles ID generation if passed 0/null or we generate random int for now (less ideal).
-        // Let's pass 0 and rely on Repo/DB.
-
         $session = new ParkingSession(
-            0, // Placeholder
+            0,
             $request->userId,
             $request->parkingId,
             $reservationId,
             new DateTimeImmutable(),
             null,
             null,
-            false // No penalty yet
+            false
         );
 
-        return $this->sessionRepository->save($session);
+        $savedSession = $this->sessionRepository->save($session);
+
+        return new ParkingSessionResponse($savedSession);
     }
 }

@@ -2,31 +2,26 @@
 
 namespace App\Application\DTO\Response;
 
+use App\Domain\Entity\Reservation;
+
 class ReservationResponse
 {
     public int $id;
     public string $userId;
     public int $parkingId;
-    public string $start;
-    public string $end;
+    public string $startDateTime;
+    public string $endDateTime;
     public string $status;
-    public ?float $price;
+    public ?float $amount;
 
-    public function __construct(
-        int $id,
-        string $userId,
-        int $parkingId,
-        string $start,
-        string $end,
-        string $status,
-        ?float $price
-    ) {
-        $this->id = $id;
-        $this->userId = $userId;
-        $this->parkingId = $parkingId;
-        $this->start = $start;
-        $this->end = $end;
-        $this->status = $status;
-        $this->price = $price;
+    public function __construct(Reservation $reservation)
+    {
+        $this->id = $reservation->getReservationId();
+        $this->userId = $reservation->getUserId();
+        $this->parkingId = $reservation->getParkingId();
+        $this->startDateTime = $reservation->getStartDateTime()->format(\DateTimeInterface::ATOM);
+        $this->endDateTime = $reservation->getEndDateTime()->format(\DateTimeInterface::ATOM);
+        $this->status = $reservation->getStatus();
+        $this->amount = $reservation->getCalculatedAmount();
     }
 }

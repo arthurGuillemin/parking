@@ -72,4 +72,7 @@ d'abonnement pour un parking donné */
     ['POST', '/parking/enter', 'ParkingSessionController::enter'],
     ['POST', '/parking/exit', 'ParkingSessionController::exit'],
     ['GET', '/parking/sessions-out-of-reservation-or-subscription', 'SessionsOutOfReservationOrSubscriptionController::list'],
+    ['POST', '/reservation/create', 'ReservationController::create'],
+    ['POST', '/parking/enter', 'ParkingEntryExitController::enter'],
+    ['POST', '/parking/exit', 'ParkingEntryExitController::exit'],
 ];
