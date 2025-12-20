@@ -23,7 +23,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, subscriptionTypeId, weekday, start_time, end_time
+                SELECT id, subscriptionTypeId, subscription_id, weekday, start_time, end_time
                 FROM subscription_slots
                 WHERE id = :id
             ");
@@ -46,7 +46,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, subscriptionTypeId, weekday, start_time, end_time
+                SELECT id, subscriptionTypeId, subscription_id, weekday, start_time, end_time
                 FROM subscription_slots
                 WHERE subscriptionTypeId = :typeId
                 ORDER BY weekday, start_time
@@ -80,8 +80,8 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscription_slots (id, subscriptionTypeId, weekday, start_time, end_time)
-                    VALUES (:id, :subscriptionTypeId, :weekday, :start_time, :end_time)
+                    INSERT INTO subscription_slots (id, subscriptionTypeId,subscription_id, weekday, start_time, end_time)
+                    VALUES (:id, :subscription_id,:subscriptionTypeId, :weekday, :start_time, :end_time)
                 ");
             }
 
