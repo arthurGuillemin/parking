@@ -22,5 +22,43 @@ class ParkingService
     {
         return $this->addParkingUseCase->execute(new AddParkingRequest($ownerId, $name, $address, $latitude, $longitude, $totalCapacity, $open_24_7));
     }
+
+    public function updateParking(int $id, array $data): Parking
+    {
+        $parking = $this->parkingRepository->findById($id);
+        if (!$parking) {
+            throw new \RuntimeException('Parking non trouvé');
+        }
+
+        // Create updated entity (immutable-ish pattern)
+        // Note: Ideally we would have UseCase or proper Setters. For now, we reconstruct.
+        $updatedParking = new Parking(
+            $parking->getParkingId(),
+            $parking->getOwnerId(),
+            $data['name'] ?? $parking->getName(),
+            $data['address'] ?? $parking->getAddress(),
+            isset($data['latitude']) ? (float) $data['latitude'] : $parking->getLatitude(),
+            isset($data['longitude']) ? (float) $data['longitude'] : $parking->getLongitude(),
+            isset($data['totalCapacity']) ? (int) $data['totalCapacity'] : $parking->getTotalCapacity(),
+            isset($data['open_24_7']) ? (bool) $data['open_24_7'] : $parking->isOpen24_7()
+        );
+
+        return $this->parkingRepository->save($updatedParking);
+    }
+
+    public function getParkingsByOwner(string $ownerId): array
+    {
+        return $this->parkingRepository->findByOwnerId($ownerId);
+    }
+
+    public function getParkingById(int $id): ?Parking
+    {
+        return $this->parkingRepository->findById($id);
+    }
+
+    public function getAllParkings(): array
+    {
+        return $this->parkingRepository->findAll();
+    }
 }
 

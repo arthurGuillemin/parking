@@ -6,10 +6,12 @@ class EnterParkingRequest
 {
     public string $userId;
     public int $parkingId;
+    public ?int $reservationId;
 
-    public function __construct(string $userId, int $parkingId)
+    public function __construct(string $userId, int $parkingId, ?int $reservationId = null)
     {
         $this->userId = $userId;
         $this->parkingId = $parkingId;
+        $this->reservationId = $reservationId;
     }
 }

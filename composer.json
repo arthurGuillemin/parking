@@ -7,7 +7,10 @@
     "vlucas/phpdotenv": "^5.6",
     "ramsey/uuid": "^4.9",
       "ext-pdo": "*",
-    "ext-xdebug": "*"
+      "ext-xdebug": "*",
+    "firebase/php-jwt": "^6.11",
+    "php-di/php-di": "^7.1",
+    "league/route": "^6.2"
   },
   "autoload": {
     "psr-4": {
@@ -15,6 +18,6 @@
     }
   },
   "require-dev": {
-    "phpunit/phpunit": "^12"
+    "phpunit/phpunit": "^12.4"
   }
 }

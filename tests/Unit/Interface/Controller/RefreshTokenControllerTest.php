@@ -1,0 +1,73 @@
+<?php
+namespace Unit\Interface\Controller;
+
+use PHPUnit\Framework\TestCase;
+use App\Interface\Controller\RefreshTokenController;
+use App\Domain\Service\JwtService;
+
+class RefreshTokenControllerTest extends TestCase
+{
+    public function testRefreshTokenSuccessfully()
+    {
+        $originalCookie = $_COOKIE;
+        try {
+            $jwtService = $this->createMock(JwtService::class);
+            $payload = [
+                'user_id' => 1,
+                'email' => 'test@example.com',
+                'role' => 'user',
+                'type' => 'refresh',
+            ];
+            $_COOKIE['refresh_token'] = 'refresh.jwt.token';
+            $jwtService->method('decode')->willReturn($payload);
+            $jwtService->method('generate')->willReturn('new.access.token');
+            $controller = new RefreshTokenController($jwtService);
+            ob_start();
+            $controller->refresh();
+            $output = ob_get_clean();
+            $this->assertStringContainsString('new.access.token', $output);
+        } finally {
+            $_COOKIE = $originalCookie;
+        }
+    }
+
+    public function testRefreshFailsWithInvalidToken()
+    {
+        $originalCookie = $_COOKIE;
+        try {
+            $jwtService = $this->createMock(JwtService::class);
+            $_COOKIE['refresh_token'] = 'invalid.token';
+            $jwtService->method('decode')->willReturn(null);
+            $controller = new RefreshTokenController($jwtService);
+            ob_start();
+            $controller->refresh();
+            $output = ob_get_clean();
+            $this->assertStringContainsString('Invalid refresh token', $output);
+        } finally {
+            $_COOKIE = $originalCookie;
+        }
+    }
+
+    public function testRefreshFailsWithAccessTokenType()
+    {
+        $originalCookie = $_COOKIE;
+        try {
+            $jwtService = $this->createMock(JwtService::class);
+            $payload = [
+                'user_id' => 1,
+                'email' => 'test@example.com',
+                'role' => 'user',
+                'type' => 'access', // Mauvais type exemple
+            ];
+            $_COOKIE['refresh_token'] = 'access.jwt.token';
+            $jwtService->method('decode')->willReturn($payload);
+            $controller = new RefreshTokenController($jwtService);
+            ob_start();
+            $controller->refresh();
+            $output = ob_get_clean();
+            $this->assertStringContainsString('Invalid refresh token', $output);
+        } finally {
+            $_COOKIE = $originalCookie;
+        }
+    }
+}

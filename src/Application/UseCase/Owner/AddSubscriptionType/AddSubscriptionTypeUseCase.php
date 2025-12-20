@@ -23,14 +23,17 @@ class AddSubscriptionTypeUseCase
      */
     public function execute(AddSubscriptionTypeRequest $request): AddSubscriptionTypeResponse
     {
-        $type = new SubscriptionType(0, $request->parkingId, $request->name, $request->description);
+        // Default price 50.0 until Request is updated
+        $price = 50.0;
+        $type = new SubscriptionType(0, $request->parkingId, $request->name, $request->description, $price);
         $savedType = $this->subscriptionTypeRepository->save($type);
 
         return new AddSubscriptionTypeResponse(
             $savedType->getSubscriptionTypeId(),
             $savedType->getParkingId(),
             $savedType->getName(),
-            $savedType->getDescription()
+            $savedType->getDescription(),
+            $savedType->getMonthlyPrice()
         );
     }
 }

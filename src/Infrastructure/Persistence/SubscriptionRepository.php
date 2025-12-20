@@ -33,6 +33,15 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
         return array_map(fn($row) => $this->mapToEntity($row), $rows);
     }
 
+    public function findActiveByUserId(string $userId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM subscriptions WHERE user_id = ? AND status = "active"');
+        $stmt->execute([$userId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->mapToEntity($row), $rows);
+    }
+
     public function findActiveByUserAndParking(
         string $userId,
         int $parkingId,
@@ -98,8 +107,8 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
         ]);
 
         // Récupérer l'ID généré
-        $id = (int)$this->pdo->lastInsertId();
-        
+        $id = (int) $this->pdo->lastInsertId();
+
         return new Subscription(
             $id,
             $subscription->getUserId(),
@@ -138,14 +147,14 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
     private function mapToEntity(array $data): Subscription
     {
         return new Subscription(
-            (int)$data['id'],
+            (int) $data['id'],
             $data['user_id'],
-            (int)$data['parking_id'],
-            $data['type_id'] ? (int)$data['type_id'] : null,
+            (int) $data['parking_id'],
+            $data['type_id'] ? (int) $data['type_id'] : null,
             new \DateTimeImmutable($data['start_date']),
             $data['end_date'] ? new \DateTimeImmutable($data['end_date']) : null,
             $data['status'],
-            (float)$data['monthly_price']
+            (float) $data['monthly_price']
         );
     }
 }

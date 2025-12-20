@@ -4,7 +4,8 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\Invoice;
 
-interface InvoiceRepositoryInterface {
+interface InvoiceRepositoryInterface
+{
     public function findById(int $id): ?Invoice;
 
     public function findByReservationId(int $reservationId): ?Invoice;
@@ -21,4 +22,6 @@ interface InvoiceRepositoryInterface {
      * @return Invoice[]
      */
     public function findByParkingIdAndDateRange(int $parkingId, \DateTimeImmutable $start, \DateTimeImmutable $end): array;
+
+    public function findByUserId(string $userId): array;
 }

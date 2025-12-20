@@ -69,4 +69,10 @@ class Subscription
     {
         $this->status = $status;
     }
+
+    public function isActiveAt(\DateTimeInterface $at): bool {
+        return $this->status === 'active' &&
+            $this->startDate <= $at &&
+            ($this->endDate === null || $this->endDate >= $at);
+    }
 }

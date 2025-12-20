@@ -20,13 +20,17 @@ class MonthlyRevenueController
         if (empty($data['parkingId']) || empty($data['year']) || empty($data['month'])) {
             throw new \InvalidArgumentException('Les champs sont obligatoires.');
         }
-        $request = new GetMonthlyRevenueRequest((int)$data['parkingId'], (int)$data['year'], (int)$data['month']);
+        $request = new GetMonthlyRevenueRequest((int) $data['parkingId'], (int) $data['year'], (int) $data['month']);
         $revenue = $this->monthlyRevenueService->getMonthlyRevenue($request);
         return [
             'parkingId' => $data['parkingId'],
             'year' => $data['year'],
             'month' => $data['month'],
-            'revenue' => $revenue
+            'revenue' => $revenue['total'],
+            'breakdown' => [
+                'reservations' => $revenue['reservations'],
+                'subscriptions' => $revenue['subscriptions']
+            ]
         ];
     }
 }

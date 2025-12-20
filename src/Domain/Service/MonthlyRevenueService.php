@@ -16,7 +16,7 @@ class MonthlyRevenueService
         $this->getMonthlyRevenueUseCase = new GetMonthlyRevenueUseCase($invoiceRepository, $subscriptionRepository);
     }
 
-    public function getMonthlyRevenue(GetMonthlyRevenueRequest $request): float
+    public function getMonthlyRevenue(GetMonthlyRevenueRequest $request): array
     {
         return $this->getMonthlyRevenueUseCase->execute($request);
     }

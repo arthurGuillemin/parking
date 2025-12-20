@@ -24,7 +24,8 @@ class ListSubscriptionTypesUseCase
                 $type->getSubscriptionTypeId(),
                 $type->getParkingId(),
                 $type->getName(),
-                $type->getDescription()
+                $type->getDescription(),
+                $type->getMonthlyPrice()
             );
         }, $types);
     }

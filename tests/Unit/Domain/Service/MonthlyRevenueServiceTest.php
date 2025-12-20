@@ -1,0 +1,22 @@
+<?php
+
+namespace Unit\Domain\Service;
+
+use PHPUnit\Framework\TestCase;
+use App\Domain\Service\MonthlyRevenueService;
+use App\Domain\Repository\InvoiceRepositoryInterface;
+use App\Domain\Repository\SubscriptionRepositoryInterface;
+use App\Application\UseCase\Owner\GetMonthlyRevenue\GetMonthlyRevenueRequest;
+
+class MonthlyRevenueServiceTest extends TestCase
+{
+    public function testGetMonthlyRevenueReturnsFloat()
+    {
+        $invoiceRepository = $this->createMock(InvoiceRepositoryInterface::class);
+        $subscriptionRepository = $this->createMock(SubscriptionRepositoryInterface::class);
+        $service = new MonthlyRevenueService($invoiceRepository, $subscriptionRepository);
+        $request = new GetMonthlyRevenueRequest(1, 2025, 11);
+
+        $this->assertIsFloat($service->getMonthlyRevenue($request));
+    }
+}
