@@ -24,7 +24,6 @@ class ParkingController
     {
         header('Content-Type: application/json; charset=UTF-8');
         try {
-            // Handle JSON body if $data from params/POST is insufficient
             if (empty($data['name'])) {
                 $input = file_get_contents('php://input');
                 $jsonData = json_decode($input, true);
@@ -33,7 +32,6 @@ class ParkingController
                 }
             }
 
-            // Attempt to get ownerId from cookie if missing
             if (empty($data['ownerId']) && isset($_COOKIE['auth_token'])) {
                 $payload = $this->jwtService->decode($_COOKIE['auth_token']);
                 if ($payload) {
@@ -41,9 +39,6 @@ class ParkingController
                 }
             }
 
-            // Validation: Ensure all required fields are present and not empty
-            // Note: latitude/longitude/totalCapacity can be 0, so use isset or logic that accepts 0.
-            // But usually empty(0) is true. So we should check !isset for numeric fields or strict empty check.
             if (empty($data['ownerId'])) {
                 throw new \InvalidArgumentException('Champs requis manquants: ownerId');
             }
@@ -59,11 +54,11 @@ class ParkingController
             if (!isset($data['longitude'])) {
                 throw new \InvalidArgumentException('Champs requis manquants: longitude');
             }
-            if (isset($data['totalCapacity']) && $data['totalCapacity'] === '') { // Allow 0, check empty string or null
+            if (isset($data['totalCapacity']) && $data['totalCapacity'] === '') {
                 throw new \InvalidArgumentException('Champs requis manquants: totalCapacity');
             }
 
-            // Sanitize inputs
+
             $name = $this->xssProtection->sanitize($data['name']);
             $address = $this->xssProtection->sanitize($data['address']);
 
@@ -85,9 +80,9 @@ class ParkingController
                 'name' => $parking->getName(),
                 'address' => $parking->getAddress(),
             ], JSON_UNESCAPED_UNICODE);
-        } catch (\Throwable $e) { // Catch both Exception and Error
+        } catch (\Throwable $e) {
             error_log('Error adding parking: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            http_response_code(500); // Internal Server Error is more appropriate for unexpected errors
+            http_response_code(500);
             echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
         }
     }
@@ -99,7 +94,6 @@ class ParkingController
             $input = file_get_contents('php://input');
             $data = json_decode($input, true) ?? [];
 
-            // Merge with params if needed (though usually POST body is enough)
             if (empty($data['id']) && !empty($params['id'])) {
                 $data['id'] = $params['id'];
             }
@@ -107,8 +101,6 @@ class ParkingController
             if (empty($data['id'])) {
                 throw new \InvalidArgumentException('ID du parking manquant');
             }
-
-            // TODO: check owner permissions
 
             // Sanitize
             if (isset($data['name'])) {
@@ -140,7 +132,6 @@ class ParkingController
 
     public function list(): void
     {
-        // Check for GPS params
         $lat = $_GET['lat'] ?? null;
         $lng = $_GET['lng'] ?? null;
 
@@ -150,8 +141,6 @@ class ParkingController
             $parkings = $this->parkingService->getAllParkings();
         }
 
-        // Pass data to view
-        // $parkings is available in the included file.
         require dirname(__DIR__, 3) . '/templates/parking_list_user.php';
     }
 
@@ -207,8 +196,6 @@ class ParkingController
             echo "Parking not found";
             return;
         }
-
-        // Verify owner owns this parking... (TODO: Add check using session/token)
 
         $this->checkAuth();
 

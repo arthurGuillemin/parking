@@ -18,6 +18,7 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         $this->db = Database::getInstance();
     }
+
     //trouver un créneau d'abonnement avec son id
     public function findById(int $id): ?SubscriptionSlot
     {
