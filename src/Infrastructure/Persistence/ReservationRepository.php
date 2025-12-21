@@ -104,9 +104,6 @@ class ReservationRepository implements ReservationRepositoryInterface
 
     public function countActiveOverstayers(int $parkingId, \DateTimeImmutable $atTime): int
     {
-        // Count sessions that are still active (exit_date_time IS NULL)
-        // BUT their reservation has ended before the check time ($atTime)
-        // These people validly occupy a spot but are NOT counted by countOverlapping
         $stmt = $this->pdo->prepare("
             SELECT COUNT(*)
             FROM parking_sessions s

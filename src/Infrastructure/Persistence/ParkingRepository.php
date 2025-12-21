@@ -109,8 +109,8 @@ class ParkingRepository implements ParkingRepositoryInterface
 
     public function findNearby(float $lat, float $lng, float $radiusKm): array
     {
-        // Using the Haversine formula to calculate distance between GPS coordinates
-        // 6371 is the Earth's radius in kilometers
+        // Utilisation de la formule de Haversine pour calculer la distance entre des coordonnées GPS
+        // 6371 est le rayon de la Terre en kilomètres
         $sql = '
             SELECT *, 
                    (6371 * ACOS(
