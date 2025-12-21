@@ -113,7 +113,17 @@ foreach ($routes as $route) {
 
         try {
             // Préparation des données
-            $data = array_merge($_GET, $_POST, $params);
+            // Si le Content-Type est JSON, on décode le body
+            $jsonBody = [];
+            if (isset($_SERVER['CONTENT_TYPE']) && str_contains($_SERVER['CONTENT_TYPE'], 'application/json')) {
+                $input = file_get_contents('php://input');
+                $decoded = json_decode($input, true);
+                if (is_array($decoded)) {
+                    $jsonBody = $decoded;
+                }
+            }
+
+            $data = array_merge($_GET, $_POST, $jsonBody, $params);
 
             // Gestion du handler
             $result = null;
@@ -128,7 +138,7 @@ foreach ($routes as $route) {
                 $controller = resolveController($controllerClass, $container);
                 $result = callControllerMethod($controller, $methodName, $data);
             } elseif (is_callable($handler)) {
-                // Handler callable
+                // Handler de type callable
                 $result = $handler($data);
             }
 

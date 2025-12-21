@@ -29,32 +29,18 @@
     </div>
 
     <script>
-        // Check authentication
-        const token = localStorage.getItem('owner_token'); // Assuming you store token here
-        /*
-           NOTE: Since the current login implementation uses HttpOnly cookies for security (good!), 
-           client-side JS might not be able to read the token directly if you switched to cookies only.
-           However, the previous `LoginUseCase` returned a token in the body, and `AuthController` 
-           sets a cookie.
-           If we are relying on cookies for API calls, `fetch` will send them automatically with `credentials: 'include'`.
-           For this template, we'll assume we fetch data and the controller auth middleware handles it.
-        */
+        const token = localStorage.getItem('owner_token');
 
         async function loadDashboard() {
             try {
-                // Fetch owner info (we might need a /owner/me endpoint, or use data from localStorage if saved during login)
                 const ownerUser = JSON.parse(localStorage.getItem('owner_user') || '{}');
                 if (ownerUser.firstName) {
                     document.getElementById('ownerName').textContent = `${ownerUser.firstName} ${ownerUser.lastName}`;
                 }
 
-                // Fetch parkings
-                // We need an endpoint that returns parkings for the logged-in owner.
-                // Assuming GET /owner/parkings returns JSON
                 const response = await fetch('/owner/parkings', {
                     headers: {
                         'Accept': 'application/json'
-                        // 'Authorization': 'Bearer ' + token // If using Bearer header
                     }
                 });
 
@@ -91,10 +77,10 @@
                                (<span id="avail-${parking.id}" style="font-weight:bold;">...</span> disponibles)
                            </span>
                            <div style="margin-top:5px; font-size:0.9em; display:flex; gap:5px; align-items:center;">
-                               <label>Voir dispo pour :</label>
+                               <label>Disponibilité estimée au :</label>
                                <input type="datetime-local" id="date-${parking.id}" 
                                       value="${new Date().toISOString().slice(0, 16)}" 
-                                      style="padding:2px; border:1px solid #ccc; border-radius:3px;"
+                                      style="padding:4px; border:1px solid #ccc; border-radius:4px; font-family:inherit;"
                                       onchange="fetchAvailability(${parking.id})">
                            </div>
                         </p>
@@ -113,14 +99,8 @@
 
         async function fetchAvailability(parkingId) {
             try {
-                // Get date from input or default to now
                 const input = document.getElementById(`date-${parkingId}`);
-                let dateStr = input ? input.value : new Date().toISOString(); // local time from input
-
-                // If input is datetime-local, it doesn't have timezone. 
-                // We should append ':00Z' or handle it. toISOString() uses UTC.
-                // Input value example: "2023-12-15T14:30"
-                // Let's ensure full ISO format.
+                let dateStr = input ? input.value : new Date().toISOString();
                 if (input && input.value) {
                     dateStr = new Date(input.value).toISOString();
                 }
@@ -150,7 +130,7 @@
 
         function logout() {
             fetch('/logout', { method: 'POST' }).then(() => {
-                localStorage.removeItem('owner_token'); // Clear if used
+                localStorage.removeItem('owner_token');
                 localStorage.removeItem('owner_user');
                 window.location.href = '/login';
             });
