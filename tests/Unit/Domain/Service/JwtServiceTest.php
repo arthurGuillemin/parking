@@ -54,6 +54,8 @@ class JwtServiceTest extends TestCase
     public function testGenerateWithMissingSecretKeyThrowsOrReturnsInvalidToken()
     {
         putenv('JWT_SECRET_KEY');
+        unset($_ENV['JWT_SECRET_KEY']);
+        unset($_SERVER['JWT_SECRET_KEY']);
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage("La variable d'environnement JWT_SECRET_KEY doit être définie avec une valeur non vide.");
         $service = new JwtService();

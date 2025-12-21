@@ -26,7 +26,8 @@ class GetSubscriptionTypeUseCase
             $type->getSubscriptionTypeId(),
             $type->getParkingId(),
             $type->getName(),
-            $type->getDescription()
+            $type->getDescription(),
+            0.0
         );
     }
 }

@@ -15,7 +15,7 @@ class SubscriptionTypeControllerTest extends TestCase
     {
         $mockUseCase = $this->createMock(AddSubscriptionTypeUseCase::class);
         $mockPresenter = $this->createMock(SubscriptionTypePresenter::class);
-        $mockResponse = new AddSubscriptionTypeResponse(1, 2, 'Annual', 'desc');
+        $mockResponse = new AddSubscriptionTypeResponse(1, 2, 'Annual', 'desc', 0.0);
         $mockUseCase->method('execute')->willReturn($mockResponse);
         $mockPresenter->method('present')->willReturn([
             'id' => 1,

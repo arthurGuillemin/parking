@@ -25,7 +25,7 @@ class SubscriptionTypeServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['execute'])
             ->getMock();
-        $mockResponse = new AddSubscriptionTypeResponse(1, 2, 'Premium', 'desc');
+        $mockResponse = new AddSubscriptionTypeResponse(1, 2, 'Premium', 'desc', 99.99);
         $mockUseCase->method('execute')->willReturn($mockResponse);
         $reflection = new \ReflectionClass($service);
         $property = $reflection->getProperty('addSubscriptionTypeUseCase');

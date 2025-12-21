@@ -17,6 +17,6 @@ class MonthlyRevenueServiceTest extends TestCase
         $service = new MonthlyRevenueService($invoiceRepository, $subscriptionRepository);
         $request = new GetMonthlyRevenueRequest(1, 2025, 11);
 
-        $this->assertIsFloat($service->getMonthlyRevenue($request));
+        $this->assertIsArray($service->getMonthlyRevenue($request));
     }
 }

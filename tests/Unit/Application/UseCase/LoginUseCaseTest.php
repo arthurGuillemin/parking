@@ -15,6 +15,8 @@ class LoginUseCaseTest extends TestCase
         $mockUserRepo = $this->createMock(UserRepositoryInterface::class);
         $mockOwnerRepo = $this->createMock(OwnerRepositoryInterface::class);
         $mockTokenGen = $this->createMock(TokenGeneratorInterface::class);
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
+        $mockHasher->method('verify')->willReturn(true);
         $mockOwner = $this->createMock(\App\Domain\Entity\Owner::class);
         $mockOwner->method('getOwnerId')->willReturn('42');
         $mockOwner->method('getEmail')->willReturn('owner@example.com');
@@ -34,7 +36,7 @@ class LoginUseCaseTest extends TestCase
                     return 'owner.refresh.token';
                 }
             });
-        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen);
+        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen, $mockHasher);
         $response = $useCase->execute('owner@example.com', 'ownerpass');
         $this->assertInstanceOf(LoginResponse::class, $response);
         $this->assertEquals('owner.jwt.token', $response->token);
@@ -45,6 +47,8 @@ class LoginUseCaseTest extends TestCase
         $mockUserRepo = $this->createMock(UserRepositoryInterface::class);
         $mockOwnerRepo = $this->createMock(OwnerRepositoryInterface::class);
         $mockTokenGen = $this->createMock(TokenGeneratorInterface::class);
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
+        $mockHasher->method('verify')->willReturn(true);
         $mockUser = $this->createMock(\App\Domain\Entity\User::class);
         $mockUser->method('getUserId')->willReturn('7');
         $mockUser->method('getEmail')->willReturn('user@example.com');
@@ -64,7 +68,7 @@ class LoginUseCaseTest extends TestCase
                     return 'user.refresh.token';
                 }
             });
-        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen);
+        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen, $mockHasher);
         $response = $useCase->execute('user@example.com', 'userpass');
         $this->assertInstanceOf(LoginResponse::class, $response);
         $this->assertEquals('user.jwt.token', $response->token);
@@ -75,6 +79,8 @@ class LoginUseCaseTest extends TestCase
         $mockUserRepo = $this->createMock(UserRepositoryInterface::class);
         $mockOwnerRepo = $this->createMock(OwnerRepositoryInterface::class);
         $mockTokenGen = $this->createMock(TokenGeneratorInterface::class);
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
+        $mockHasher->method('verify')->willReturn(false);
         $mockUser = $this->createMock(\App\Domain\Entity\User::class);
         $mockUser->method('getUserId')->willReturn('7');
         $mockUser->method('getEmail')->willReturn('user@example.com');
@@ -82,7 +88,7 @@ class LoginUseCaseTest extends TestCase
         $mockOwnerRepo->method('findByEmail')->willReturn(null);
         $mockUserRepo->method('findByEmail')->willReturn($mockUser);
         $mockTokenGen->expects($this->never())->method('generate');
-        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen);
+        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen, $mockHasher);
         $response = $useCase->execute('user@example.com', 'wrongpass');
         $this->assertNull($response);
     }
@@ -92,10 +98,11 @@ class LoginUseCaseTest extends TestCase
         $mockUserRepo = $this->createMock(UserRepositoryInterface::class);
         $mockOwnerRepo = $this->createMock(OwnerRepositoryInterface::class);
         $mockTokenGen = $this->createMock(TokenGeneratorInterface::class);
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
         $mockOwnerRepo->method('findByEmail')->willReturn(null);
         $mockUserRepo->method('findByEmail')->willReturn(null);
         $mockTokenGen->expects($this->never())->method('generate');
-        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen);
+        $useCase = new LoginUseCase($mockUserRepo, $mockOwnerRepo, $mockTokenGen, $mockHasher);
         $response = $useCase->execute('unknown@example.com', 'nopass');
         $this->assertNull($response);
     }

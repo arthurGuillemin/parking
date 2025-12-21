@@ -24,7 +24,8 @@ class GetMonthlyRevenueUseCaseTest extends TestCase
         $useCase = new GetMonthlyRevenueUseCase($invoiceRepo, $subscriptionRepo);
         $request = new GetMonthlyRevenueRequest(1, 2025, 11);
         $result = $useCase->execute($request);
-        $this->assertEquals(150.0, $result);
+        $this->assertIsArray($result);
+        $this->assertEquals(150.0, $result['total']);
     }
 }
 

@@ -177,4 +177,9 @@ class ReservationRepository implements ReservationRepositoryInterface
             $data['final_amount'] !== null ? (float) $data['final_amount'] : null
         );
     }
+
+    public function countActiveOverstayers(int $parkingId, \DateTimeImmutable $atTime): int
+    {
+        return 0; // Stub implementation to fix fatal error as this class effectively legacy
+    }
 }
