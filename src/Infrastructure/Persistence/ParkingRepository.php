@@ -107,6 +107,33 @@ class ParkingRepository implements ParkingRepositoryInterface
         $stmt->execute([$id]);
     }
 
+    public function findNearby(float $lat, float $lng, float $radiusKm): array
+    {
+        // Using the Haversine formula to calculate distance between GPS coordinates
+        // 6371 is the Earth's radius in kilometers
+        $sql = '
+            SELECT *, 
+                   (6371 * ACOS(
+                       COS(RADIANS(:lat)) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(:lng)) +
+                       SIN(RADIANS(:lat2)) * SIN(RADIANS(latitude))
+                   )) AS distance
+            FROM parkings
+            HAVING distance <= :radius
+            ORDER BY distance
+        ';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'lat' => $lat,
+            'lng' => $lng,
+            'lat2' => $lat,
+            'radius' => $radiusKm
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn($row) => $this->mapToEntity($row), $rows);
+    }
+
     private function mapToEntity(array $data): Parking
     {
         return new Parking(

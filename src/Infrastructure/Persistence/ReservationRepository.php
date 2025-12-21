@@ -102,6 +102,25 @@ class ReservationRepository implements ReservationRepositoryInterface
         return $data ? $this->mapToEntity($data) : null;
     }
 
+    public function countActiveOverstayers(int $parkingId, \DateTimeImmutable $atTime): int
+    {
+        // Count sessions that are still active (exit_date_time IS NULL)
+        // BUT their reservation has ended before the check time ($atTime)
+        // These people validly occupy a spot but are NOT counted by countOverlapping
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*)
+            FROM parking_sessions s
+            JOIN reservations r ON s.reservation_id = r.id
+            WHERE s.parking_id = :parking_id
+              AND s.exit_date_time IS NULL
+              AND r.end_date_time < :at_time
+        ");
+        $stmt->execute([
+            'parking_id' => $parkingId,
+            'at_time' => $atTime->format('Y-m-d H:i:s'),
+        ]);
+        return (int) $stmt->fetchColumn();
+    }
 
     public function save(Reservation $reservation): Reservation
     {
