@@ -140,9 +140,15 @@ class ParkingController
 
     public function list(): void
     {
-        // For now, no args or simple query handling.
-        // We fetch ALL parkings. Search logic can be added later (filtering array or SQL).
-        $parkings = $this->parkingService->getAllParkings();
+        // Check for GPS params
+        $lat = $_GET['lat'] ?? null;
+        $lng = $_GET['lng'] ?? null;
+
+        if ($lat && $lng) {
+            $parkings = $this->parkingService->searchNearby((float) $lat, (float) $lng);
+        } else {
+            $parkings = $this->parkingService->getAllParkings();
+        }
 
         // Pass data to view
         // $parkings is available in the included file.

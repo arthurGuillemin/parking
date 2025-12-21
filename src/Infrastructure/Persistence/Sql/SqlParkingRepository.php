@@ -67,6 +67,43 @@ class SqlParkingRepository implements ParkingRepositoryInterface
         }
     }
 
+    public function findNearby(float $lat, float $lng, float $radiusKm): array
+    {
+        // 1. Fetch all parkings (Optimization: could filter by bounding box in SQL first if perf needed)
+        $all = $this->findAll();
+
+        // 2. Filter and Sort in PHP
+        $nearby = [];
+        foreach ($all as $parking) {
+            $dist = $this->calculateDistance($lat, $lng, $parking->getLatitude(), $parking->getLongitude());
+            if ($dist <= $radiusKm) {
+                // Attach distance to object? Or return array? 
+                // Parking entity doesn't have distance property. 
+                // For now, return Parking objects, sorted.
+                // We might lose the exact distance unless we wrap it or add transient property.
+                $nearby[] = ['parking' => $parking, 'distance' => $dist];
+            }
+        }
+
+        // Sort by distance
+        usort($nearby, fn($a, $b) => $a['distance'] <=> $b['distance']);
+
+        // Return just the parking objects
+        return array_map(fn($item) => $item['parking'], $nearby);
+    }
+
+    private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
+    }
+
     public function save(Parking $parking): Parking
     {
         try {

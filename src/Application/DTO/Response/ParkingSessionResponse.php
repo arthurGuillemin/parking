@@ -13,8 +13,11 @@ class ParkingSessionResponse
     public string $entryDateTime;
     public ?string $exitDateTime;
     public ?float $amount;
+    public bool $penaltyApplied;
 
-    public function __construct(ParkingSession $session)
+    public ?string $parkingName;
+
+    public function __construct(ParkingSession $session, ?string $parkingName = null)
     {
         $this->id = $session->getSessionId();
         $this->userId = $session->getUserId();
@@ -23,5 +26,7 @@ class ParkingSessionResponse
         $this->entryDateTime = $session->getEntryDateTime()->format(\DateTimeInterface::ATOM);
         $this->exitDateTime = $session->getExitDateTime() ? $session->getExitDateTime()->format(\DateTimeInterface::ATOM) : null;
         $this->amount = $session->getFinalAmount();
+        $this->penaltyApplied = $session->isPenaltyApplied();
+        $this->parkingName = $parkingName;
     }
 }

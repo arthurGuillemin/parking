@@ -7,6 +7,8 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require __DIR__ . '/../vendor/autoload.php';
 }
 
+date_default_timezone_set('Europe/Paris');
+
 // Chargement des variables d'environnement
 use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));

@@ -14,10 +14,43 @@
         <nav>
             <a href="/">Accueil</a>
             <a href="/parkings">Rechercher</a>
+            <span style="color: #aaa; margin: 0 10px;">|</span>
             <?php if (isset($_COOKIE['auth_token']) || isset($_SESSION['user_id'])): ?>
-                <a href="/dashboard">Mon Tableau de Bord</a>
-                <a href="/simulation">Simulation (Entrée/Sortie)</a>
-                <a href="/logout">Déconnexion</a>
+                <?php
+                // Fetch user logic for header display
+                $headerUser = null;
+                try {
+                    // Quick dependency instantiation for layout (Vanilla PHP style)
+                    if (isset($_COOKIE['auth_token'])) {
+                        $jwtService = new \App\Domain\Service\JwtService();
+                        $userId = $jwtService->validateToken($_COOKIE['auth_token']);
+                        if ($userId) {
+                            $userRepo = new \App\Infrastructure\Persistence\Sql\SqlUserRepository();
+                            $headerUser = $userRepo->findById($userId);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Silent fail for header display
+                }
+                ?>
+
+                <?php if ($headerUser): ?>
+                    <span style="color: #eee; margin-right: 15px; font-weight: bold;">
+                        Bonjour, <?= htmlspecialchars($headerUser->getFirstName() . ' ' . $headerUser->getLastName()) ?>
+                    </span>
+                    <span style="color: #aaa; margin-right: 15px;">|</span>
+                <?php endif; ?>
+
+                <a href="/dashboard">Tableau de bord</a>
+                <span style="color: #aaa; margin: 0 10px;">|</span>
+                <a href="/simulation">Simulation</a>
+                <span style="color: #aaa; margin: 0 10px;">|</span>
+                <form action="/logout" method="POST" style="display:inline;">
+                    <button type="submit"
+                        style="background:none; border:none; color:white; cursor:pointer; text-decoration:underline;">
+                        Déconnexion
+                    </button>
+                </form>
             <?php else: ?>
                 <a href="/login">Connexion</a>
                 <a href="/register">Inscription</a>

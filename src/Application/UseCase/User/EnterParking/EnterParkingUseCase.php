@@ -45,8 +45,8 @@ class EnterParkingUseCase
             }
             // Vérifier si le temps est valide (allow entry 15 mins before)
             $now = new DateTimeImmutable();
-            if ($now < $reservation->getStartDateTime()->modify('-15 minutes')) {
-                throw new RuntimeException("Il est trop tôt pour entrer (max 15 min avant).");
+            if ($now < $reservation->getStartDateTime()->modify('-30 minutes')) {
+                throw new RuntimeException("Il est trop tôt pour entrer (max 30 min avant).");
             }
             if ($now > $reservation->getEndDateTime()) {
                 throw new RuntimeException("Cette réservation est expirée.");

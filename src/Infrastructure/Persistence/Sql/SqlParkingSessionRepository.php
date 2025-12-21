@@ -139,7 +139,10 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     public function save(ParkingSession $session): ParkingSession
     {
         try {
-            $existing = $this->findById($session->getSessionId());
+            $existing = null;
+            if ($session->getSessionId() !== 0) {
+                $existing = $this->findById($session->getSessionId());
+            }
 
             if ($existing) {
                 $stmt = $this->db->prepare("
@@ -155,26 +158,42 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO parking_sessions (id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied)
-                    VALUES (:id, :user_id, :parking_id, :reservation_id, :entry_time, :exit_time, :final_amount, :penalty_applied)
+                    INSERT INTO parking_sessions (user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied)
+                    VALUES (:user_id, :parking_id, :reservation_id, :entry_time, :exit_time, :final_amount, :penalty_applied)
                 ");
             }
 
 
 
-            $stmt->execute([
-                'id' => $session->getSessionId(),
+            $params = [
                 'user_id' => $session->getUserId(),
                 'parking_id' => $session->getParkingId(),
                 'reservation_id' => $session->getReservationId(),
                 'entry_time' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
                 'exit_time' => $session->getExitDateTime()?->format('Y-m-d H:i:s'),
-
-
-
                 'final_amount' => $session->getFinalAmount(),
                 'penalty_applied' => $session->isPenaltyApplied() ? 1 : 0,
-            ]);
+            ];
+
+            if ($existing) {
+                $params['id'] = $session->getSessionId();
+            }
+
+            $stmt->execute($params);
+
+            if (!$existing) {
+                $newId = (int) $this->db->lastInsertId();
+                return new ParkingSession(
+                    $newId,
+                    $session->getUserId(),
+                    $session->getParkingId(),
+                    $session->getReservationId(),
+                    $session->getEntryDateTime(),
+                    $session->getExitDateTime(),
+                    $session->getFinalAmount(),
+                    $session->isPenaltyApplied()
+                );
+            }
 
             return $session;
 

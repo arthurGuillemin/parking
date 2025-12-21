@@ -14,11 +14,14 @@ class ReservationResponse
     public string $status;
     public ?float $amount;
 
-    public function __construct(Reservation $reservation)
+    public ?string $parkingName;
+
+    public function __construct(Reservation $reservation, ?string $parkingName = null)
     {
         $this->id = $reservation->getReservationId();
         $this->userId = $reservation->getUserId();
         $this->parkingId = $reservation->getParkingId();
+        $this->parkingName = $parkingName;
         $this->startDateTime = $reservation->getStartDateTime()->format(\DateTimeInterface::ATOM);
         $this->endDateTime = $reservation->getEndDateTime()->format(\DateTimeInterface::ATOM);
         $this->status = $reservation->getStatus();
