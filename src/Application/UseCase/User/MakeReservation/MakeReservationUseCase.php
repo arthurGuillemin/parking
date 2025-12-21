@@ -14,18 +14,18 @@ class MakeReservationUseCase
     private ReservationRepositoryInterface $reservationRepository;
     private ParkingRepositoryInterface $parkingRepository;
     private CheckAvailabilityService $checkAvailabilityService;
-    private PricingRuleRepositoryInterface $pricingRuleRepository;
+    private \App\Domain\Service\PricingService $pricingService;
 
     public function __construct(
         ReservationRepositoryInterface $reservationRepository,
         ParkingRepositoryInterface $parkingRepository,
         CheckAvailabilityService $checkAvailabilityService,
-        PricingRuleRepositoryInterface $pricingRuleRepository
+        \App\Domain\Service\PricingService $pricingService
     ) {
         $this->reservationRepository = $reservationRepository;
         $this->parkingRepository = $parkingRepository;
         $this->checkAvailabilityService = $checkAvailabilityService;
-        $this->pricingRuleRepository = $pricingRuleRepository;
+        $this->pricingService = $pricingService;
     }
 
     public function execute(MakeReservationRequest $request): ReservationResponse
@@ -40,17 +40,13 @@ class MakeReservationUseCase
             throw new \Exception("Parking is full during this period.");
         }
 
-        // calculer le prix
-        $rule = $this->pricingRuleRepository->findApplicableRule($parking->getParkingId(), $request->startDateTime);
-        $amount = 0.0;
-
-        if ($rule) {
-            $durationMinutes = ($request->endDateTime->getTimestamp() - $request->startDateTime->getTimestamp()) / 60;
-            $slices = ceil($durationMinutes / $rule->getSliceInMinutes());
-            $amount = $slices * $rule->getPricePerSlice();
-        } else {
-            $amount = 0.0;
-        }
+        // calculer le prix via PricingService (supporte les tiers et l'historique)
+        $duration = $request->startDateTime->diff($request->endDateTime);
+        $amount = $this->pricingService->calculatePrice(
+            $parking->getParkingId(),
+            $duration,
+            $request->startDateTime // Les règles effectives au début de la résa
+        );
 
         // créer la réservation
         $reservation = new Reservation(

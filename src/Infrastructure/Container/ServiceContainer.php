@@ -203,7 +203,7 @@ class ServiceContainer implements ContainerInterface
                 $this->get(ReservationRepositoryInterface::class),
                 $this->get(ParkingRepositoryInterface::class),
                 $this->get(\App\Domain\Service\CheckAvailabilityService::class),
-                $this->get(PricingRuleRepositoryInterface::class)
+                $this->get(\App\Domain\Service\PricingService::class)
             );
         };
 
@@ -240,7 +240,8 @@ class ServiceContainer implements ContainerInterface
             return new \App\Application\UseCase\User\ExitParking\ExitParkingUseCase(
                 $this->get(ParkingSessionRepositoryInterface::class),
                 $this->get(ReservationRepositoryInterface::class),
-                $this->get(InvoiceRepositoryInterface::class)
+                $this->get(InvoiceRepositoryInterface::class),
+                $this->get(\App\Domain\Service\PricingService::class)
             );
         };
 

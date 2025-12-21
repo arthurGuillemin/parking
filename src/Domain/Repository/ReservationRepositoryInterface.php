@@ -23,4 +23,6 @@ interface ReservationRepositoryInterface
     public function countOverlapping(int $parkingId, \DateTimeImmutable $start, \DateTimeImmutable $end): int;
 
     public function findActiveReservation(string $userId, int $parkingId, \DateTimeImmutable $atTime): ?Reservation;
+
+    public function countActiveOverstayers(int $parkingId, \DateTimeImmutable $atTime): int;
 }

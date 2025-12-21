@@ -135,6 +135,30 @@ class SqlReservationRepository implements ReservationRepositoryInterface
         }
     }
 
+    public function countActiveOverstayers(int $parkingId, \DateTimeImmutable $atTime): int
+    {
+        try {
+            // Count sessions that are still active (exit_time IS NULL)
+            // BUT their reservation has ended before the check time ($atTime)
+            // These people validly occupy a spot but are NOT counted by countOverlapping
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*)
+                FROM parking_sessions s
+                JOIN reservations r ON s.reservation_id = r.id
+                WHERE s.parking_id = :parking_id
+                  AND s.exit_time IS NULL
+                  AND r.end_datetime < :at_time
+            ");
+            $stmt->execute([
+                'parking_id' => $parkingId,
+                'at_time' => $atTime->format('Y-m-d H:i:s'),
+            ]);
+            return (int) $stmt->fetchColumn();
+        } catch (PDOException $e) {
+            throw new RuntimeException("Failed to count active overstayers: " . $e->getMessage());
+        }
+    }
+
     public function findActiveReservation(string $userId, int $parkingId, \DateTimeImmutable $atTime): ?Reservation
     {
         try {
