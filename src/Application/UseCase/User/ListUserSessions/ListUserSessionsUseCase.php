@@ -5,13 +5,17 @@ namespace App\Application\UseCase\User\ListUserSessions;
 use App\Domain\Repository\ParkingSessionRepositoryInterface;
 use App\Application\DTO\Response\ParkingSessionResponse;
 
+use App\Domain\Repository\ParkingRepositoryInterface;
+
 class ListUserSessionsUseCase
 {
     private ParkingSessionRepositoryInterface $repository;
+    private ParkingRepositoryInterface $parkingRepository;
 
-    public function __construct(ParkingSessionRepositoryInterface $repository)
+    public function __construct(ParkingSessionRepositoryInterface $repository, ParkingRepositoryInterface $parkingRepository)
     {
         $this->repository = $repository;
+        $this->parkingRepository = $parkingRepository;
     }
 
     public function execute(ListUserSessionsRequest $request): array
@@ -20,14 +24,9 @@ class ListUserSessionsUseCase
         $sessions = $this->repository->findByUserId($request->userId);
 
         return array_map(function ($session) {
-            return new ParkingSessionResponse(
-                $session->getSessionId(),
-                $session->getParkingId(),
-                'ABC-123', // Placeholder until Vehicle entity is added
-                $session->getEntryDateTime()->format('Y-m-d H:i:s'),
-                $session->getExitDateTime()?->format('Y-m-d H:i:s'),
-                $session->getFinalAmount()
-            );
+            $parking = $this->parkingRepository->findById($session->getParkingId());
+            $parkingName = $parking ? $parking->getName() : 'Inconnu';
+            return new ParkingSessionResponse($session, $parkingName);
         }, $sessions);
     }
 }

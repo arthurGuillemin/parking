@@ -29,34 +29,39 @@ ob_start();
                             <label>Réservation :</label>
                             <select name="reservation_id" class="form-control" required>
                                 <?php foreach ($reservations as $res): ?>
+                                    <?php
+                                    $date = new DateTime($res->startDateTime);
+                                    $formattedDate = $date->format('d/m à H:i');
+                                    ?>
                                     <option value="<?= $res->id ?>">
-                                        Parking #<?= $res->parkingId ?> (<?= $res->start ?>)
+                                        <?= htmlspecialchars($res->parkingName ?? 'Parking #' . $res->parkingId) ?> (Le
+                                        <?= $formattedDate ?>)
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <!-- Hidden fields if needed, but ID is enough to find parking/user -->
-                        <button type="submit" class="btn btn-success mt-2">Simuler Entrée</button>
+                        <button type="submit" class="btn btn-success mt-2">Simuler l'entrée</button>
                     </form>
                 <?php endif; ?>
 
                 <hr>
-                <h4>Ou Entrée Abonné</h4>
+                <h4>Ou entrée abonné</h4>
                 <?php if (empty($subscriptions)): ?>
                     <p class="text-muted">Aucun abonnement actif.</p>
                 <?php else: ?>
                     <form action="/parking/enter" method="POST">
                         <div class="form-group">
-                            <label>Parking Abonné :</label>
+                            <label>Parking abonné :</label>
                             <select name="parking_id" class="form-control" required>
                                 <?php foreach ($subscriptions as $sub): ?>
                                     <option value="<?= $sub->parkingId ?>">
-                                        Parking #<?= $sub->parkingId ?>
+                                        <?= htmlspecialchars($sub->parkingName ?? 'Parking #' . $sub->parkingId) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary mt-2">Entrer (Abonné)</button>
+                        <button type="submit" class="btn btn-primary mt-2">Entrer (abonné)</button>
                     </form>
                 <?php endif; ?>
             </div>
@@ -65,17 +70,18 @@ ob_start();
         <!-- EXIT COLUMN -->
         <div class="col-md-6">
             <div class="card" style="background-color: #f8f9fa;">
-                <h3>Sortir d'un Parking</h3>
+                <h3>Sortir d'un parking</h3>
                 <?php if (empty($activeSession)): ?>
                     <p class="text-muted">Vous n'êtes pas stationné actuellement.</p>
                 <?php else: ?>
                     <div class="alert alert-info">
-                        <strong>En cours :</strong> Parking #<?= $activeSession->getParkingId() ?><br>
-                        Entrée : <?= $activeSession->getEntryDateTime()->format('d/m/Y H:i') ?>
+                        <strong>En cours :</strong>
+                        <?= htmlspecialchars($activeSession->parkingName ?? 'Parking #' . $activeSession->getParkingId()) ?><br>
+                        Entrée : Le <?= $activeSession->getEntryDateTime()->format('d/m à H:i') ?>
                     </div>
                     <form action="/parking/exit" method="POST">
                         <input type="hidden" name="parking_id" value="<?= $activeSession->getParkingId() ?>">
-                        <button type="submit" class="btn btn-warning w-100">Simuler Sortie & Paiement</button>
+                        <button type="submit" class="btn btn-warning w-100">Simuler la sortie et payer</button>
                     </form>
                 <?php endif; ?>
             </div>

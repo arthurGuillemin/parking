@@ -26,6 +26,10 @@ ob_start();
         </li>
     </ul>
 
+    <?php
+    $dateFormat = "d/m/Y H:i";
+    ?>
+
     <!-- Reservations Tab -->
     <div id="reservations" class="tab-content" style="display: block;">
         <h3>Mes Réservations</h3>
@@ -37,7 +41,8 @@ ob_start();
                 <table class="table" style="width:100%; border-collapse: collapse;">
                     <thead>
                         <tr style="border-bottom: 2px solid #ddd; text-align: left;">
-                            <th style="padding: 10px;">Parking (ID)</th>
+                            <th style="padding: 10px;">#</th>
+                            <th style="padding: 10px;">Parking</th>
                             <th style="padding: 10px;">Début</th>
                             <th style="padding: 10px;">Fin</th>
                             <th style="padding: 10px;">Statut</th>
@@ -45,17 +50,36 @@ ob_start();
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($reservations as $res): ?>
+                        <?php foreach ($reservations as $index => $res): ?>
                             <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 10px;">#<?= htmlspecialchars($res->parkingId) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($res->start) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($res->end) ?></td>
+                                <td style="padding: 10px;"><strong><?= $index + 1 ?></strong></td>
                                 <td style="padding: 10px;">
-                                    <span class="badge <?= $res->status === 'confirmed' ? 'bg-success' : 'bg-warning' ?>">
-                                        <?= htmlspecialchars($res->status) ?>
+                                    <strong><?= htmlspecialchars($res->parkingName ?? 'Parking #' . $res->parkingId) ?></strong>
+                                </td>
+                                <td style="padding: 10px;"><?= date($dateFormat, strtotime($res->startDateTime)) ?></td>
+                                <td style="padding: 10px;"><?= date($dateFormat, strtotime($res->endDateTime)) ?></td>
+                                <td style="padding: 10px;">
+                                    <?php
+                                    $statusLabel = match ($res->status) {
+                                        'confirmed' => 'Confirmée',
+                                        'completed' => 'Terminée',
+                                        'cancelled' => 'Annulée',
+                                        'pending' => 'En attente',
+                                        default => $res->status
+                                    };
+                                    $statusClass = match ($res->status) {
+                                        'confirmed' => 'bg-success',
+                                        'completed' => 'bg-secondary',
+                                        'cancelled' => 'bg-danger',
+                                        'pending' => 'bg-warning',
+                                        default => 'bg-light'
+                                    };
+                                    ?>
+                                    <span class="badge <?= $statusClass ?>">
+                                        <?= htmlspecialchars($statusLabel) ?>
                                     </span>
                                 </td>
-                                <td style="padding: 10px;"><?= number_format($res->price, 2) ?> €</td>
+                                <td style="padding: 10px;"><?= number_format($res->amount, 2) ?> €</td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -74,23 +98,27 @@ ob_start();
                 <table class="table" style="width:100%; border-collapse: collapse;">
                     <thead>
                         <tr style="border-bottom: 2px solid #ddd; text-align: left;">
-                            <th style="padding: 10px;">Parking (ID)</th>
+                            <th style="padding: 10px;">#</th>
+                            <th style="padding: 10px;">Parking</th>
                             <th style="padding: 10px;">Entrée</th>
                             <th style="padding: 10px;">Sortie</th>
-                            <th style="padding: 10px;">Plaque</th>
                             <th style="padding: 10px;">Prix Payé</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($sessions as $session): ?>
+                        <?php foreach ($sessions as $index => $session): ?>
                             <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 10px;">#<?= htmlspecialchars($session->parkingId) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($session->entryTime) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($session->exitTime ?? 'En cours') ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($session->vehiclePlate) ?></td>
+                                <td style="padding: 10px;"><strong><?= $index + 1 ?></strong></td>
                                 <td style="padding: 10px;">
-                                    <?php if ($session->pricePaid !== null): ?>
-                                        <?= number_format($session->pricePaid, 2) ?> €
+                                    <strong><?= htmlspecialchars($session->parkingName ?? 'Parking #' . $session->parkingId) ?></strong>
+                                </td>
+                                <td style="padding: 10px;"><?= date($dateFormat, strtotime($session->entryDateTime)) ?></td>
+                                <td style="padding: 10px;">
+                                    <?= $session->exitDateTime ? date($dateFormat, strtotime($session->exitDateTime)) : '<span class="text-success">En cours</span>' ?>
+                                </td>
+                                <td style="padding: 10px;">
+                                    <?php if ($session->amount !== null): ?>
+                                        <?= number_format($session->amount, 2) ?> €
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
@@ -113,11 +141,17 @@ ob_start();
             <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                 <?php foreach ($subscriptions as $sub): ?>
                     <div class="card">
-                        <h4>Parking #<?= htmlspecialchars($sub->parkingId) ?></h4>
-                        <p class="mb-2"><strong>Statut :</strong> <?= htmlspecialchars($sub->status) ?></p>
-                        <p class="mb-2"><strong>Validité :</strong> <?= htmlspecialchars($sub->startDate) ?> ->
-                            <?= htmlspecialchars($sub->endDate ?? 'Indéfini') ?>
+                        <h4><?= htmlspecialchars($sub->parkingName ?? 'Parking #' . $sub->parkingId) ?></h4>
+                        <p class="mb-2"><strong>Statut :</strong>
+                            <span class="badge <?= $sub->status === 'active' ? 'bg-success' : 'bg-secondary' ?>">
+                                <?= htmlspecialchars($sub->status === 'active' ? 'Actif' : $sub->status) ?>
+                            </span>
                         </p>
+                        <p class="mb-2"><strong>Validité :</strong> <br>
+                            <?= date('d/m/Y', strtotime($sub->startDate)) ?> ➝
+                            <?= $sub->endDate ? date('d/m/Y', strtotime($sub->endDate)) : 'Indéfini' ?>
+                        </p>
+                        <p class="mb-2"><strong>Prix :</strong> <?= number_format($sub->monthlyPrice, 2) ?> € / mois</p>
                         <a href="/subscription" class="btn btn-outline-secondary btn-sm">Gérer</a>
                     </div>
                 <?php endforeach; ?>
@@ -135,7 +169,7 @@ ob_start();
                 <table class="table" style="width:100%; border-collapse: collapse;">
                     <thead>
                         <tr style="border-bottom: 2px solid #ddd; text-align: left;">
-                            <th style="padding: 10px;">Numéro</th>
+                            <th style="padding: 10px;">#</th>
                             <th style="padding: 10px;">Date</th>
                             <th style="padding: 10px;">Type</th>
                             <th style="padding: 10px;">Montant TTC</th>
@@ -145,12 +179,22 @@ ob_start();
                     <tbody>
                         <?php foreach ($invoices as $invoice): ?>
                             <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 10px;"><?= htmlspecialchars($invoice->id) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($invoice->issueDate) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($invoice->type) ?></td>
-                                <td style="padding: 10px;"><?= htmlspecialchars($invoice->amountTtc) ?> €</td>
+                                <td style="padding: 10px;"><strong><?= htmlspecialchars($invoice->id) ?></strong></td>
+                                <td style="padding: 10px;"><?= date('d/m/Y', strtotime($invoice->issueDate)) ?></td>
                                 <td style="padding: 10px;">
-                                    <button class="btn btn-sm btn-secondary" disabled>Télécharger (WIP)</button>
+                                    <?php
+                                    $typeLabel = match ($invoice->type) {
+                                        'subscription' => 'Abonnement',
+                                        'reservation' => 'Réservation',
+                                        default => $invoice->type
+                                    };
+                                    ?>
+                                    <?= htmlspecialchars($typeLabel) ?>
+                                </td>
+                                <td style="padding: 10px;"><?= number_format($invoice->amountTtc, 2) ?> €</td>
+                                <td style="padding: 10px;">
+                                    <a href="/invoices/<?= $invoice->id ?>/download" target="_blank"
+                                        class="btn btn-sm btn-secondary">Télécharger</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

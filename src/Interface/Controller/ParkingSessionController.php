@@ -67,22 +67,8 @@ class ParkingSessionController
         if (!$userId)
             return;
 
-        $activeSession = $this->sessionRepository->findActiveSessionByUserId($userId);
-        $reservations = $this->listReservationsUseCase->execute(
-            new \App\Application\UseCase\User\ListUserReservations\ListUserReservationsRequest($userId)
-        );
-        $subscriptions = $this->listSubscriptionsUseCase->execute(
-            new \App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsRequest($userId)
-        );
-
-        require dirname(__DIR__, 3) . '/templates/simulation.php';
-    }
-
-    private function renderSimulationWithMessage($success = null, $error = null)
-    {
-        $userId = $this->getUserId();
-        if (!$userId)
-            return;
+        $success = $_GET['success'] ?? null;
+        $error = $_GET['error'] ?? null;
 
         $activeSession = $this->sessionRepository->findActiveSessionByUserId($userId);
         $reservations = $this->listReservationsUseCase->execute(
@@ -124,10 +110,12 @@ class ParkingSessionController
             $request = new \App\Application\UseCase\User\EnterParking\EnterParkingRequest($userId, $parkingId, $reservationId);
             $this->enterParkingUseCase->execute($request);
 
-            $this->renderSimulationWithMessage("Bienvenue ! Barrière ouverte.", null);
+            header('Location: /simulation?success=' . urlencode("Bienvenue ! Barrière ouverte."));
+            exit;
 
         } catch (Exception $e) {
-            $this->renderSimulationWithMessage(null, $e->getMessage());
+            header('Location: /simulation?error=' . urlencode($e->getMessage()));
+            exit;
         }
     }
 
@@ -147,17 +135,19 @@ class ParkingSessionController
             $session = $this->exitParkingUseCase->execute($request);
 
             $msg = "Au revoir ! Sortie validée.";
-            if ($session->getFinalAmount() > 0) {
-                $msg .= " Montant final : " . number_format($session->getFinalAmount(), 2) . " €. ";
-                if ($session->isPenaltyApplied()) {
+            if ($session->amount > 0) {
+                $msg .= " Montant final : " . number_format($session->amount, 2) . " €. ";
+                if ($session->penaltyApplied) {
                     $msg .= "(Pénalité de dépassement incluse).";
                 }
             }
 
-            $this->renderSimulationWithMessage($msg, null);
+            header('Location: /simulation?success=' . urlencode($msg));
+            exit;
 
         } catch (Exception $e) {
-            $this->renderSimulationWithMessage(null, $e->getMessage());
+            header('Location: /simulation?error=' . urlencode($e->getMessage()));
+            exit;
         }
     }
 

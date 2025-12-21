@@ -12,6 +12,7 @@ class SubscriptionResponse
     public ?string $endDate;
     public string $status;
     public float $monthlyPrice;
+    public ?string $parkingName;
 
     public function __construct(
         int $id,
@@ -21,7 +22,8 @@ class SubscriptionResponse
         string $startDate,
         ?string $endDate,
         string $status,
-        float $monthlyPrice
+        float $monthlyPrice,
+        ?string $parkingName = null
     ) {
         $this->id = $id;
         $this->userId = $userId;
@@ -31,5 +33,6 @@ class SubscriptionResponse
         $this->endDate = $endDate;
         $this->status = $status;
         $this->monthlyPrice = $monthlyPrice;
+        $this->parkingName = $parkingName;
     }
 }

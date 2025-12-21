@@ -15,13 +15,29 @@ ob_start();
             <input type="hidden" name="parkingId" value="<?= $parking->getParkingId() ?>">
 
             <div class="mb-3">
-                <label for="start" class="form-label">Début de stationnement</label>
-                <input type="datetime-local" class="form-control" id="start" name="start" required>
+                <label class="form-label">Début de stationnement</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="date" class="form-control" id="start_date" required>
+                    </div>
+                    <div class="col">
+                        <input type="time" class="form-control" id="start_time" required>
+                    </div>
+                </div>
+                <input type="hidden" id="start" name="start">
             </div>
 
             <div class="mb-3">
-                <label for="end" class="form-label">Fin de stationnement</label>
-                <input type="datetime-local" class="form-control" id="end" name="end" required>
+                <label class="form-label">Fin de stationnement</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="date" class="form-control" id="end_date" required>
+                    </div>
+                    <div class="col">
+                        <input type="time" class="form-control" id="end_time" required>
+                    </div>
+                </div>
+                <input type="hidden" id="end" name="end">
             </div>
 
             <div class="alert alert-info">
@@ -36,6 +52,28 @@ ob_start();
         </form>
     </div>
 </div>
+</div>
+
+<script>
+    function updateHiddenInputs() {
+        const startDate = document.getElementById('start_date').value;
+        const startTime = document.getElementById('start_time').value;
+        const endDate = document.getElementById('end_date').value;
+        const endTime = document.getElementById('end_time').value;
+
+        if (startDate && startTime) {
+            document.getElementById('start').value = startDate + 'T' + startTime;
+        }
+        if (endDate && endTime) {
+            document.getElementById('end').value = endDate + 'T' + endTime;
+        }
+    }
+
+    const inputs = ['start_date', 'start_time', 'end_date', 'end_time'];
+    inputs.forEach(id => {
+        document.getElementById(id).addEventListener('change', updateHiddenInputs);
+    });
+</script>
 
 <?php
 $content = ob_get_clean();

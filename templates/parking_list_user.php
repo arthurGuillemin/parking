@@ -9,8 +9,38 @@ ob_start();
         <input type="text" name="q" class="form-control" placeholder="Ville, adresse..."
             value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" style="margin-bottom:0; width:250px;">
         <button type="submit" class="btn btn-primary">Filtrer</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="geoLocate()">📍 Autour de moi</button>
     </form>
 </div>
+
+<script>
+    function geoLocate() {
+        if (!navigator.geolocation) {
+            alert("La géolocalisation n'est pas supportée par votre navigateur.");
+            return;
+        }
+
+        // Show loading state
+        const btn = document.querySelector('button[onclick="geoLocate()"]');
+        const originalText = btn.textContent;
+        btn.textContent = '📍 Localisation...';
+        btn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                window.location.href = `/parkings?lat=${lat}&lng=${lng}`;
+            },
+            (error) => {
+                console.error(error);
+                alert("Impossible de vous localiser. Vérifiez vos permissions.");
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        );
+    }
+</script>
 
 <?php if (empty($parkings)): ?>
     <div class="empty-state">

@@ -8,25 +8,66 @@ use App\Application\UseCase\User\MakeReservation\MakeReservationUseCase;
 use App\Application\UseCase\User\MakeReservation\MakeReservationRequest;
 use Exception;
 
+use App\Domain\Service\JwtService;
+
 class ReservationController
 {
     private ReservationService $reservationService;
     private MakeReservationUseCase $makeReservationUseCase;
+    private \App\Domain\Service\ParkingService $parkingService;
+    private JwtService $jwtService;
 
-    public function __construct(ReservationService $reservationService, MakeReservationUseCase $makeReservationUseCase)
-    {
+    public function __construct(
+        ReservationService $reservationService,
+        MakeReservationUseCase $makeReservationUseCase,
+        \App\Domain\Service\ParkingService $parkingService,
+        JwtService $jwtService
+    ) {
         $this->reservationService = $reservationService;
         $this->makeReservationUseCase = $makeReservationUseCase;
+        $this->parkingService = $parkingService;
+        $this->jwtService = $jwtService;
+    }
+
+    public function show(): void
+    {
+        // On pourrait récupérer le parking_id depuis $_GET si nécessaire pour pré-remplir le formulaire
+        $parkingId = isset($_GET['parkingId']) ? (int) $_GET['parkingId'] : null;
+        if (!$parkingId) {
+            header('Location: /parkings');
+            exit;
+        }
+
+        $parking = $this->parkingService->getParkingById($parkingId);
+        if (!$parking) {
+            http_response_code(404);
+            echo "Parking introuvable.";
+            exit;
+        }
+
+        require __DIR__ . '/../../../templates/reservation_create.php';
     }
 
     public function create(array $data): array
     {
-        if (empty($data['userId']) || empty($data['parkingId']) || empty($data['start']) || empty($data['end'])) {
-            throw new \InvalidArgumentException('Tous les champs (userId, parkingId, start, end) sont obligatoires.');
+        // Get User ID from Token
+        $token = $_COOKIE['auth_token'] ?? null;
+        if (!$token) {
+            header('Location: /login');
+            exit;
+        }
+        $userId = $this->jwtService->validateToken($token);
+        if (!$userId) {
+            header('Location: /login');
+            exit;
+        }
+
+        if (empty($data['parkingId']) || empty($data['start']) || empty($data['end'])) {
+            throw new \InvalidArgumentException('Tous les champs (parkingId, start, end) sont obligatoires. (User ID override)');
         }
 
         $request = new MakeReservationRequest(
-            $data['userId'],
+            $userId,
             (int) $data['parkingId'],
             new \DateTimeImmutable($data['start']),
             new \DateTimeImmutable($data['end'])
@@ -34,12 +75,8 @@ class ReservationController
 
         $response = $this->makeReservationUseCase->execute($request);
 
-        return [
-            'id' => $response->id,
-            'status' => $response->status,
-            'calculatedAmount' => $response->amount,
-            'message' => 'Réservation créée avec succès.'
-        ];
+        header('Location: /dashboard?success=reservation_created');
+        exit;
     }
 
     public function listByParking(array $data): array

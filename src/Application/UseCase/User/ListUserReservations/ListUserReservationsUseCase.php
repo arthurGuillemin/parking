@@ -5,13 +5,17 @@ namespace App\Application\UseCase\User\ListUserReservations;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Application\DTO\Response\ReservationResponse;
 
+use App\Domain\Repository\ParkingRepositoryInterface;
+
 class ListUserReservationsUseCase
 {
     private ReservationRepositoryInterface $reservationRepository;
+    private ParkingRepositoryInterface $parkingRepository;
 
-    public function __construct(ReservationRepositoryInterface $reservationRepository)
+    public function __construct(ReservationRepositoryInterface $reservationRepository, ParkingRepositoryInterface $parkingRepository)
     {
         $this->reservationRepository = $reservationRepository;
+        $this->parkingRepository = $parkingRepository;
     }
 
     public function execute(ListUserReservationsRequest $request): array
@@ -22,15 +26,9 @@ class ListUserReservationsUseCase
         $reservations = $this->reservationRepository->findByUserId($request->userId);
 
         return array_map(function ($reservation) {
-            return new ReservationResponse(
-                $reservation->getReservationId(),
-                $reservation->getUserId(),
-                $reservation->getParkingId(),
-                $reservation->getStartDateTime()->format('Y-m-d H:i:s'),
-                $reservation->getEndDateTime()->format('Y-m-d H:i:s'),
-                $reservation->getStatus(),
-                $reservation->getCalculatedAmount()
-            );
+            $parking = $this->parkingRepository->findById($reservation->getParkingId());
+            $parkingName = $parking ? $parking->getName() : 'Inconnu';
+            return new ReservationResponse($reservation, $parkingName);
         }, $reservations);
     }
 }

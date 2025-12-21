@@ -192,7 +192,21 @@ class ServiceContainer implements ContainerInterface
             );
         };
 
-        // Ensure PricingService is registered
+        $this->factories[\App\Domain\Service\CheckAvailabilityService::class] = function () {
+            return new \App\Domain\Service\CheckAvailabilityService(
+                $this->get(ReservationRepositoryInterface::class)
+            );
+        };
+
+        $this->factories[\App\Application\UseCase\User\MakeReservation\MakeReservationUseCase::class] = function () {
+            return new \App\Application\UseCase\User\MakeReservation\MakeReservationUseCase(
+                $this->get(ReservationRepositoryInterface::class),
+                $this->get(ParkingRepositoryInterface::class),
+                $this->get(\App\Domain\Service\CheckAvailabilityService::class),
+                $this->get(PricingRuleRepositoryInterface::class)
+            );
+        };
+
         $this->factories[\App\Domain\Service\PricingService::class] = function () {
             return new \App\Domain\Service\PricingService(
                 $this->get(PricingRuleRepositoryInterface::class)
@@ -209,9 +223,9 @@ class ServiceContainer implements ContainerInterface
         $this->factories[\App\Interface\Controller\ReservationController::class] = function () {
             return new \App\Interface\Controller\ReservationController(
                 $this->get(\App\Domain\Service\ReservationService::class),
+                $this->get(\App\Application\UseCase\User\MakeReservation\MakeReservationUseCase::class),
                 $this->get(\App\Domain\Service\ParkingService::class),
-                $this->get(JwtService::class),
-                $this->get(UserRepositoryInterface::class)
+                $this->get(JwtService::class)
             );
         };
 
@@ -240,6 +254,20 @@ class ServiceContainer implements ContainerInterface
         $this->factories[\App\Application\UseCase\User\ListUserInvoices\ListUserInvoicesUseCase::class] = function () {
             return new \App\Application\UseCase\User\ListUserInvoices\ListUserInvoicesUseCase(
                 $this->get(InvoiceRepositoryInterface::class)
+            );
+        };
+
+        $this->factories[\App\Application\UseCase\User\GetInvoice\GetInvoiceUseCase::class] = function () {
+            return new \App\Application\UseCase\User\GetInvoice\GetInvoiceUseCase(
+                $this->get(InvoiceRepositoryInterface::class)
+            );
+        };
+
+        $this->factories[\App\Interface\Controller\InvoiceController::class] = function () {
+            return new \App\Interface\Controller\InvoiceController(
+                $this->get(\App\Application\UseCase\User\GetInvoice\GetInvoiceUseCase::class),
+                $this->get(JwtService::class),
+                $this->get(UserRepositoryInterface::class)
             );
         };
 
@@ -293,7 +321,8 @@ class ServiceContainer implements ContainerInterface
         };
         $this->factories[\App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsUseCase::class] = function () {
             return new \App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsUseCase(
-                $this->get(SubscriptionRepositoryInterface::class)
+                $this->get(SubscriptionRepositoryInterface::class),
+                $this->get(ParkingRepositoryInterface::class)
             );
         };
         $this->factories[\App\Application\UseCase\User\GetSubscription\GetSubscriptionUseCase::class] = function () {
@@ -325,12 +354,14 @@ class ServiceContainer implements ContainerInterface
         // User Dashboard & History
         $this->factories[\App\Application\UseCase\User\ListUserReservations\ListUserReservationsUseCase::class] = function () {
             return new \App\Application\UseCase\User\ListUserReservations\ListUserReservationsUseCase(
-                $this->get(ReservationRepositoryInterface::class)
+                $this->get(ReservationRepositoryInterface::class),
+                $this->get(ParkingRepositoryInterface::class)
             );
         };
         $this->factories[\App\Application\UseCase\User\ListUserSessions\ListUserSessionsUseCase::class] = function () {
             return new \App\Application\UseCase\User\ListUserSessions\ListUserSessionsUseCase(
-                $this->get(ParkingSessionRepositoryInterface::class)
+                $this->get(ParkingSessionRepositoryInterface::class),
+                $this->get(ParkingRepositoryInterface::class)
             );
         };
 

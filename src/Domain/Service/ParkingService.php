@@ -60,5 +60,10 @@ class ParkingService
     {
         return $this->parkingRepository->findAll();
     }
+
+    public function searchNearby(float $lat, float $lng, float $radiusKm = 20): array
+    {
+        return $this->parkingRepository->findNearby($lat, $lng, $radiusKm);
+    }
 }
 
