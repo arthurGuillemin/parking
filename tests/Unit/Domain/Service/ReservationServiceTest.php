@@ -12,8 +12,9 @@ class ReservationServiceTest extends TestCase
     public function testListReservationsReturnsArray()
     {
         $reservationRepository = $this->createMock(ReservationRepositoryInterface::class);
-        $reservationRepository->method('findAllByParkingId')->willReturn([1,2,3]);
-        $service = new ReservationService($reservationRepository);
+        $reservationRepository->method('findAllByParkingId')->willReturn([1, 2, 3]);
+        $createReservationUseCase = $this->createMock(\App\Application\UseCase\User\CreateReservation\CreateReservationUseCase::class);
+        $service = new ReservationService($reservationRepository, $createReservationUseCase);
         $request = new ListReservationsRequest(1, new \DateTimeImmutable('2025-11-28'), new \DateTimeImmutable('2025-11-29'));
         $result = $service->listReservations($request);
         $this->assertIsArray($result);

@@ -19,15 +19,23 @@ class MonthlyRevenueControllerTest extends TestCase
     public function testGetReturnsRevenueArray()
     {
         $mockService = $this->createMock(MonthlyRevenueService::class);
-        $mockService->method('getMonthlyRevenue')->willReturn(123.45);
+        $mockService->method('getMonthlyRevenue')->willReturn([
+            'total' => 123.45,
+            'reservations' => 100.0,
+            'subscriptions' => 23.45
+        ]);
         $controller = new MonthlyRevenueController($mockService);
         $data = ['parkingId' => 1, 'year' => 2025, 'month' => 11];
         $result = $controller->get($data);
         $this->assertEquals([
-            'revenue' => 123.45,
-            'month' => 11,
-            'year' => 2025,
             'parkingId' => 1,
+            'year' => 2025,
+            'month' => 11,
+            'revenue' => 123.45,
+            'breakdown' => [
+                'reservations' => 100.0,
+                'subscriptions' => 23.45
+            ]
         ], $result);
     }
 }

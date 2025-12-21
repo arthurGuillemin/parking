@@ -245,6 +245,20 @@ class ServiceContainer implements ContainerInterface
             );
         };
 
+        $this->factories[\App\Application\UseCase\Owner\UpdatePricingRule\UpdatePricingRuleUseCase::class] = function () {
+            return new \App\Application\UseCase\Owner\UpdatePricingRule\UpdatePricingRuleUseCase(
+                $this->get(\App\Domain\Repository\PricingRuleRepositoryInterface::class)
+            );
+        };
+
+        $this->factories[\App\Application\UseCase\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsUseCase::class] = function () {
+            return new \App\Application\UseCase\Parking\CountAvailableParkingSpots\CountAvailableParkingSpotsUseCase(
+                $this->get(ParkingRepositoryInterface::class),
+                $this->get(ReservationRepositoryInterface::class),
+                $this->get(SubscriptionRepositoryInterface::class)
+            );
+        };
+
         $this->factories[\App\Domain\Service\ParkingSessionService::class] = function () {
             return new \App\Domain\Service\ParkingSessionService(
                 $this->get(ParkingSessionRepositoryInterface::class)
@@ -302,6 +316,23 @@ class ServiceContainer implements ContainerInterface
         $this->factories[\App\Application\UseCase\Owner\GetSubscriptionType\GetSubscriptionTypeUseCase::class] = function () {
             return new \App\Application\UseCase\Owner\GetSubscriptionType\GetSubscriptionTypeUseCase(
                 $this->get(SubscriptionTypeRepositoryInterface::class)
+            );
+        };
+
+        // Subscription Slot UseCases
+        $this->factories[\App\Application\UseCase\Owner\AddSubscriptionSlot\AddSubscriptionSlotUseCase::class] = function () {
+            return new \App\Application\UseCase\Owner\AddSubscriptionSlot\AddSubscriptionSlotUseCase(
+                $this->get(SubscriptionSlotRepositoryInterface::class)
+            );
+        };
+        $this->factories[\App\Application\UseCase\Owner\ListSubscriptionSlots\ListSubscriptionSlotsUseCase::class] = function () {
+            return new \App\Application\UseCase\Owner\ListSubscriptionSlots\ListSubscriptionSlotsUseCase(
+                $this->get(SubscriptionSlotRepositoryInterface::class)
+            );
+        };
+        $this->factories[\App\Application\UseCase\Owner\DeleteSubscriptionSlot\DeleteSubscriptionSlotUseCase::class] = function () {
+            return new \App\Application\UseCase\Owner\DeleteSubscriptionSlot\DeleteSubscriptionSlotUseCase(
+                $this->get(SubscriptionSlotRepositoryInterface::class)
             );
         };
 

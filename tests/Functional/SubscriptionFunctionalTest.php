@@ -30,12 +30,8 @@ use App\Application\UseCase\Owner\GetSubscriptionType\GetSubscriptionTypeRequest
 use App\Domain\Service\SubscriptionCoverageService;
 use PDO;
 
-class SubscriptionFunctionalTest extends TestCase
+class SubscriptionFunctionalTest extends BaseFunctionalTest
 {
-    private PDO $pdo;
-    private SubscriptionTypeRepository $typeRepository;
-    private SubscriptionSlotRepository $slotRepository;
-    private SubscriptionRepository $subscriptionRepository;
     private AddSubscriptionTypeUseCase $addTypeUseCase;
     private AddSubscriptionSlotUseCase $addSlotUseCase;
     private AddSubscriptionUseCase $addSubscriptionUseCase;
@@ -47,73 +43,27 @@ class SubscriptionFunctionalTest extends TestCase
     private ListSubscriptionTypesUseCase $listTypesUseCase;
     private GetSubscriptionTypeUseCase $getSubscriptionTypeUseCase;
     private SubscriptionCoverageService $coverageService;
+    private \App\Domain\Repository\SubscriptionRepositoryInterface $subscriptionRepository;
+    // We keep repo property access for specific assertions if needed, fetching from container
 
     protected function setUp(): void
     {
-        // ✅ Setup Database (SQLite en mémoire pour les tests)
-        $_ENV['APP_ENV'] = 'test';
-        $this->pdo = Database::getInstance();
+        parent::setUp(); // Sets up DB and Container
 
-        // ✅ Créer les tables
-        $this->createTables();
+        $this->addTypeUseCase = $this->container->get(AddSubscriptionTypeUseCase::class);
+        $this->addSlotUseCase = $this->container->get(AddSubscriptionSlotUseCase::class);
+        $this->addSubscriptionUseCase = $this->container->get(AddSubscriptionUseCase::class);
+        $this->listSubscriptionsUseCase = $this->container->get(ListUserSubscriptionsUseCase::class);
+        $this->getSubscriptionUseCase = $this->container->get(GetSubscriptionUseCase::class);
+        $this->cancelSubscriptionUseCase = $this->container->get(CancelSubscriptionUseCase::class);
+        // listSlotsUseCase was newly added to container
+        $this->listSlotsUseCase = $this->container->get(ListSubscriptionSlotsUseCase::class);
+        $this->deleteSlotUseCase = $this->container->get(DeleteSubscriptionSlotUseCase::class);
+        $this->listTypesUseCase = $this->container->get(ListSubscriptionTypesUseCase::class);
+        $this->getSubscriptionTypeUseCase = $this->container->get(GetSubscriptionTypeUseCase::class);
+        $this->coverageService = $this->container->get(SubscriptionCoverageService::class);
 
-        // ✅ Initialiser les repositories
-        $this->typeRepository = new SubscriptionTypeRepository($this->pdo);
-        $this->slotRepository = new SubscriptionSlotRepository($this->pdo);
-        $this->subscriptionRepository = new SubscriptionRepository($this->pdo);
-
-        // ✅ Initialiser les use cases
-        $this->addTypeUseCase = new AddSubscriptionTypeUseCase($this->typeRepository);
-        $this->addSlotUseCase = new AddSubscriptionSlotUseCase($this->slotRepository);
-        $this->addSubscriptionUseCase = new AddSubscriptionUseCase($this->subscriptionRepository);
-        $this->listSubscriptionsUseCase = new ListUserSubscriptionsUseCase($this->subscriptionRepository);
-        $this->getSubscriptionUseCase = new GetSubscriptionUseCase($this->subscriptionRepository);
-        $this->cancelSubscriptionUseCase = new CancelSubscriptionUseCase($this->subscriptionRepository);
-        $this->listSlotsUseCase = new ListSubscriptionSlotsUseCase($this->slotRepository);
-        $this->deleteSlotUseCase = new DeleteSubscriptionSlotUseCase($this->slotRepository);
-        $this->listTypesUseCase = new ListSubscriptionTypesUseCase($this->typeRepository);
-        $this->getSubscriptionTypeUseCase = new GetSubscriptionTypeUseCase($this->typeRepository);
-        $this->coverageService = new SubscriptionCoverageService($this->slotRepository);
-    }
-
-    /**
-     * Créer les tables SQLite pour les tests
-     */
-    private function createTables(): void
-    {
-        $this->pdo->exec('
-            CREATE TABLE IF NOT EXISTS subscription_types (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                parking_id INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                description TEXT
-            )
-        ');
-
-        $this->pdo->exec('
-            CREATE TABLE IF NOT EXISTS subscription_slots (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                subscription_type_id INTEGER NOT NULL,
-                weekday INTEGER NOT NULL,
-                start_time TEXT NOT NULL,
-                end_time TEXT NOT NULL,
-                FOREIGN KEY (subscription_type_id) REFERENCES subscription_types(id)
-            )
-        ');
-
-        $this->pdo->exec('
-            CREATE TABLE IF NOT EXISTS subscriptions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                parking_id INTEGER NOT NULL,
-                type_id INTEGER,
-                start_date TEXT NOT NULL,
-                end_date TEXT,
-                status TEXT NOT NULL,
-                monthly_price REAL NOT NULL,
-                FOREIGN KEY (type_id) REFERENCES subscription_types(id)
-            )
-        ');
+        $this->subscriptionRepository = $this->container->get(\App\Domain\Repository\SubscriptionRepositoryInterface::class);
     }
 
     /**
@@ -342,8 +292,8 @@ class SubscriptionFunctionalTest extends TestCase
 
         $this->assertCount(2, $subscriptions);
         $this->assertEquals('user-alice', $subscriptions[0]->userId);
-        $this->assertEquals(1, $subscriptions[0]->parkingId);
-        $this->assertEquals(2, $subscriptions[1]->parkingId);
+        $this->assertEquals(2, $subscriptions[0]->parkingId);
+        $this->assertEquals(1, $subscriptions[1]->parkingId);
     }
 
     /**

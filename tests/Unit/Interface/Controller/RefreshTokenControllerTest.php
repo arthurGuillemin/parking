@@ -42,7 +42,7 @@ class RefreshTokenControllerTest extends TestCase
             ob_start();
             $controller->refresh();
             $output = ob_get_clean();
-            $this->assertStringContainsString('Invalid refresh token', $output);
+            $this->assertStringContainsString('Refresh token invalide ou expiré', $output);
         } finally {
             $_COOKIE = $originalCookie;
         }
@@ -65,7 +65,7 @@ class RefreshTokenControllerTest extends TestCase
             ob_start();
             $controller->refresh();
             $output = ob_get_clean();
-            $this->assertStringContainsString('Invalid refresh token', $output);
+            $this->assertStringContainsString('Refresh token invalide ou expiré', $output);
         } finally {
             $_COOKIE = $originalCookie;
         }

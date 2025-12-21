@@ -51,6 +51,6 @@ class OwnerAuthenticateUseCase
             'path' => '/',
         ]);
 
-        return new LoginResponse($access, JwtService::ACCESS_TOKEN_TTL);
+        return new LoginResponse($access, $refresh, JwtService::ACCESS_TOKEN_TTL);
     }
 }

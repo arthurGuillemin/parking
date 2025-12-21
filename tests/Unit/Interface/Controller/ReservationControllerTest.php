@@ -7,11 +7,18 @@ use App\Domain\Service\ReservationService;
 use App\Application\UseCase\Owner\ListReservations\ListReservationsRequest;
 use App\Domain\Entity\Reservation;
 
+use App\Application\UseCase\User\MakeReservation\MakeReservationUseCase;
+use App\Domain\Service\JwtService;
+
 class ReservationControllerTest extends TestCase
 {
     public function testListByParkingReturnsArray()
     {
         $mockService = $this->createMock(ReservationService::class);
+        $mockMakeReservation = $this->createMock(MakeReservationUseCase::class);
+        $mockParkingService = $this->createMock(\App\Domain\Service\ParkingService::class);
+        $mockJwt = $this->createMock(JwtService::class);
+
         $mockReservation = $this->createMock(Reservation::class);
         $mockReservation->method('getReservationId')->willReturn(1);
         $mockReservation->method('getUserId')->willReturn('user');
@@ -22,7 +29,13 @@ class ReservationControllerTest extends TestCase
         $mockReservation->method('getCalculatedAmount')->willReturn(10.0);
         $mockReservation->method('getFinalAmount')->willReturn(12.0);
         $mockService->method('listReservations')->willReturn([$mockReservation]);
-        $controller = new ReservationController($mockService);
+
+        $controller = new ReservationController(
+            $mockService,
+            $mockMakeReservation,
+            $mockParkingService,
+            $mockJwt
+        );
         $data = ['parkingId' => 2];
         $result = $controller->listByParking($data);
         $this->assertEquals([
@@ -41,7 +54,19 @@ class ReservationControllerTest extends TestCase
     public function testListByParkingThrowsOnMissingFields()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $controller = new ReservationController($this->createMock(ReservationService::class));
+
+        // Mocks
+        $mockReservationService = $this->createMock(ReservationService::class);
+        $mockMakeReservation = $this->createMock(MakeReservationUseCase::class);
+        $mockParkingService = $this->createMock(\App\Domain\Service\ParkingService::class);
+        $mockJwt = $this->createMock(JwtService::class);
+
+        $controller = new ReservationController(
+            $mockReservationService,
+            $mockMakeReservation,
+            $mockParkingService,
+            $mockJwt
+        );
         $controller->listByParking([]);
     }
 }

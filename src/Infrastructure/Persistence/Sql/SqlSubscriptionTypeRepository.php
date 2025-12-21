@@ -24,7 +24,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, name, description, monthly_price
+                SELECT id, parking_id, name, description
                 FROM subscription_types
                 WHERE id = :id
             ");
@@ -46,7 +46,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->query("
-                SELECT id, name, description, monthly_price
+                SELECT id, parking_id, name, description
                 FROM subscription_types
                 ORDER BY name
             ");
@@ -68,24 +68,40 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
             if ($existing) {
                 $stmt = $this->db->prepare("
                     UPDATE subscription_types
-                    SET name = :name,
-                        description = :description,
-                        monthly_price = :monthly_price
+                    SET parking_id = :parkingId,
+                        name = :name,
+                        description = :description
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscription_types (id, name, description, monthly_price)
-                    VALUES (:id, :name, :description, :monthly_price)
+                    INSERT INTO subscription_types (parking_id, name, description)
+                    VALUES (:parkingId, :name, :description)
                 ");
             }
 
-            $stmt->execute([
-                'id' => $type->getSubscriptionTypeId(),
-                'name' => $type->getName(),
-                'description' => $type->getDescription(),
-                'monthly_price' => $type->getMonthlyPrice(),
-            ]);
+            if ($existing) {
+                $stmt->execute([
+                    'id' => $type->getSubscriptionTypeId(),
+                    'parkingId' => $type->getParkingId(),
+                    'name' => $type->getName(),
+                    'description' => $type->getDescription(),
+                ]);
+            } else {
+                $stmt->execute([
+                    'parkingId' => $type->getParkingId(),
+                    'name' => $type->getName(),
+                    'description' => $type->getDescription(),
+                ]);
+                $id = (int) $this->db->lastInsertId();
+                return new SubscriptionType(
+                    id: $id,
+                    parkingId: $type->getParkingId(),
+                    name: $type->getName(),
+                    description: $type->getDescription(),
+                    monthlyPrice: $type->getMonthlyPrice()
+                );
+            }
 
             return $type;
 
@@ -98,10 +114,10 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         return new SubscriptionType(
             id: (int) $row['id'],
-            parkingId: 0, // Still 0 as per schema
+            parkingId: (int) $row['parking_id'],
             name: $row['name'],
             description: $row['description'],
-            monthlyPrice: (float) $row['monthly_price']
+            monthlyPrice: 0.0
         );
     }
 }

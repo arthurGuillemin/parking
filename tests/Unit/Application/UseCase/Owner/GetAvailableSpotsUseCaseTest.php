@@ -48,7 +48,7 @@ class GetAvailableSpotsUseCaseTest extends TestCase
         $parkingRepo->method('findById')->willReturn($parking);
         $sessionRepo->method('findByParkingId')->willReturn([]);
         $reservation = $this->createMock(Reservation::class);
-        $reservation->method('getStatus')->willReturn('active');
+        $reservation->method('getStatus')->willReturn('confirmed');
         $reservation->method('getStartDateTime')->willReturn(new \DateTimeImmutable('-1 hour'));
         $reservation->method('getEndDateTime')->willReturn(new \DateTimeImmutable('+1 hour'));
         $reservation->method('getReservationId')->willReturn(42);

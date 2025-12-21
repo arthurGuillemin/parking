@@ -165,23 +165,45 @@ class SqlSubscriptionRepository implements SubscriptionRepositoryInterface
                         monthly_price = :monthly_price
                     WHERE id = :id
                 ");
+                $stmt->execute([
+                    'id' => $subscription->getSubscriptionId(),
+                    'user_id' => $subscription->getUserId(),
+                    'parking_id' => $subscription->getParkingId(),
+                    'type_id' => $subscription->getTypeId(),
+                    'start_date' => $subscription->getStartDate()->format('Y-m-d'),
+                    'end_date' => $subscription->getEndDate()?->format('Y-m-d'),
+                    'status' => $subscription->getStatus(),
+                    'monthly_price' => $subscription->getMonthlyPrice(),
+                ]);
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscriptions (id, user_id, parking_id, type_id, start_date, end_date, status, monthly_price)
-                    VALUES (:id, :user_id, :parking_id, :type_id, :start_date, :end_date, :status, :monthly_price)
+                    INSERT INTO subscriptions (user_id, parking_id, type_id, start_date, end_date, status, monthly_price)
+                    VALUES (:user_id, :parking_id, :type_id, :start_date, :end_date, :status, :monthly_price)
                 ");
+                $stmt->execute([
+                    'user_id' => $subscription->getUserId(),
+                    'parking_id' => $subscription->getParkingId(),
+                    'type_id' => $subscription->getTypeId(),
+                    'start_date' => $subscription->getStartDate()->format('Y-m-d'),
+                    'end_date' => $subscription->getEndDate()?->format('Y-m-d'),
+                    'status' => $subscription->getStatus(),
+                    'monthly_price' => $subscription->getMonthlyPrice(),
+                ]);
+                // We might need to update the object with the new ID?
+                // But UseCase usually returns what `save` returns.
+                // If `save` returns original object with ID 0, subsequent logic might fail if it expects ID.
+                $id = (int) $this->db->lastInsertId();
+                return new Subscription(
+                    $id,
+                    $subscription->getUserId(),
+                    $subscription->getParkingId(),
+                    $subscription->getTypeId(),
+                    $subscription->getStartDate(),
+                    $subscription->getEndDate(),
+                    $subscription->getStatus(),
+                    $subscription->getMonthlyPrice()
+                );
             }
-
-            $stmt->execute([
-                'id' => $subscription->getSubscriptionId(),
-                'user_id' => $subscription->getUserId(),
-                'parking_id' => $subscription->getParkingId(),
-                'type_id' => $subscription->getTypeId(),
-                'start_date' => $subscription->getStartDate()->format('Y-m-d'),
-                'end_date' => $subscription->getEndDate()?->format('Y-m-d'),
-                'status' => $subscription->getStatus(),
-                'monthly_price' => $subscription->getMonthlyPrice(),
-            ]);
 
             return $subscription;
 
