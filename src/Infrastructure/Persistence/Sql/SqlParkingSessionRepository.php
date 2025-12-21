@@ -25,7 +25,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE id = :id
 
@@ -52,9 +52,9 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
                 FROM parking_sessions
-                WHERE user_id = :user_id AND exit_time IS NULL
+                WHERE user_id = :user_id AND exit_date_time IS NULL
                 LIMIT 1
             ");
             $stmt->execute(['user_id' => $userId]);
@@ -74,10 +74,10 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE user_id = :user_id
-                ORDER BY entry_time DESC
+                ORDER BY entry_date_time DESC
             ");
             $stmt->execute(['user_id' => $userId]);
 
@@ -93,7 +93,7 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE reservation_id = :reservation_id
 
@@ -119,10 +119,10 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
+                SELECT id, user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE parking_id = :parking_id
-                ORDER BY entry_time DESC
+                ORDER BY entry_date_time DESC
 
 
 
@@ -150,16 +150,16 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
                     SET user_id = :user_id,
                         parking_id = :parking_id,
                         reservation_id = :reservation_id,
-                        entry_time = :entry_time,
-                        exit_time = :exit_time,
+                        entry_date_time = :entry_date_time,
+                        exit_date_time = :exit_date_time,
                         final_amount = :final_amount,
                         penalty_applied = :penalty_applied
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO parking_sessions (user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied)
-                    VALUES (:user_id, :parking_id, :reservation_id, :entry_time, :exit_time, :final_amount, :penalty_applied)
+                    INSERT INTO parking_sessions (user_id, parking_id, reservation_id, entry_date_time, exit_date_time, final_amount, penalty_applied)
+                    VALUES (:user_id, :parking_id, :reservation_id, :entry_date_time, :exit_date_time, :final_amount, :penalty_applied)
                 ");
             }
 
@@ -169,8 +169,8 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
                 'user_id' => $session->getUserId(),
                 'parking_id' => $session->getParkingId(),
                 'reservation_id' => $session->getReservationId(),
-                'entry_time' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
-                'exit_time' => $session->getExitDateTime()?->format('Y-m-d H:i:s'),
+                'entry_date_time' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
+                'exit_date_time' => $session->getExitDateTime()?->format('Y-m-d H:i:s'),
                 'final_amount' => $session->getFinalAmount(),
                 'penalty_applied' => $session->isPenaltyApplied() ? 1 : 0,
             ];
@@ -209,8 +209,8 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
             userId: $row['user_id'],
             parkingId: (int) $row['parking_id'],
             reservationId: $row['reservation_id'] !== null ? (int) $row['reservation_id'] : null,
-            entryDateTime: new DateTimeImmutable($row['entry_time']),
-            exitDateTime: $row['exit_time'] !== null ? new DateTimeImmutable($row['exit_time']) : null,
+            entryDateTime: new DateTimeImmutable($row['entry_date_time']),
+            exitDateTime: $row['exit_date_time'] !== null ? new DateTimeImmutable($row['exit_date_time']) : null,
 
 
 

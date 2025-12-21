@@ -23,7 +23,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details, invoice_type
+                SELECT id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details_json, invoice_type
                 FROM invoices
                 WHERE id = :id
 
@@ -44,7 +44,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details, invoice_type
+                SELECT id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details_json, invoice_type
                 FROM invoices
                 WHERE reservation_id = :reservation_id
 
@@ -64,7 +64,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details, invoice_type
+                SELECT id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details_json, invoice_type
                 FROM invoices
                 WHERE session_id = :session_id
 
@@ -91,14 +91,14 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
                         issue_date = :issue_date,
                         amount_ht = :amount_ht,
                         amount_ttc = :amount_ttc,
-                        details = :details,
+                        details_json = :details_json,
                         invoice_type = :invoice_type
                     WHERE id = :id
                 ");
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO invoices (id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details, invoice_type)
-                    VALUES (:id, :reservation_id, :session_id, :issue_date, :amount_ht, :amount_ttc, :details, :invoice_type)
+                    INSERT INTO invoices (id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details_json, invoice_type)
+                    VALUES (:id, :reservation_id, :session_id, :issue_date, :amount_ht, :amount_ttc, :details_json, :invoice_type)
                 ");
             }
 
@@ -109,7 +109,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
                 'issue_date' => $invoice->getIssuedDate()->format('Y-m-d H:i:s'),
                 'amount_ht' => $invoice->getAmountHt(),
                 'amount_ttc' => $invoice->getAmountTtc(),
-                'details' => $invoice->getDetailsJson() ? json_encode($invoice->getDetailsJson()) : null,
+                'details_json' => $invoice->getDetailsJson() ? json_encode($invoice->getDetailsJson()) : null,
 
                 'invoice_type' => $invoice->getInvoiceType(),
             ]);
@@ -125,7 +125,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT i.id, i.reservation_id, i.session_id, i.issue_date, i.amount_ht, i.amount_ttc, i.details, i.invoice_type
+                SELECT i.id, i.reservation_id, i.session_id, i.issue_date, i.amount_ht, i.amount_ttc, i.details_json, i.invoice_type
                 FROM invoices i
 
                 INNER JOIN reservations r ON i.reservation_id = r.id
@@ -150,7 +150,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT i.id, i.reservation_id, i.session_id, i.issue_date, i.amount_ht, i.amount_ttc, i.details, i.invoice_type
+                SELECT i.id, i.reservation_id, i.session_id, i.issue_date, i.amount_ht, i.amount_ttc, i.details_json, i.invoice_type
                 FROM invoices i
                 LEFT JOIN reservations r ON i.reservation_id = r.id
                 LEFT JOIN parking_sessions s ON i.session_id = s.id
@@ -174,7 +174,7 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
             issueDate: new DateTimeImmutable($row['issue_date']),
             amountHt: (float) $row['amount_ht'],
             amountTtc: (float) $row['amount_ttc'],
-            detailsJson: $row['details'],
+            detailsJson: $row['details_json'],
             invoiceType: $row['invoice_type']
 
         );

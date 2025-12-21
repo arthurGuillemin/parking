@@ -26,7 +26,7 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE id = :id
 
@@ -50,10 +50,10 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE user_id = :user_id
-                ORDER BY start_datetime DESC
+                ORDER BY start_date_time DESC
 
             ");
             $stmt->execute(['user_id' => $userId]);
@@ -71,12 +71,12 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE parking_id = :parking_id
-                  AND start_datetime < :end
-                  AND end_datetime > :start
-                ORDER BY start_datetime
+                  AND start_date_time < :end
+                  AND end_date_time > :start
+                ORDER BY start_date_time
 
             ");
             $stmt->execute([
@@ -97,10 +97,10 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE parking_id = :parking_id
-                ORDER BY start_datetime DESC
+                ORDER BY start_date_time DESC
 
             ");
             $stmt->execute(['parking_id' => $parkingId]);
@@ -120,8 +120,8 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                 SELECT COUNT(*)
                 FROM reservations
                 WHERE parking_id = :parking_id
-                  AND start_datetime < :end
-                  AND end_datetime > :start
+                  AND start_date_time < :end
+                  AND end_date_time > :start
                   AND status IN ('confirmed', 'pending')
             ");
             $stmt->execute([
@@ -147,7 +147,7 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                 JOIN reservations r ON s.reservation_id = r.id
                 WHERE s.parking_id = :parking_id
                   AND s.exit_time IS NULL
-                  AND r.end_datetime < :at_time
+                  AND r.end_date_time < :at_time
             ");
             $stmt->execute([
                 'parking_id' => $parkingId,
@@ -163,12 +163,12 @@ class SqlReservationRepository implements ReservationRepositoryInterface
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount
+                SELECT id, user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount
                 FROM reservations
                 WHERE user_id = :user_id
                   AND parking_id = :parking_id
-                  AND start_datetime <= :at_time
-                  AND end_datetime >= :at_time
+                  AND start_date_time <= :at_time
+                  AND end_date_time >= :at_time
                   AND status IN ('confirmed', 'pending')
                 LIMIT 1
             ");
@@ -199,8 +199,8 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                     UPDATE reservations
                     SET user_id = :user_id,
                         parking_id = :parking_id,
-                        start_datetime = :start_datetime,
-                        end_datetime = :end_datetime,
+                        start_date_time = :start_date_time,
+                        end_date_time = :end_date_time,
                         status = :status,
                         calculated_amount = :calculated_amount,
                         final_amount = :final_amount
@@ -211,8 +211,8 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                     'id' => $reservation->getReservationId(),
                     'user_id' => $reservation->getUserId(),
                     'parking_id' => $reservation->getParkingId(),
-                    'start_datetime' => $reservation->getStartDateTime()->format('Y-m-d H:i:s'),
-                    'end_datetime' => $reservation->getEndDateTime()->format('Y-m-d H:i:s'),
+                    'start_date_time' => $reservation->getStartDateTime()->format('Y-m-d H:i:s'),
+                    'end_date_time' => $reservation->getEndDateTime()->format('Y-m-d H:i:s'),
                     'status' => $reservation->getStatus(),
                     'calculated_amount' => $reservation->getCalculatedAmount(),
                     'final_amount' => $reservation->getFinalAmount(),
@@ -220,14 +220,14 @@ class SqlReservationRepository implements ReservationRepositoryInterface
                 return $reservation;
             } else {
                 $stmt = $this->db->prepare("
-                    INSERT INTO reservations (user_id, parking_id, start_datetime, end_datetime, status, calculated_amount, final_amount)
-                    VALUES (:user_id, :parking_id, :start_datetime, :end_datetime, :status, :calculated_amount, :final_amount)
+                    INSERT INTO reservations (user_id, parking_id, start_date_time, end_date_time, status, calculated_amount, final_amount)
+                    VALUES (:user_id, :parking_id, :start_date_time, :end_date_time, :status, :calculated_amount, :final_amount)
                 ");
                 $stmt->execute([
                     'user_id' => $reservation->getUserId(),
                     'parking_id' => $reservation->getParkingId(),
-                    'start_datetime' => $reservation->getStartDateTime()->format('Y-m-d H:i:s'),
-                    'end_datetime' => $reservation->getEndDateTime()->format('Y-m-d H:i:s'),
+                    'start_date_time' => $reservation->getStartDateTime()->format('Y-m-d H:i:s'),
+                    'end_date_time' => $reservation->getEndDateTime()->format('Y-m-d H:i:s'),
                     'status' => $reservation->getStatus(),
                     'calculated_amount' => $reservation->getCalculatedAmount(),
                     'final_amount' => $reservation->getFinalAmount(),
@@ -259,8 +259,8 @@ class SqlReservationRepository implements ReservationRepositoryInterface
             id: (int) $row['id'],
             userId: $row['user_id'],
             parkingId: (int) $row['parking_id'],
-            startDateTime: new DateTimeImmutable($row['start_datetime']),
-            endDateTime: new DateTimeImmutable($row['end_datetime']),
+            startDateTime: new DateTimeImmutable($row['start_date_time']),
+            endDateTime: new DateTimeImmutable($row['end_date_time']),
 
             status: $row['status'],
             calculatedAmount: $row['calculated_amount'] !== null ? (float) $row['calculated_amount'] : null,
