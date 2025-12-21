@@ -10,13 +10,21 @@ use App\Application\UseCase\Owner\GetMonthlyRevenue\GetMonthlyRevenueRequest;
 
 class MonthlyRevenueServiceTest extends TestCase
 {
-    public function testGetMonthlyRevenueReturnsFloat()
+    public function testGetMonthlyRevenueReturnsArray()
     {
-        $invoiceRepository = $this->createMock(InvoiceRepositoryInterface::class);
-        $subscriptionRepository = $this->createMock(SubscriptionRepositoryInterface::class);
+        $invoiceRepository = $this->createStub(InvoiceRepositoryInterface::class);
+        $subscriptionRepository = $this->createStub(SubscriptionRepositoryInterface::class);
+        $invoiceRepository->method('findByParkingIdAndDateRange')->willReturn([]);
+        $subscriptionRepository->method('findByParkingIdAndMonth')->willReturn([]);
+
         $service = new MonthlyRevenueService($invoiceRepository, $subscriptionRepository);
         $request = new GetMonthlyRevenueRequest(1, 2025, 11);
 
-        $this->assertIsFloat($service->getMonthlyRevenue($request));
+        $result = $service->getMonthlyRevenue($request);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('total', $result);
+        $this->assertArrayHasKey('reservations', $result);
+        $this->assertArrayHasKey('subscriptions', $result);
     }
 }

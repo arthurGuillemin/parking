@@ -8,7 +8,7 @@ use Firebase\JWT\Key;
 
 class JwtServiceTest extends TestCase
 {
-    private string $secret = 'test_secret';
+    private string $secret = 'this_is_a_test_secret_key_that_is_at_least_32_characters_long_for_hs256';
 
     protected function setUp(): void
     {
