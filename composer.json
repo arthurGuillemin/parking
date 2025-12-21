@@ -2,6 +2,32 @@
   "name": "parking/app",
   "description": "App de gestion de parkings partagés ",
   "license": "proprietary",
+  "authors": [
+        {
+            "name": "Antoine TU ",
+            "email": "a_tu@hetic.eu",
+            "homepage": "https://github.com/atu0601",
+            "role": "Developer"
+        },
+        {
+            "name": "Arthur Guillemin",
+            "email": "aguillemin291@gmail.com",
+            "homepage": "https://github.com/arthurGuillemin",
+            "role": "Developer"
+        }
+        ,{
+            "name": "Amaury SANCHEZ ",
+            "email": "a_sanchez14@hetic.eu",
+            "homepage": "https://github.com/Amaury057",
+            "role": "Developer"
+        },
+          {
+            "name": "PILLAH Niali Henri Guy-Harvyn ",
+            "email": "n_pillah@hetic.eu",
+            "homepage": "https://github.com/Harvyn-10",
+            "role": "Developer"
+        }
+    ],
   "require": {
     "php": "^8.2",
     "vlucas/phpdotenv": "^5.6",
