@@ -30,7 +30,8 @@ ob_start();
                                 <div>
                                     <h4 style="margin:0;"><?= htmlspecialchars($type->name) ?></h4>
                                     <p style="margin:0; color:#666;">
-                                        Prix mensuel : <strong><?= number_format($type->monthlyPrice, 2, ',', ' ') ?> €</strong>
+                                        Prix <?= htmlspecialchars($type->name) ?> :
+                                        <strong><?= number_format($type->monthlyPrice, 2, ',', ' ') ?> €</strong>
                                     </p>
                                     <?php if (!empty($type->description)): ?>
                                         <small class="text-muted"><?= htmlspecialchars($type->description) ?></small>
@@ -42,15 +43,42 @@ ob_start();
                 </div>
 
                 <div class="mb-3">
-                    <label for="startDate" class="form-label">Date de début</label>
+                    <label for="startDate" class="form-label"><strong>📅 Date de début de l'abonnement</strong></label>
                     <input type="date" class="form-control" id="startDate" name="startDate" value="<?= date('Y-m-d') ?>"
-                        required>
+                        min="<?= date('Y-m-d') ?>" required>
+                    <small class="text-muted" style="display:block; margin-top:8px;">
+                        Choisissez la date à laquelle votre abonnement commencera.
+                        Par défaut, c'est aujourd'hui.
+                    </small>
+                    <div id="datePreview"
+                        style="margin-top:10px; padding:10px; background:#e8f4fd; border-radius:6px; display:none;">
+                        <strong>Première période :</strong>
+                        <span id="periodStart"></span> → <span id="periodEnd"></span>
+                    </div>
                 </div>
 
+                <script>
+                    document.getElementById('startDate').addEventListener('change', function () {
+                        const startDate = new Date(this.value);
+                        if (isNaN(startDate)) return;
 
+                        const endDate = new Date(startDate);
+                        endDate.setMonth(endDate.getMonth() + 1);
+
+                        const formatDate = (d) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                        document.getElementById('periodStart').textContent = formatDate(startDate);
+                        document.getElementById('periodEnd').textContent = formatDate(endDate);
+                        document.getElementById('datePreview').style.display = 'block';
+                    });
+                    // Trigger on load
+                    document.getElementById('startDate').dispatchEvent(new Event('change'));
+                </script>
 
                 <div class="alert alert-info">
-                    ℹ️ L'abonnement est mensuel avec tacite reconduction.
+                    ℹ️ L'abonnement est <strong>mensuel</strong> et se renouvelle automatiquement chaque mois (tacite
+                    reconduction).
+                    Vous pouvez le résilier à tout moment depuis votre espace "Mes Abonnements".
                 </div>
 
                 <div class="d-grid">

@@ -8,7 +8,7 @@ ob_start();
     <form method="GET" action="/parkings" style="display:flex; gap:10px;">
         <input type="text" name="q" class="form-control" placeholder="Ville, adresse..."
             value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" style="margin-bottom:0; width:250px;">
-        <button type="submit" class="btn btn-primary">Filtrer</button>
+        <button type="submit" class="btn btn-primary">Rechercher</button>
         <button type="button" class="btn btn-outline-secondary" onclick="geoLocate()">📍 Autour de moi</button>
     </form>
 </div>
@@ -64,9 +64,15 @@ ob_start();
                 <p>🚗 Capacité: <strong><?= $parking->getTotalCapacity() ?></strong> places</p>
 
                 <div class="card-actions">
-                    <a href="/reservation?parkingId=<?= $parking->getParkingId() ?>" class="btn btn-primary btn-sm">Réserver</a>
-                    <a href="/subscription?parkingId=<?= $parking->getParkingId() ?>"
-                        class="btn btn-outline-secondary btn-sm">S'abonner</a>
+                    <a href="/parking/details?id=<?= $parking->getParkingId() ?>" class="btn btn-outline-primary btn-sm">Voir
+                        détails</a>
+                    <?php if (isset($_COOKIE['auth_token'])): ?>
+                        <a href="/reservation?parkingId=<?= $parking->getParkingId() ?>" class="btn btn-primary btn-sm">Réserver</a>
+                        <a href="/subscription?parkingId=<?= $parking->getParkingId() ?>"
+                            class="btn btn-outline-secondary btn-sm">S'abonner</a>
+                    <?php else: ?>
+                        <a href="/login" class="btn btn-secondary btn-sm">Connexion pour réserver</a>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endforeach; ?>

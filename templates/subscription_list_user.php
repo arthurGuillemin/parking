@@ -19,32 +19,17 @@ ob_start();
                     <p>
                         <strong>Début :</strong> <?= htmlspecialchars($sub->startDate) ?><br>
                         <strong>Fin :</strong> <?= htmlspecialchars($sub->endDate ?? 'Indéfini') ?><br>
-                        <strong>Prix :</strong> <?= htmlspecialchars($sub->monthlyPrice) ?> € / mois<br>
+                        <strong>Prix :</strong> <?= number_format($sub->monthlyPrice, 2, ',', ' ') ?> € / mois<br>
                         <strong>Statut :</strong>
                         <span class="badge <?= $sub->status === 'active' ? 'bg-success' : 'bg-secondary' ?>">
                             <?= htmlspecialchars($sub->status) ?>
                         </span>
                     </p>
-                    <?php if ($sub->status === 'active'): ?>
-                        <button class="btn btn-danger btn-sm" onclick="cancelSubscription(<?= $sub->id ?>)">Résilier</button>
-                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
 </div>
-
-<script>
-    function cancelSubscription(id) {
-        if (confirm('Voulez-vous vraiment résilier cet abonnement ?')) {
-            fetch('/subscription/' + id, { method: 'DELETE' })
-                .then(response => {
-                    if (response.ok) location.reload();
-                    else alert('Erreur lors de la résiliation');
-                });
-        }
-    }
-</script>
 
 <?php
 $content = ob_get_clean();

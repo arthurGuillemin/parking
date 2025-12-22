@@ -33,6 +33,11 @@ class FileSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterf
         );
     }
 
+    public function findByParkingId(int $parkingId): array
+    {
+        return [];
+    }
+
     public function save(SubscriptionType $type): SubscriptionType
     {
         $data = $this->storage->read();

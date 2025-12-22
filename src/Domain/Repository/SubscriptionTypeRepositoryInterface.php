@@ -4,10 +4,13 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\SubscriptionType;
 
-interface SubscriptionTypeRepositoryInterface {
+interface SubscriptionTypeRepositoryInterface
+{
     public function findById(int $id): ?SubscriptionType;
 
     public function findAll(): array;
+
+    public function findByParkingId(int $parkingId): array;
 
     public function save(SubscriptionType $type): SubscriptionType;
 }

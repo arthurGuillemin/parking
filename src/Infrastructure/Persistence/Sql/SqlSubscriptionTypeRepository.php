@@ -24,7 +24,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, parking_id, name, description
+                SELECT id, parking_id, name, description, monthly_price
                 FROM subscription_types
                 WHERE id = :id
             ");
@@ -46,7 +46,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
     {
         try {
             $stmt = $this->db->query("
-                SELECT id, parking_id, name, description
+                SELECT id, parking_id, name, description, monthly_price
                 FROM subscription_types
                 ORDER BY name
             ");
@@ -56,6 +56,25 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
 
         } catch (PDOException $e) {
             throw new RuntimeException("erreur dans la recup des types abonnement : " . $e->getMessage());
+        }
+    }
+
+    public function findByParkingId(int $parkingId): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT id, parking_id, name, description, monthly_price
+                FROM subscription_types
+                WHERE parking_id = :parking_id
+                ORDER BY name
+            ");
+            $stmt->execute(['parking_id' => $parkingId]);
+            $rows = $stmt->fetchAll();
+
+            return array_map([$this, 'mapToSubscriptionType'], $rows);
+
+        } catch (PDOException $e) {
+            throw new RuntimeException("erreur dans la recup des types abonnement pour ce parking: " . $e->getMessage());
         }
     }
 
@@ -70,28 +89,27 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
                     UPDATE subscription_types
                     SET parking_id = :parkingId,
                         name = :name,
-                        description = :description
+                        description = :description,
+                        monthly_price = :monthlyPrice
                     WHERE id = :id
                 ");
-            } else {
-                $stmt = $this->db->prepare("
-                    INSERT INTO subscription_types (parking_id, name, description)
-                    VALUES (:parkingId, :name, :description)
-                ");
-            }
-
-            if ($existing) {
                 $stmt->execute([
                     'id' => $type->getSubscriptionTypeId(),
                     'parkingId' => $type->getParkingId(),
                     'name' => $type->getName(),
                     'description' => $type->getDescription(),
+                    'monthlyPrice' => $type->getMonthlyPrice(),
                 ]);
             } else {
+                $stmt = $this->db->prepare("
+                    INSERT INTO subscription_types (parking_id, name, description, monthly_price)
+                    VALUES (:parkingId, :name, :description, :monthlyPrice)
+                ");
                 $stmt->execute([
                     'parkingId' => $type->getParkingId(),
                     'name' => $type->getName(),
                     'description' => $type->getDescription(),
+                    'monthlyPrice' => $type->getMonthlyPrice(),
                 ]);
                 $id = (int) $this->db->lastInsertId();
                 return new SubscriptionType(
@@ -117,7 +135,7 @@ class SqlSubscriptionTypeRepository implements SubscriptionTypeRepositoryInterfa
             parkingId: (int) $row['parking_id'],
             name: $row['name'],
             description: $row['description'],
-            monthlyPrice: 0.0
+            monthlyPrice: (float) ($row['monthly_price'] ?? 0.0)
         );
     }
 }

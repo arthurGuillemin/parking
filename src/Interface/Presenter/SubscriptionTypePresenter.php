@@ -13,6 +13,7 @@ class SubscriptionTypePresenter
             'parkingId' => $response->parkingId,
             'name' => $response->name,
             'description' => $response->description,
+            'monthlyPrice' => $response->monthlyPrice,
         ];
     }
 }

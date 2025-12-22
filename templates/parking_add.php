@@ -137,6 +137,9 @@
             </div>
 
             <button type="submit">Créer le parking</button>
+            <div id="successMessage"
+                style="color: green; font-size: 0.9em; margin-top: 10px; display: none; padding: 10px; background: #d4edda; border-radius: 4px;">
+            </div>
             <div id="errorMessage" class="error"></div>
         </form>
         <a href="/owner/dashboard" class="back-link">← Retour au tableau de bord</a>
@@ -145,39 +148,26 @@
     <script>
         document.getElementById('addParkingForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            // Convert checkbox to boolean/int manually or let backend handle simple presence check
-            const data = Object.fromEntries(formData);
 
-            // Fix checkbox handling: checkbox value is 'on' if checked, missing if not
-            // Concatenate address fields
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Récupérer les valeurs des champs
             const street = document.getElementById('street').value;
             const zip = document.getElementById('zipCode').value;
             const city = document.getElementById('city').value;
 
-            // Build the final data object manually to ensure structure
+            // Construire l'objet data
             const data = {
-                name: formData.get('name'),
+                name: document.getElementById('name').value,
                 address: `${street}, ${zip} ${city}`,
-                latitude: formData.get('latitude'),
-                longitude: formData.get('longitude'),
-                totalCapacity: formData.get('totalCapacity'),
+                latitude: document.getElementById('latitude').value,
+                longitude: document.getElementById('longitude').value,
+                totalCapacity: document.getElementById('totalCapacity').value,
                 open_24_7: document.getElementById('open_24_7').checked
             };
-
-            // We need ownerId. 
-            // APPROACH: The backend should ideally infer ownerId from the session/token.
-            // If the backend 'add' method strictly requires ownerId in the body, we must provide it.
-            // Let's assume we can get it from localStorage or the backend handles it.
-            // CAUTION: Passing ownerId from client is insecure if not validated. 
-            // For now, let's try to grab it from localStorage if available, otherwise rely on backend session.
-            const ownerUser = JSON.parse(localStorage.getItem('owner_user') || '{}');
-            if (ownerUser.id) {
-                data.ownerId = ownerUser.id;
-            } else {
-                // If we don't have it, we might fail validation if backend doesn't extract it from token.
-                // But let's try.
-            }
 
             try {
                 const response = await fetch('/parking/add', {
@@ -191,16 +181,19 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Parking ajouté avec succès !');
-                    window.location.href = '/owner/dashboard';
+                    successDiv.textContent = '✅ Parking "' + data.name + '" créé avec succès ! Redirection...';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/owner/dashboard';
+                    }, 2000);
                 } else {
-                    const errorDiv = document.getElementById('errorMessage');
                     errorDiv.textContent = result.error || 'Erreur lors de la création.';
                     errorDiv.style.display = 'block';
                 }
             } catch (error) {
                 console.error(error);
-                alert('Erreur: ' + error.message);
+                errorDiv.textContent = 'Erreur de connexion: ' + error.message;
+                errorDiv.style.display = 'block';
             }
         });
     </script>
