@@ -79,7 +79,6 @@ class PricingService
             return 0.0;
         }
 
-        // "Tout quart d'heure entamé est dû" => ceil
         $slicesCount = ceil($durationInRule / $rule->getSliceInMinutes());
 
         return $slicesCount * $rule->getPricePerSlice();

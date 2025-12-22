@@ -2,13 +2,9 @@
 
 namespace App\Domain\Service;
 
-use App\Domain\Repository\ParkingRepositoryInterface;
-use App\Domain\Repository\ParkingSessionRepositoryInterface;
 use App\Application\UseCase\Owner\GetAvailableSpots\GetAvailableSpotsUseCase;
 use App\Application\UseCase\Owner\GetAvailableSpots\GetAvailableSpotsRequest;
 use App\Domain\Repository\OpeningHourRepositoryInterface;
-use App\Domain\Repository\ReservationRepositoryInterface;
-use App\Domain\Repository\SubscriptionRepositoryInterface;
 use App\Domain\Entity\Parking;
 
 class ParkingAvailabilityService

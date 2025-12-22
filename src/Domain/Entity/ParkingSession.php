@@ -65,14 +65,12 @@ class ParkingSession
         return $this->penaltyApplied;
     }
 
-    // From EntreSortie - convenient method to close session
     public function close(\DateTimeImmutable $exitTime, float $amount): void
     {
         $this->exitDateTime = $exitTime;
         $this->finalAmount = $amount;
     }
 
-    // From main - individual setters for more granular control
     public function setExitDateTime(\DateTimeImmutable $exitDateTime): void
     {
         $this->exitDateTime = $exitDateTime;
