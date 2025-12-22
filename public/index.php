@@ -2,18 +2,20 @@
 
 declare(strict_types=1);
 
-// Chargement de l'autoloader
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require __DIR__ . '/../vendor/autoload.php';
-}
+// Autoloader Composer
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+use Dotenv\Dotenv;
 
 date_default_timezone_set('Europe/Paris');
 
-// Chargement des variables d'environnement
-use Dotenv\Dotenv;
-$dotenv = Dotenv::createImmutable(dirname(__DIR__));
-$dotenv->load();
+// Chargement des variables d'environnement (safe en prod)
+$rootPath = dirname(__DIR__);
 
+if (file_exists($rootPath . '/.env')) {
+    $dotenv = Dotenv::createImmutable($rootPath);
+    $dotenv->safeLoad(); // ne crash pas si une variable manque
+}
 // Initialisation de l'environnement si nécessaire
 if (!isset($_ENV['APP_ENV'])) {
     $_ENV['APP_ENV'] = 'development';
