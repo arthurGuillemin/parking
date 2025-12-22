@@ -47,18 +47,8 @@ class ParkingSessionController
         }
         $request = new ListParkingSessionsRequest((int) $data['parkingId']);
         $sessions = $this->parkingSessionService->listParkingSessions($request);
-        return array_map(function ($session) {
-            return [
-                'id' => $session->getSessionId(),
-                'userId' => $session->getUserId(),
-                'parkingId' => $session->getParkingId(),
-                'reservationId' => $session->getReservationId(),
-                'entryDateTime' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
-                'exitDateTime' => $session->getExitDateTime() ? $session->getExitDateTime()->format('Y-m-d H:i:s') : null,
-                'finalAmount' => $session->getFinalAmount(),
-                'penaltyApplied' => $session->isPenaltyApplied(),
-            ];
-        }, $sessions);
+
+        return array_map([$this, 'formatSessionResponse'], $sessions);
     }
 
     public function simulation()
@@ -81,74 +71,115 @@ class ParkingSessionController
         require dirname(__DIR__, 3) . '/templates/simulation.php';
     }
 
+    /**
+     * Gère l'entrée dans un parking
+     */
     public function enter()
     {
         $userId = $this->getUserId();
         if (!$userId)
             return;
 
-        $parkingId = $_POST['parking_id'] ?? null;
-        $reservationId = $_POST['reservation_id'] ?? null;
-
         try {
-            if ($reservationId) {
-                // Fetch reservation to get Parking ID
-                $res = $this->reservationRepository->findById((int) $reservationId);
-                if (!$res) {
-                    throw new Exception("Réservation introuvable.");
-                }
-                $parkingId = $res->getParkingId();
-                $reservationId = (int) $reservationId;
-            } else {
-                if (!$parkingId) {
-                    throw new Exception("Aucun parking sélectionné.");
-                }
-                $parkingId = (int) $parkingId;
-                $reservationId = null;
-            }
+            [$parkingId, $reservationId] = $this->resolveEntryData();
 
             $request = new \App\Application\UseCase\User\EnterParking\EnterParkingRequest($userId, $parkingId, $reservationId);
             $this->enterParkingUseCase->execute($request);
 
-            header('Location: /simulation?success=' . urlencode("Bienvenue ! Barrière ouverte."));
-            exit;
-
+            $this->redirectWithSuccess("Bienvenue ! Barrière ouverte.");
         } catch (Exception $e) {
-            header('Location: /simulation?error=' . urlencode($e->getMessage()));
-            exit;
+            $this->redirectWithError($e->getMessage());
         }
     }
 
+    /**
+     * Gère la sortie d'un parking
+     */
     public function exit()
     {
         $userId = $this->getUserId();
         if (!$userId)
             return;
 
-        $parkingId = $_POST['parking_id'] ?? null;
-
         try {
-            if (!$parkingId)
+            $parkingId = $_POST['parking_id'] ?? null;
+            if (!$parkingId) {
                 throw new Exception("Impossible d'identifier le parking de sortie.");
+            }
 
             $request = new \App\Application\UseCase\User\ExitParking\ExitParkingRequest($userId, (int) $parkingId);
             $session = $this->exitParkingUseCase->execute($request);
 
-            $msg = "Au revoir ! Sortie validée.";
-            if ($session->amount > 0) {
-                $msg .= " Montant final : " . number_format($session->amount, 2) . " €. ";
-                if ($session->penaltyApplied) {
-                    $msg .= "(Pénalité de dépassement incluse).";
-                }
-            }
-
-            header('Location: /simulation?success=' . urlencode($msg));
-            exit;
-
+            $this->redirectWithSuccess($this->buildExitMessage($session));
         } catch (Exception $e) {
-            header('Location: /simulation?error=' . urlencode($e->getMessage()));
-            exit;
+            $this->redirectWithError($e->getMessage());
         }
+    }
+
+    /**
+     * Résout les données d'entrée (parkingId et reservationId)
+     */
+    private function resolveEntryData(): array
+    {
+        $reservationId = $_POST['reservation_id'] ?? null;
+        $parkingId = $_POST['parking_id'] ?? null;
+
+        if ($reservationId) {
+            $res = $this->reservationRepository->findById((int) $reservationId);
+            if (!$res) {
+                throw new Exception("Réservation introuvable.");
+            }
+            return [$res->getParkingId(), (int) $reservationId];
+        }
+
+        if (!$parkingId) {
+            throw new Exception("Aucun parking sélectionné.");
+        }
+        return [(int) $parkingId, null];
+    }
+
+    /**
+     * Construit le message de sortie
+     */
+    private function buildExitMessage($session): string
+    {
+        $msg = "Au revoir ! Sortie validée.";
+        if ($session->amount > 0) {
+            $msg .= " Montant final : " . number_format($session->amount, 2) . " €. ";
+            if ($session->penaltyApplied) {
+                $msg .= "(Pénalité de dépassement incluse).";
+            }
+        }
+        return $msg;
+    }
+
+    /**
+     * Formate une session en tableau
+     */
+    private function formatSessionResponse($session): array
+    {
+        return [
+            'id' => $session->getSessionId(),
+            'userId' => $session->getUserId(),
+            'parkingId' => $session->getParkingId(),
+            'reservationId' => $session->getReservationId(),
+            'entryDateTime' => $session->getEntryDateTime()->format('Y-m-d H:i:s'),
+            'exitDateTime' => $session->getExitDateTime() ? $session->getExitDateTime()->format('Y-m-d H:i:s') : null,
+            'finalAmount' => $session->getFinalAmount(),
+            'penaltyApplied' => $session->isPenaltyApplied(),
+        ];
+    }
+
+    private function redirectWithSuccess(string $message): void
+    {
+        header('Location: /simulation?success=' . urlencode($message));
+        exit;
+    }
+
+    private function redirectWithError(string $message): void
+    {
+        header('Location: /simulation?error=' . urlencode($message));
+        exit;
     }
 
     private function getUserId(): ?string
@@ -161,4 +192,3 @@ class ParkingSessionController
         return $this->jwtService->validateToken($token);
     }
 }
-

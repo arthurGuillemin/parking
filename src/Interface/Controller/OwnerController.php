@@ -25,73 +25,39 @@ class OwnerController
         require dirname(__DIR__, 3) . '/templates/owner_dashboard.php';
     }
 
-    private function checkAuth(): void
-    {
-        if (!isset($_COOKIE['auth_token']) || !$this->jwtService->validateToken($_COOKIE['auth_token'])) {
-            header('Location: /login');
-            exit;
-        }
-    }
-
     public function registerForm(): void
     {
         require dirname(__DIR__, 3) . '/templates/owner_register_form.php';
     }
 
+    /**
+     * Inscription d'un propriétaire
+     */
     public function register(array $data = []): array
     {
         header('Content-Type: application/json; charset=UTF-8');
 
-        // Récupération des données (JSON ou POST ou array)
-        if (empty($data)) {
-            $input = file_get_contents('php://input');
-            $jsonData = json_decode($input, true);
-            $data = $jsonData ?: $_POST;
-        }
+        $data = $this->parseRequestData($data);
+        $sanitizedData = $this->sanitizeOwnerData($data);
 
-        // Protection anti-XSS
-        $email = $this->xssProtection->sanitizeEmail($data['email'] ?? '');
-        $password = $data['password'] ?? '';
-        $firstName = $this->xssProtection->sanitize($data['firstName'] ?? $data['first_name'] ?? '');
-        $lastName = $this->xssProtection->sanitize($data['lastName'] ?? $data['last_name'] ?? '');
-
-        if (!$email || empty($password) || empty($firstName) || empty($lastName)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Champs requis manquants'], JSON_UNESCAPED_UNICODE);
+        if (!$this->validateOwnerFields($sanitizedData)) {
             return [];
         }
 
         try {
             $owner = $this->ownerService->register(
-                $email,
-                $password,
-                $firstName,
-                $lastName
+                $sanitizedData['email'],
+                $data['password'],
+                $sanitizedData['firstName'],
+                $sanitizedData['lastName']
             );
 
-            http_response_code(201);
-            echo json_encode([
-                'id' => $owner->getOwnerId(),
-                'email' => $owner->getEmail(),
-                'firstName' => $owner->getFirstName(),
-                'lastName' => $owner->getLastName(),
-            ], JSON_UNESCAPED_UNICODE);
-
-            return [
-                'id' => $owner->getOwnerId(),
-                'email' => $owner->getEmail(),
-                'firstName' => $owner->getFirstName(),
-                'lastName' => $owner->getLastName(),
-            ];
+            return $this->sendOwnerSuccessResponse($owner);
         } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
-            echo json_encode(['error' => $this->xssProtection->sanitize($e->getMessage())], JSON_UNESCAPED_UNICODE);
-            return [];
+            return $this->sendJsonError(400, $this->xssProtection->sanitize($e->getMessage()));
         } catch (\Exception $e) {
             error_log('Owner registration error: ' . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['error' => 'Une erreur est survenue lors de l\'inscription'], JSON_UNESCAPED_UNICODE);
-            return [];
+            return $this->sendJsonError(500, 'Une erreur est survenue lors de l\'inscription');
         }
     }
 
@@ -100,54 +66,123 @@ class OwnerController
         require dirname(__DIR__, 3) . '/templates/owner_login.php';
     }
 
+    /**
+     * Connexion d'un propriétaire
+     */
     public function login(array $data = []): ?array
     {
         header('Content-Type: application/json; charset=UTF-8');
 
-        // Récupération des données (JSON ou POST ou array)
-        if (empty($data)) {
-            $input = file_get_contents('php://input');
-            $jsonData = json_decode($input, true);
-            $data = $jsonData ?: $_POST;
-        }
-
-        // Protection anti-XSS
+        $data = $this->parseRequestData($data);
         $email = $this->xssProtection->sanitizeEmail($data['email'] ?? '');
         $password = $data['password'] ?? '';
 
         if (!$email || empty($password)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Champs requis manquants'], JSON_UNESCAPED_UNICODE);
+            $this->sendJsonError(400, 'Champs requis manquants');
             return null;
         }
 
         try {
             $loginResponse = $this->ownerService->authenticate($email, $password);
-            if ($loginResponse) {
-                http_response_code(200);
-                echo json_encode([
-                    'token' => $loginResponse->token,
-                    'refreshToken' => $loginResponse->refreshToken,
-                    'expiresIn' => $loginResponse->expiresIn,
-                    'role' => $loginResponse->role,
-                ], JSON_UNESCAPED_UNICODE);
 
-                return [
-                    'token' => $loginResponse->token,
-                    'refreshToken' => $loginResponse->refreshToken,
-                    'expiresIn' => $loginResponse->expiresIn,
-                    'role' => $loginResponse->role,
-                ];
+            if ($loginResponse) {
+                return $this->sendLoginSuccessResponse($loginResponse);
             }
 
-            http_response_code(401);
-            echo json_encode(['error' => 'Identifiants invalides'], JSON_UNESCAPED_UNICODE);
+            $this->sendJsonError(401, 'Identifiants invalides');
             return null;
         } catch (\Exception $e) {
             error_log('Owner login error: ' . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['error' => 'Une erreur est survenue lors de la connexion'], JSON_UNESCAPED_UNICODE);
+            $this->sendJsonError(500, 'Une erreur est survenue lors de la connexion');
             return null;
         }
+    }
+
+    private function checkAuth(): void
+    {
+        if (!isset($_COOKIE['auth_token']) || !$this->jwtService->validateToken($_COOKIE['auth_token'])) {
+            header('Location: /login');
+            exit;
+        }
+    }
+
+    /**
+     * Parse les données de la requête (JSON, POST ou array)
+     */
+    private function parseRequestData(array $data): array
+    {
+        if (empty($data)) {
+            $input = file_get_contents('php://input');
+            $jsonData = json_decode($input, true);
+            return $jsonData ?: $_POST;
+        }
+        return $data;
+    }
+
+    /**
+     * Sanitize les données du propriétaire
+     */
+    private function sanitizeOwnerData(array $data): array
+    {
+        return [
+            'email' => $this->xssProtection->sanitizeEmail($data['email'] ?? ''),
+            'firstName' => $this->xssProtection->sanitize($data['firstName'] ?? $data['first_name'] ?? ''),
+            'lastName' => $this->xssProtection->sanitize($data['lastName'] ?? $data['last_name'] ?? ''),
+            'password' => $data['password'] ?? '',
+        ];
+    }
+
+    /**
+     * Valide les champs obligatoires
+     */
+    private function validateOwnerFields(array $data): bool
+    {
+        if (!$data['email'] || empty($data['password']) || empty($data['firstName']) || empty($data['lastName'])) {
+            $this->sendJsonError(400, 'Champs requis manquants');
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Envoie la réponse de succès pour l'inscription
+     */
+    private function sendOwnerSuccessResponse($owner): array
+    {
+        http_response_code(201);
+        $response = [
+            'id' => $owner->getOwnerId(),
+            'email' => $owner->getEmail(),
+            'firstName' => $owner->getFirstName(),
+            'lastName' => $owner->getLastName(),
+        ];
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        return $response;
+    }
+
+    /**
+     * Envoie la réponse de succès pour la connexion
+     */
+    private function sendLoginSuccessResponse($loginResponse): array
+    {
+        http_response_code(200);
+        $response = [
+            'token' => $loginResponse->token,
+            'refreshToken' => $loginResponse->refreshToken,
+            'expiresIn' => $loginResponse->expiresIn,
+            'role' => $loginResponse->role,
+        ];
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        return $response;
+    }
+
+    /**
+     * Envoie une erreur JSON
+     */
+    private function sendJsonError(int $code, string $message): array
+    {
+        http_response_code($code);
+        echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
+        return [];
     }
 }
