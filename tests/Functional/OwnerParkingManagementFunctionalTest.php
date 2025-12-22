@@ -153,11 +153,7 @@ class OwnerParkingManagementFunctionalTest extends BaseFunctionalTest
         $request = new GetMonthlyRevenueRequest($parking->getParkingId(), 2025, 1);
         $revenue = $this->getMonthlyRevenueUseCase->execute($request);
 
-<<<<<<< HEAD
-        $this->assertEquals(129.98, $revenue['total'], 'Les revenus doivent être la somme des prix mensuels (49.99 + 79.99)');
-=======
         $this->assertEquals(129.98, $revenue['total'], 'Les revenus doivent être la somme des prix mensuels');
->>>>>>> main
     }
 
     public function testMonthlyRevenueWithInvoicesAndSubscriptions(): void
@@ -213,11 +209,7 @@ class OwnerParkingManagementFunctionalTest extends BaseFunctionalTest
         $request = new GetMonthlyRevenueRequest($parking->getParkingId(), 2025, 1);
         $revenue = $this->getMonthlyRevenueUseCase->execute($request);
 
-<<<<<<< HEAD
-        $this->assertEqualsWithDelta(83.99, $revenue['total'], 0.01, 'Les revenus doivent être la somme des factures TTC + prix mensuel (24 + 59.99)');
-=======
         $this->assertEqualsWithDelta(83.99, $revenue['total'], 0.01);
->>>>>>> main
     }
 
     public function testMonthlyRevenueExcludesOtherMonths(): void
@@ -281,10 +273,6 @@ class OwnerParkingManagementFunctionalTest extends BaseFunctionalTest
         $request = new GetMonthlyRevenueRequest($parking->getParkingId(), 2025, 1);
         $revenue = $this->getMonthlyRevenueUseCase->execute($request);
 
-<<<<<<< HEAD
-        $this->assertEquals(12.0, $revenue['total'], 'Seules les factures de janvier doivent être comptabilisées');
-=======
         $this->assertEquals(12.0, $revenue['total']);
->>>>>>> main
     }
 }

@@ -108,13 +108,8 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
                 return $invoice;
             } else {
                 $stmt = $this->db->prepare("
-<<<<<<< HEAD
-                    INSERT INTO invoices (id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details_json, invoice_type)
-                    VALUES (:id, :reservation_id, :session_id, :issue_date, :amount_ht, :amount_ttc, :details_json, :invoice_type)
-=======
                     INSERT INTO invoices (reservation_id, session_id, issue_date, amount_ht, amount_ttc, details, invoice_type)
                     VALUES (:reservation_id, :session_id, :issue_date, :amount_ht, :amount_ttc, :details, :invoice_type)
->>>>>>> main
                 ");
                 $stmt->execute([
                     'reservation_id' => $invoice->getReservationId(),
@@ -139,23 +134,6 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
                 );
             }
 
-<<<<<<< HEAD
-            $stmt->execute([
-                'id' => $invoice->getInvoiceId(),
-                'reservation_id' => $invoice->getReservationId(),
-                'session_id' => $invoice->getSessionId(),
-                'issue_date' => $invoice->getIssuedDate()->format('Y-m-d H:i:s'),
-                'amount_ht' => $invoice->getAmountHt(),
-                'amount_ttc' => $invoice->getAmountTtc(),
-                'details_json' => $invoice->getDetailsJson() ? json_encode($invoice->getDetailsJson()) : null,
-
-                'invoice_type' => $invoice->getInvoiceType(),
-            ]);
-
-            return $invoice;
-
-=======
->>>>>>> main
         } catch (PDOException $e) {
             throw new RuntimeException("erreur dans le save de la facture: " . $e->getMessage());
         }
