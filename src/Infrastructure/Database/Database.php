@@ -10,7 +10,7 @@ require __DIR__ . '/../../../vendor/autoload.php';
 use Dotenv\Dotenv;
 
 $dotenv = Dotenv::createImmutable(dirname(__DIR__, 3));
-$dotenv->load();
+$dotenv->safeLoad();
 
 class Database
 {
