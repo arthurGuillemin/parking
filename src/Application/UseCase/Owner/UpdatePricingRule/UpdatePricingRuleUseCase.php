@@ -15,14 +15,14 @@ class UpdatePricingRuleUseCase
     }
 
     /**
-     * Update or add a pricing rule for a parking.
+     * Mettre à jour ou ajouter une règle tarifaire pour un parking.
      *
      * @param UpdatePricingRuleRequest $request
      * @return PricingRule
      */
     public function execute(UpdatePricingRuleRequest $request): PricingRule
     {
-        // On crée une nouvelle règle tarifaire (historisation par date d'effet)
+        // Créer une nouvelle règle tarifaire (historisation par date d'effet)
         $pricingRule = new PricingRule(
             0, // id auto-incrémenté par la DB
             $request->parkingId,

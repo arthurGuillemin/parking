@@ -85,4 +85,24 @@ class ParkingSession
     {
         $this->penaltyApplied = $applied;
     }
+
+    /**
+     * Returns a new ParkingSession with exit data filled in (immutable pattern).
+     */
+    public function withExit(
+        \DateTimeImmutable $exitDateTime,
+        float $finalAmount,
+        bool $penaltyApplied
+    ): self {
+        return new self(
+            $this->id,
+            $this->userId,
+            $this->parkingId,
+            $this->reservationId,
+            $this->entryDateTime,
+            $exitDateTime,
+            $finalAmount,
+            $penaltyApplied
+        );
+    }
 }

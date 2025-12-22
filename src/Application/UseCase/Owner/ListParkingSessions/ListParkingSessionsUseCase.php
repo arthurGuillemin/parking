@@ -15,7 +15,7 @@ class ListParkingSessionsUseCase
     }
 
     /**
-     * List parking sessions for a parking.
+     * Lister les sessions de parking pour un parking.
      *
      * @param ListParkingSessionsRequest $request
      * @return ParkingSession[]

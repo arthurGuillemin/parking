@@ -43,7 +43,7 @@ class EnterParkingUseCase
             if (!$reservation || $reservation->getUserId() !== $request->userId || $reservation->getParkingId() !== $request->parkingId) {
                 throw new RuntimeException("Réservation invalide.");
             }
-            // Vérifier si le temps est valide (allow entry 15 mins before)
+            // Vérifier si le temps est valide
             $now = new DateTimeImmutable();
             if ($now < $reservation->getStartDateTime()->modify('-30 minutes')) {
                 throw new RuntimeException("Il est trop tôt pour entrer (max 30 min avant).");

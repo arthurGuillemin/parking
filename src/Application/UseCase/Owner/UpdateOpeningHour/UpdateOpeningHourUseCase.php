@@ -32,13 +32,13 @@ class UpdateOpeningHourUseCase
     {
         [$weekdayStart, $weekdayEnd] = $this->validateWeekdays($request->weekdayStart, $request->weekdayEnd);
 
-        // Check for existing opening hours for this parking
+        // Vérifier si des heures d'ouverture existent pour ce parking
         $existingHours = $this->openingHourRepository->findByParkingId($request->parkingId);
 
         $openingHour = null;
 
         if (count($existingHours) > 0) {
-            // Update the first existing record
+            // Mettre à jour le premier enregistrement existant
             $first = $existingHours[0];
             $openingHour = new OpeningHour(
                 $first->getOpeningHourId(),
@@ -49,12 +49,12 @@ class UpdateOpeningHourUseCase
                 new \DateTimeImmutable($request->closingTime)
             );
 
-            // Delete duplicates if any
+            // Supprimer les enregistrements dupliqués si nécessaire
             for ($i = 1; $i < count($existingHours); $i++) {
                 $this->openingHourRepository->delete($existingHours[$i]->getOpeningHourId());
             }
         } else {
-            // Create new
+            // Créer un nouveau enregistrement
             $openingHour = new OpeningHour(
                 0,
                 $request->parkingId,

@@ -16,7 +16,7 @@ class AddParkingUseCase
     }
 
     /**
-     * Add a new parking for an owner.
+     * Ajouter un nouveau parking pour un propriétaire.
      *
      * @param AddParkingRequest $request
      * @return Parking

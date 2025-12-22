@@ -7,7 +7,6 @@ use App\Domain\Entity\Reservation;
 use App\Domain\Repository\ParkingRepositoryInterface;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Domain\Service\CheckAvailabilityService;
-use App\Domain\Repository\PricingRuleRepositoryInterface;
 
 class MakeReservationUseCase
 {
@@ -45,7 +44,7 @@ class MakeReservationUseCase
         $amount = $this->pricingService->calculatePrice(
             $parking->getParkingId(),
             $duration,
-            $request->startDateTime // Les règles effectives au début de la résa
+            $request->startDateTime
         );
 
         // créer la réservation

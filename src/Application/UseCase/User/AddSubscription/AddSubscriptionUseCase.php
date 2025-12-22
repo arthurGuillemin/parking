@@ -17,7 +17,7 @@ class AddSubscriptionUseCase
     }
 
     /**
-     * Subscribe a user to a subscription type for a parking.
+     * Abonner un utilisateur à un type d'abonnement pour un parking.
      *
      * @param AddSubscriptionRequest $request
      * @return SubscriptionResponse
@@ -25,20 +25,19 @@ class AddSubscriptionUseCase
      */
     public function execute(AddSubscriptionRequest $request): SubscriptionResponse
     {
-        // Validate duration: minimum 1 month, maximum 1 year
+        // Vérifier la durée: minimum 1 mois, maximum 1 an
         $minEndDate = $request->startDate->add(new \DateInterval('P1M'));
 
         if ($request->endDate === null) {
-            // Set par défaut à 1 an si non spécifié
             $request->endDate = $request->startDate->add(new \DateInterval('P1Y'));
         }
 
         if ($request->endDate < $minEndDate) {
-            throw new \InvalidArgumentException('Subscription duration must be at least 1 month.');
+            throw new \InvalidArgumentException('La durée de l\'abonnement doit être d\'au moins 1 mois.');
         }
 
         if ($request->endDate > $request->startDate->add(new \DateInterval('P1Y'))) {
-            throw new \InvalidArgumentException('Subscription duration cannot exceed 1 year.');
+            throw new \InvalidArgumentException('La durée de l\'abonnement ne peut pas excéder 1 an.');
         }
 
         $subscription = new Subscription(
