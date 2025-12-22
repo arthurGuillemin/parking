@@ -194,8 +194,4 @@ class ReservationRepository implements ReservationRepositoryInterface
         );
     }
 
-    public function countActiveOverstayers(int $parkingId, \DateTimeImmutable $atTime): int
-    {
-        return 0; // Stub implementation to fix fatal error as this class effectively legacy
-    }
 }
