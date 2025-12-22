@@ -793,6 +793,7 @@
                 list.forEach(r => {
                     let badgeClass = 'badge-info';
                     let statusLabel = r.status;
+                    if (r.status === 'pending') { badgeClass = 'badge-warning'; statusLabel = 'En attente'; }
                     if (r.status === 'confirmed') { badgeClass = 'badge-success'; statusLabel = 'Confirmée'; }
                     if (r.status === 'cancelled') { badgeClass = 'badge-danger'; statusLabel = 'Annulée'; }
                     if (r.status === 'completed') { badgeClass = 'badge-secondary'; statusLabel = 'Terminée'; }

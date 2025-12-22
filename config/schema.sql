@@ -56,11 +56,11 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 -- Assuming 'subscription_id' references 'subscription_types' to define slots for a type.
 CREATE TABLE IF NOT EXISTS subscription_slots (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  subscription_type_id INT NOT NULL,
+  subscription_id INT NOT NULL,
   weekday TINYINT NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
-  FOREIGN KEY (subscription_type_id) REFERENCES subscription_types(id)
+  FOREIGN KEY (subscription_id) REFERENCES subscription_types(id)
 );
 
 CREATE TABLE IF NOT EXISTS reservations (

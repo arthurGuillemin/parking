@@ -444,7 +444,8 @@ class ServiceContainer implements ContainerInterface
                 $this->get(ParkingRepositoryInterface::class),
                 $this->get(ParkingSessionRepositoryInterface::class),
                 $this->get(ReservationRepositoryInterface::class),
-                $this->get(SubscriptionRepositoryInterface::class)
+                $this->get(SubscriptionRepositoryInterface::class),
+                $this->get(\App\Domain\Service\SubscriptionCoverageService::class)
             );
         };
 

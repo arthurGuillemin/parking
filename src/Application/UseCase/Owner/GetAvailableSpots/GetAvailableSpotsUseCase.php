@@ -6,6 +6,7 @@ use App\Domain\Repository\ParkingRepositoryInterface;
 use App\Domain\Repository\ParkingSessionRepositoryInterface;
 use App\Domain\Repository\ReservationRepositoryInterface;
 use App\Domain\Repository\SubscriptionRepositoryInterface;
+use App\Domain\Service\SubscriptionCoverageService;
 
 class GetAvailableSpotsUseCase
 {
@@ -13,17 +14,20 @@ class GetAvailableSpotsUseCase
     private ParkingSessionRepositoryInterface $parkingSessionRepository;
     private ReservationRepositoryInterface $reservationRepository;
     private SubscriptionRepositoryInterface $subscriptionRepository;
+    private SubscriptionCoverageService $coverageService;
 
     public function __construct(
         ParkingRepositoryInterface $parkingRepository,
         ParkingSessionRepositoryInterface $parkingSessionRepository,
         ReservationRepositoryInterface $reservationRepository,
-        SubscriptionRepositoryInterface $subscriptionRepository
+        SubscriptionRepositoryInterface $subscriptionRepository,
+        SubscriptionCoverageService $coverageService
     ) {
         $this->parkingRepository = $parkingRepository;
         $this->parkingSessionRepository = $parkingSessionRepository;
         $this->reservationRepository = $reservationRepository;
         $this->subscriptionRepository = $subscriptionRepository;
+        $this->coverageService = $coverageService;
     }
 
     public function execute(GetAvailableSpotsRequest $request): int
@@ -90,11 +94,11 @@ class GetAvailableSpotsUseCase
         $subscriptions = $this->subscriptionRepository->findByParkingIdAndMonth($request->parkingId, $year, $month);
         $occupied = 0;
         foreach ($subscriptions as $subscription) {
+            // Check general validity (dates & status) AND specific time slot coverage
             if (
                 $subscription->getStatus() === 'active' &&
-                $subscription->getStartDate() <= $request->at &&
-                ($subscription->getEndDate() === null || $subscription->getEndDate() >= $request->at) &&
-                !in_array($subscription->getUserId(), $sessionUserIds)
+                !in_array($subscription->getUserId(), $sessionUserIds) &&
+                $this->coverageService->isDateTimeCovered($subscription, $request->at)
             ) {
                 $occupied++;
             }
