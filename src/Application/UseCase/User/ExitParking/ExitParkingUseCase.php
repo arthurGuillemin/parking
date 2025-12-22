@@ -99,6 +99,13 @@ class ExitParkingUseCase
 
         $savedSession = $this->sessionRepository->save($session);
 
+        if ($reservationId && isset($reservation)) {
+            // Mark reservation as completed to free the spot immediately
+            // This updates endDateTime to exitTime and status to 'completed'
+            $reservation->complete($exitTime, $finalAmount);
+            $this->reservationRepository->save($reservation);
+        }
+
         // 4. Generate Invoice
         $details = [
             'penalty_applied' => $isPenalty,

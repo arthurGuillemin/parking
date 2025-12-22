@@ -147,4 +147,9 @@ class ParkingRepository implements ParkingRepositoryInterface
             (bool) $data['open_24_7']
         );
     }
+
+    public function findNearby(float $lat, float $lng, float $radiusKm): array
+    {
+        return []; // Stub implementation
+    }
 }

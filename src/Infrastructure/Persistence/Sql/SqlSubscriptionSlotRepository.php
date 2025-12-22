@@ -18,12 +18,13 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         $this->db = Database::getInstance();
     }
+
     //trouver un créneau d'abonnement avec son id
     public function findById(int $id): ?SubscriptionSlot
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, subscriptionTypeId, subscription_id, weekday, start_time, end_time
+                SELECT id, subscription_id, weekday, start_time, end_time
                 FROM subscription_slots
                 WHERE id = :id
             ");
@@ -39,20 +40,17 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
         }
     }
 
-    //trouver un créneau d'abonnement avec l'id du type
-
-
     public function findBySubscriptionTypeId(int $typeId): array
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT id, subscriptionTypeId, subscription_id, weekday, start_time, end_time
+                SELECT id, subscription_id, weekday, start_time, end_time
                 FROM subscription_slots
-                WHERE subscriptionTypeId = :typeId
+                WHERE subscription_id = :typeId
                 ORDER BY weekday, start_time
             ");
             $stmt->execute(['typeId' => $typeId]);
-            $rows = $stmt->fetchAll();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             return array_map([$this, 'mapToSubscriptionSlot'], $rows);
 
@@ -61,37 +59,47 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
         }
     }
 
-    //save un créneau d'abonnement
-
-
     public function save(SubscriptionSlot $slot): SubscriptionSlot
     {
         try {
-            $existing = $this->findById($slot->getSubscriptionSlotId());
-
-            if ($existing) {
+            if ($slot->getSubscriptionSlotId() > 0) {
+                // Update
                 $stmt = $this->db->prepare("
                     UPDATE subscription_slots
-                    SET subscriptionTypeId = :subscriptionTypeId,
+                    SET subscription_id = :typeId,
                         weekday = :weekday,
                         start_time = :start_time,
                         end_time = :end_time
                     WHERE id = :id
                 ");
+                $stmt->execute([
+                    'typeId' => $slot->getSubscriptionTypeId(),
+                    'weekday' => $slot->getWeekday(),
+                    'start_time' => $slot->getStartTime()->format('H:i:s'),
+                    'end_time' => $slot->getEndTime()->format('H:i:s'),
+                    'id' => $slot->getSubscriptionSlotId()
+                ]);
             } else {
+                // Insert
                 $stmt = $this->db->prepare("
-                    INSERT INTO subscription_slots (id, subscriptionTypeId,subscription_id, weekday, start_time, end_time)
-                    VALUES (:id, :subscription_id,:subscriptionTypeId, :weekday, :start_time, :end_time)
+                    INSERT INTO subscription_slots (subscription_id, weekday, start_time, end_time)
+                    VALUES (:typeId, :weekday, :start_time, :end_time)
                 ");
+                $stmt->execute([
+                    'typeId' => $slot->getSubscriptionTypeId(),
+                    'weekday' => $slot->getWeekday(),
+                    'start_time' => $slot->getStartTime()->format('H:i:s'),
+                    'end_time' => $slot->getEndTime()->format('H:i:s')
+                ]);
+                $id = (int) $this->db->lastInsertId();
+                return new SubscriptionSlot(
+                    $id,
+                    $slot->getSubscriptionTypeId(),
+                    $slot->getWeekday(),
+                    $slot->getStartTime(),
+                    $slot->getEndTime()
+                );
             }
-
-            $stmt->execute([
-                'id' => $slot->getSubscriptionSlotId(),
-                'subscriptionTypeId' => $slot->getSubscriptionSlotId(),
-                'weekday' => $slot->getWeekday(),
-                'start_time' => $slot->getStartTime()->format('H:i:s'),
-                'end_time' => $slot->getEndTime()->format('H:i:s'),
-            ]);
 
             return $slot;
 
@@ -114,9 +122,8 @@ class SqlSubscriptionSlotRepository implements SubscriptionSlotRepositoryInterfa
     {
         return new SubscriptionSlot(
             id: (int) $row['id'],
-            subscriptionId: (int) $row['subscription_id'],
-            weekdayStart: (int) $row['weekday_start'],
-            weekdayEnd: (int) $row['weekday_end'],
+            subscriptionTypeId: (int) $row['subscription_id'],
+            weekday: (int) $row['weekday'],
             startTime: new DateTimeImmutable($row['start_time']),
             endTime: new DateTimeImmutable($row['end_time'])
         );

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Application\UseCase\User\Register;
+namespace Unit\Application\UseCase\User\Register;
 
 use App\Application\UseCase\User\Register\UserRegisterRequest;
 use App\Application\UseCase\User\Register\UserRegisterUseCase;
@@ -55,6 +55,10 @@ class UserRegisterUseCaseTest extends TestCase
             public function hash(string $password): string
             {
                 return 'hashed:' . $password;
+            }
+            public function verify(string $password, string $hash): bool
+            {
+                return true;
             }
         };
 
@@ -116,6 +120,10 @@ class UserRegisterUseCaseTest extends TestCase
             {
                 return 'hashed:' . $password;
             }
+            public function verify(string $password, string $hash): bool
+            {
+                return true;
+            }
         };
 
         $useCase = new UserRegisterUseCase(
@@ -162,6 +170,10 @@ class UserRegisterUseCaseTest extends TestCase
             public function hash(string $password): string
             {
                 return 'hashed:' . $password;
+            }
+            public function verify(string $password, string $hash): bool
+            {
+                return true;
             }
         };
 

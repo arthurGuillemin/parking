@@ -216,21 +216,24 @@
             <div class="tab" onclick="switchTab('sessions')">Stationnements</div>
             <div class="tab" onclick="switchTab('subscriptions')">Abonnements</div>
             <div class="tab" onclick="switchTab('alerts')">Alertes</div>
-            <div class="tab" onclick="switchTab('stats')">Revenus & Dispo</div>
+            <div class="tab" onclick="switchTab('stats')">Tableau de Bord</div>
         </div>
 
         <!-- PRICING TAB -->
         <div id="pricing" class="content-section active">
             <h2>Règles de Tarification</h2>
+            <p class="text-muted">Définissez comment le prix du stationnement est calculé.</p>
             <form id="pricingForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Début de la période (minutes après arrivée)</label>
+                        <label>Début de la période (minutes)</label>
                         <input type="number" name="startDurationMinute" value="0" required placeholder="Ex: 0">
+                        <small class="text-muted">Minute de début d'application du tarif.</small>
                     </div>
                     <div class="form-group">
-                        <label>Fin de la période (minutes, vide = illimité)</label>
-                        <input type="number" name="endDurationMinute" placeholder="Ex: 120 (pour 2h)">
+                        <label>Fin de la période (minutes)</label>
+                        <input type="number" name="endDurationMinute" placeholder="Laisser vide pour illimité">
+                        <small class="text-muted">Minute de fin (ex: 120 pour 2h).</small>
                     </div>
                 </div>
                 <div class="form-row">
@@ -243,42 +246,41 @@
                         <input type="number" name="sliceInMinutes" value="15" readonly
                             style="background-color: #e9ecef; cursor: not-allowed;"
                             title="La tranche est fixée à 15 minutes par défaut">
+                        <small class="text-muted">Fixé à 15 min.</small>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Date d'application du tarif</label>
+                    <label>Date d'application</label>
                     <input type="date" name="effectiveDate" required>
                 </div>
-                <button type="submit" class="btn-primary">Mettre à jour le tarif</button>
+                <button type="submit" class="btn-primary">Enregistrer ce tarif</button>
                 <div id="pricingMsg"></div>
             </form>
         </div>
-        <!-- 
-{"error":"Erreur serveur: Service not found: App\\Interface\\Presenter\\SubscriptionPresenter"}-->
+
         <!-- HOURS TAB -->
         <div id="hours" class="content-section">
             <h2>Horaires d'ouverture</h2>
 
             <div
-                style="background: #e6fffa; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid #00b894; position: relative;">
-                <label for="open247Toggle"
-                    style="display: flex; align-items: center; cursor: pointer; width: 100%; height: 100%;">
-                    <input type="checkbox" id="open247Toggle" style="width: 20px; height: 20px; margin-right: 10px;">
+                style="background: #e6fffa; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid #00b894;">
+                <label for="open247Toggle" style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="open247Toggle" style="width: 20px; height: 20px; margin-right: 15px;">
                     <div>
-                        <strong style="font-size: 1.1em; color: #0056b3;">Ouvert 24h/24 et 7j/7 (Permanent)</strong>
+                        <strong style="font-size: 1.1em; color: #0056b3;">Ouvert 24h/24 et 7j/7</strong>
                         <small style="display:block; margin-top:5px; color:#666;">
-                            Si coché, le parking est considéré comme toujours ouvert. La définition des horaires sera
-                            désactivée.
+                            Si activé, le parking est accessible en permanence. Les horaires personnalisés seront
+                            désactivés.
                         </small>
                     </div>
                 </label>
             </div>
 
             <form id="hoursForm" style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-                <h3>Ajouter une plage horaire</h3>
+                <h3>Nouvelle plage horaire</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Jour d'ouverture</label>
+                        <label>Du</label>
                         <select name="weekdayStart">
                             <option value="1">Lundi</option>
                             <option value="2">Mardi</option>
@@ -290,7 +292,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Jour de fermeture</label>
+                        <label>Au</label>
                         <select name="weekdayEnd">
                             <option value="1">Lundi</option>
                             <option value="2">Mardi</option>
@@ -307,7 +309,7 @@
                         <label>Heure d'ouverture</label>
                         <select name="openingTime" required>
                             <?php for ($h = 0; $h < 24; $h++):
-                                for ($m = 0; $m < 60; $m += 15):
+                                for ($m = 0; $m < 60; $m += 30): // Simplified steps
                                     $time = sprintf('%02d:%02d', $h, $m);
                                     echo "<option value=\"$time\">$time</option>";
                                 endfor;
@@ -318,12 +320,9 @@
                         <label>Heure de fermeture</label>
                         <select name="closingTime" required>
                             <?php for ($h = 0; $h < 24; $h++):
-                                for ($m = 0; $m < 60; $m += 15):
+                                for ($m = 0; $m < 60; $m += 30):
                                     $time = sprintf('%02d:%02d', $h, $m);
-                                    // Default closer to evening? or just start at 00:00.
-                                    // Let's pre-select a reasonable default or just let user choose.
-                                    // Maybe 18:00 as default closing?
-                                    $selected = ($time === '18:00') ? 'selected' : '';
+                                    $selected = ($time === '19:00') ? 'selected' : '';
                                     echo "<option value=\"$time\" $selected>$time</option>";
                                 endfor;
                             endfor; ?>
@@ -334,7 +333,7 @@
                 <div id="hoursMsg"></div>
             </form>
 
-            <h3>Plages horaires définies</h3>
+            <h3>Horaires définis</h3>
             <ul id="hoursList">Chargement...</ul>
         </div>
 
@@ -347,15 +346,14 @@
             <table>
                 <thead>
                     <tr>
-
-                        <th>État & Date</th>
-                        <th>Durée</th>
+                        <th>Détails & Date</th>
+                        <th>Durée Estimée</th>
                         <th>Montant</th>
                     </tr>
                 </thead>
                 <tbody id="reservationsTable">
                     <tr>
-                        <td colspan="4">Chargement...</td>
+                        <td colspan="3">Chargement...</td>
                     </tr>
                 </tbody>
             </table>
@@ -364,16 +362,15 @@
         <!-- SESSIONS TAB -->
         <div id="sessions" class="content-section">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>Stationnements en cours / passés</h2>
+                <h2>Historique des Stationnements</h2>
                 <button onclick="loadSessions()" class="btn-primary">Actualiser</button>
             </div>
             <table>
                 <thead>
                     <tr>
-
-                        <th>Véhicule / Session</th>
-                        <th>Durée</th>
-                        <th>Pénalité</th>
+                        <th>Session</th>
+                        <th>Durée Réelle</th>
+                        <th>Coût Final</th>
                     </tr>
                 </thead>
                 <tbody id="sessionsTable">
@@ -386,24 +383,28 @@
 
         <!-- SUBSCRIPTIONS TAB -->
         <div id="subscriptions" class="content-section">
-            <h2>Types d'Abonnement</h2>
+            <h2>Gestion des Abonnements</h2>
             <div style="margin-bottom: 20px; padding: 15px; background: #e9ecef; border-radius: 4px;">
-                <h3>Ajouter un type</h3>
+                <h3>Créer un type d'abonnement</h3>
                 <form id="addSubForm" style="display:flex; gap:10px; align-items:end;">
                     <div style="flex:1">
                         <label>Nom (ex: Mensuel 24/7)</label>
-                        <input type="text" name="name" required>
+                        <input type="text" name="name" required placeholder="Nom du forfait">
                     </div>
                     <div style="flex:2">
-                        <label>Description</label>
-                        <input type="text" name="description">
+                        <label>Description (Optionnel)</label>
+                        <input type="text" name="description" placeholder="Détails (ex: Accès illimité)">
+                    </div>
+                    <div style="flex:1">
+                        <label>Prix (€)</label>
+                        <input type="number" step="0.01" name="price" required placeholder="0.00">
                     </div>
                     <button type="submit" class="btn-success">Ajouter</button>
                 </form>
                 <div id="subMsg"></div>
             </div>
 
-            <h3>Types existants</h3>
+            <h3>Types d'abonnements actifs</h3>
             <ul id="subList" style="list-style:none; padding:0;">
                 <li>Chargement...</li>
             </ul>
@@ -412,21 +413,21 @@
         <!-- ALERTS TAB -->
         <div id="alerts" class="content-section">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="color:#dc3545">Véhicules Hors Créneau</h2>
+                <h2 style="color:#dc3545">🚨 Véhicules en Infraction</h2>
                 <button onclick="loadAlerts()" class="btn-primary">Actualiser</button>
             </div>
-            <p>Conducteurs présents en dehors de leur réservation ou abonnement.</p>
+            <p>Liste des véhicules stationnés en dehors de leur période autorisée (réservation ou abonnement).</p>
             <table>
                 <thead>
                     <tr>
-                        <th>Utilisateur</th>
-                        <th>Date d'Entrée</th>
+                        <th>Identifiant</th>
+                        <th>Entrée</th>
                         <th>Statut</th>
                     </tr>
                 </thead>
                 <tbody id="alertsTable">
                     <tr>
-                        <td colspan="4">Chargement...</td>
+                        <td colspan="3">Chargement...</td>
                     </tr>
                 </tbody>
             </table>
@@ -434,22 +435,45 @@
 
         <!-- STATS TAB -->
         <div id="stats" class="content-section">
-            <h2>Revenus & Disponibilité</h2>
+            <h2>Statistiques & Finance</h2>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:30px;">
                 <div class="stat-card">
-                    <h3>Disponibilité Immédiate</h3>
+                    <h3>Places Disponibles</h3>
                     <div id="availSpots" class="stat-value">-</div>
-                    <small>Places libres maintenant</small>
+                    <small>À l'instant T</small>
                     <button onclick="checkAvailability()" style="display:block; margin:10px auto;"
-                        class="btn-sm">Vérifier</button>
+                        class="btn-sm">Vérifier maintenant</button>
                 </div>
 
                 <div class="stat-card">
-                    <h3>Revenu Mensuel</h3>
-                    <div class="form-row" style="justify-content: center; margin-bottom: 10px;">
-                        <input type="number" id="revYear" value="2025" style="width:80px">
-                        <input type="number" id="revMonth" value="12" style="width:60px">
+                    <h3>Chiffre d'Affaires Mensuel</h3>
+                    <div class="form-row"
+                        style="justify-content: center; margin-bottom: 10px; align-items: center; gap: 5px;">
+                        <select id="revMonth" style="width: auto;">
+                            <?php
+                            $months = [
+                                1 => 'Janvier',
+                                2 => 'Février',
+                                3 => 'Mars',
+                                4 => 'Jeudi',
+                                5 => 'Mai',
+                                6 => 'Juin',
+                                7 => 'Juillet',
+                                8 => 'Août',
+                                9 => 'Septembre',
+                                10 => 'Octobre',
+                                11 => 'Novembre',
+                                12 => 'Décembre'
+                            ];
+                            $currentMonth = (int) date('m');
+                            foreach ($months as $num => $name): ?>
+                                <option value="<?= $num ?>" <?= $num === $currentMonth ? 'selected' : '' ?>><?= $name ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="number" id="revYear" value="<?= date('Y') ?>" style="width:70px" min="2020"
+                            max="2100">
                     </div>
                     <div id="monthlyRev" class="stat-value">0.00 €</div>
                     <div id="monthlyBreakdown" style="font-size:0.8em; color:#666; margin-top:5px; height: 40px;"></div>
@@ -457,15 +481,12 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
-        // Extract Parking ID from URL: /parking/123/manage
         const pathParts = window.location.pathname.split('/');
-        const parkingId = pathParts[2]; // assuming [ "", "parking", "123", "manage" ]
-
-        // Init - Name is now set by PHP
-        // document.getElementById('parkingName').textContent = "Parking #" + parkingId;
+        const parkingId = pathParts[2];
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -474,7 +495,7 @@
             document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
             document.getElementById(tabId).classList.add('active');
 
-            // Lazy load data
+            // Chargement différé des données
             if (tabId === 'pricing') loadPricing();
             if (tabId === 'hours') loadHours();
             if (tabId === 'reservations') loadReservations();
@@ -484,11 +505,9 @@
             if (tabId === 'stats') { checkAvailability(); }
         }
 
-        // Init load
         loadPricing();
 
 
-        // --- SUBSCRIPTIONS ---
         document.getElementById('addSubForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
@@ -501,7 +520,7 @@
                 });
                 if (res.ok) {
                     e.target.reset();
-                    loadSubscriptions(); // Reload list
+                    loadSubscriptions();
                 } else {
                     alert('Erreur ajout');
                 }
@@ -511,7 +530,6 @@
         async function loadSubscriptions() {
             const el = document.getElementById('subList');
             try {
-                // Assuming GET /subscription-type/list?parkingId=X
                 const res = await fetch(`/subscription-type/list?parkingId=${parkingId}`);
                 const list = await res.json();
                 el.innerHTML = '';
@@ -529,11 +547,9 @@
             } catch (e) { el.innerHTML = 'Erreur chargement'; }
         }
 
-        // --- ALERTS ---
         async function loadAlerts() {
             const tbody = document.getElementById('alertsTable');
             try {
-                // Assuming GET route exists for SessionsOutOfReservationOrSubscriptionController
                 const response = await fetch(`/parking/sessions-out-of-reservation-or-subscription?parkingId=${parkingId}`);
                 const list = await response.json();
                 tbody.innerHTML = '';
@@ -554,13 +570,11 @@
             } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Erreur</td></tr>'; }
         }
 
-        // --- PRICING ---
         async function loadPricing() {
             try {
                 const res = await fetch(`/pricing-rule/list?parkingId=${parkingId}`);
                 const list = await res.json();
                 if (list.length > 0) {
-                    // Take the most recent one (assuming order or just last)
                     const rule = list[list.length - 1];
                     const form = document.getElementById('pricingForm');
                     form.startDurationMinute.value = rule.startDurationMinute;
@@ -576,7 +590,6 @@
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
             data.parkingId = parkingId;
-            // Handle optional endDuration
             if (!data.endDurationMinute) delete data.endDurationMinute;
 
             const msg = document.getElementById('pricingMsg');
@@ -612,7 +625,6 @@
             }
         });
 
-        // --- HOURS ---
         const is247 = <?= $parking->isOpen24_7() ? 'true' : 'false' ?>;
         const toggle247 = document.getElementById('open247Toggle');
         const hoursForm = document.getElementById('hoursForm');
@@ -628,14 +640,12 @@
             }
         }
 
-        // Init
         updateHoursState(is247);
 
         toggle247.addEventListener('change', async (e) => {
             const checked = e.target.checked;
             updateHoursState(checked);
 
-            // Save immediately
             try {
                 const res = await fetch('/parking/update', {
                     method: 'POST',
@@ -650,8 +660,6 @@
         });
 
         async function loadHours() {
-            // Reload 24/7 state just in case? No, rely on page load or toggle. 
-            // Actually, if we are in 24/7 mode, maybe we don't load hours list or we show a message.
             if (toggle247.checked) {
                 document.getElementById('hoursList').innerHTML = '<li style="color:green; font-weight:bold;">Ce parking est ouvert 24h/24 et 7j/7.</li>';
                 return;
@@ -669,7 +677,7 @@
                 }
                 const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-                // Sort by day
+                // Tri par jour
                 list.sort((a, b) => a.weekdayStart - b.weekdayStart);
 
                 list.forEach(h => {
@@ -715,13 +723,6 @@
             const data = Object.fromEntries(formData);
             data.parkingId = parkingId;
 
-            // Combine Hour and Minute (NOT NEEDED ANYMORE)
-            // data.openingTime = `${data.openingTimeHour}:${data.openingTimeMinute}`;
-            // data.closingTime = `${data.closingTimeHour}:${data.closingTimeMinute}`;
-
-            // Cleanup separate fields (NOT NEEDED ANYMORE)
-            // delete data.openingTimeHour; ...
-
             const msg = document.getElementById('hoursMsg');
             msg.innerHTML = 'Ajout...';
             msg.className = '';
@@ -744,8 +745,6 @@
                     msg.className = 'success';
                     msg.innerHTML = '✅ Plage ajoutée !';
                     loadHours();
-                    // Reset styling part of form only? Or full reset usually better
-                    // e.target.reset(); // If you want to reset
                 } else {
                     msg.className = 'error';
                     msg.innerHTML = '❌ ' + (json.error || 'Erreur inconnue');
@@ -757,7 +756,6 @@
             }
         });
 
-        // --- HELPERS ---
         function formatDate(str) {
             if (!str) return '-';
             const d = new Date(str);
@@ -779,10 +777,9 @@
             return `${hrs}h ${mins}m`;
         }
 
-        // --- RESERVATIONS ---
         async function loadReservations() {
             const tbody = document.getElementById('reservationsTable');
-            tbody.innerHTML = '<tr><td colspan="4">Chargement...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3">Chargement...</td></tr>';
             try {
                 const res = await fetch(`/reservation/list?parkingId=${parkingId}`);
                 if (!res.ok) throw new Error('Network response was not ok');
@@ -790,12 +787,13 @@
 
                 tbody.innerHTML = '';
                 if (!list || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;">Aucune réservation pour le moment.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">Aucune réservation pour le moment.</td></tr>';
                     return;
                 }
                 list.forEach(r => {
                     let badgeClass = 'badge-info';
                     let statusLabel = r.status;
+                    if (r.status === 'pending') { badgeClass = 'badge-warning'; statusLabel = 'En attente'; }
                     if (r.status === 'confirmed') { badgeClass = 'badge-success'; statusLabel = 'Confirmée'; }
                     if (r.status === 'cancelled') { badgeClass = 'badge-danger'; statusLabel = 'Annulée'; }
                     if (r.status === 'completed') { badgeClass = 'badge-secondary'; statusLabel = 'Terminée'; }
@@ -804,20 +802,19 @@
                         <tr>
                             <td>
                                 <span class="badge ${badgeClass}">${statusLabel}</span><br>
-                                <span class="text-muted">Du ${formatDate(r.startDateTime)}</span><br>
-                                <span class="text-muted">Au ${formatDate(r.endDateTime)}</span>
+                                <span class="text-muted" style="display:block; margin-top:4px;">${formatDate(r.startDateTime)}</span> 
+                                <span class="text-muted" style="display:block;">au ${formatDate(r.endDateTime)}</span>
                             </td>
                             <td>${getDuration(r.startDateTime, r.endDateTime)}</td>
-                            <td class="fw-bold">${r.finalAmount ? formatMoney(r.finalAmount) : (r.calculatedAmount ? '~' + formatMoney(r.calculatedAmount) : '-')}</td>
+                            <td class="fw-bold">${r.finalAmount ? formatMoney(r.finalAmount) : (r.calculatedAmount ? formatMoney(r.calculatedAmount) : '-')}</td>
                         </tr>`;
                 });
             } catch (e) {
                 console.error(e);
-                tbody.innerHTML = '<tr><td colspan="4" style="color:red">Erreur de chargement.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="color:red">Erreur de chargement.</td></tr>';
             }
         }
 
-        // --- SESSIONS ---
         async function loadSessions() {
             const tbody = document.getElementById('sessionsTable');
             try {
@@ -836,7 +833,7 @@
 
                     const penaltyParams = s.penaltyApplied
                         ? '<span class="badge badge-danger">⚠️ Pénalité incluse</span>'
-                        : '<span style="color:green">✔ OK</span>';
+                        : '<span style="color:green">✔ Tarif normal</span>';
 
                     tbody.innerHTML += `
                         <tr>
@@ -848,20 +845,18 @@
                             <td>${getDuration(s.entryDateTime, s.exitDateTime)}</td>
                             <td>
                                 ${penaltyParams}
-                                ${!isOngoing && s.finalAmount ? '<br><strong>' + formatMoney(s.finalAmount) + '</strong>' : ''}
+                                ${!isOngoing && s.finalAmount ? '<div style="margin-top:4px; font-weight:bold; font-size:1.1em;">Total: ' + formatMoney(s.finalAmount) + '</div>' : ''}
                             </td>
                         </tr>`;
                 });
             } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Erreur</td></tr>'; }
         }
 
-        // --- REVENUE & AVAIL ---
         async function checkAvailability() {
             const el = document.getElementById('availSpots');
             el.innerHTML = '...';
             const now = new Date().toISOString();
             try {
-                // GET /parking/available-spots?parkingId=X&at=Y
                 const res = await fetch(`/parking/available-spots?parkingId=${parkingId}&at=${now}`);
                 const json = await res.json();
                 el.innerHTML = json.availableSpots !== undefined ? json.availableSpots : '?';
@@ -876,7 +871,6 @@
                 const data = await res.json();
                 document.getElementById('monthlyRev').textContent = formatMoney(data.revenue);
 
-                // Show breakdown
                 if (data.breakdown) {
                     const r = formatMoney(data.breakdown.reservations);
                     const s = formatMoney(data.breakdown.subscriptions);

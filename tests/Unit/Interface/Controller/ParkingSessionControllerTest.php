@@ -12,6 +12,17 @@ class ParkingSessionControllerTest extends TestCase
     public function testListByParkingReturnsArray()
     {
         $mockService = $this->createMock(ParkingSessionService::class);
+
+        // Mocks for dependencies
+        $mockEnter = $this->createMock(\App\Application\UseCase\User\EnterParking\EnterParkingUseCase::class);
+        $mockExit = $this->createMock(\App\Application\UseCase\User\ExitParking\ExitParkingUseCase::class);
+        $mockListRes = $this->createMock(\App\Application\UseCase\User\ListUserReservations\ListUserReservationsUseCase::class);
+        $mockListSub = $this->createMock(\App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsUseCase::class);
+        $mockJwt = $this->createMock(\App\Domain\Service\JwtService::class);
+        $mockSessionRepo = $this->createMock(\App\Domain\Repository\ParkingSessionRepositoryInterface::class);
+        $mockResRepo = $this->createMock(\App\Domain\Repository\ReservationRepositoryInterface::class);
+        $mockSubRepo = $this->createMock(\App\Domain\Repository\SubscriptionRepositoryInterface::class);
+
         $mockSession = $this->createMock(ParkingSession::class);
         $mockSession->method('getSessionId')->willReturn(1);
         $mockSession->method('getUserId')->willReturn('user');
@@ -22,7 +33,18 @@ class ParkingSessionControllerTest extends TestCase
         $mockSession->method('getFinalAmount')->willReturn(20.0);
         $mockSession->method('isPenaltyApplied')->willReturn(false);
         $mockService->method('listParkingSessions')->willReturn([$mockSession]);
-        $controller = new ParkingSessionController($mockService);
+
+        $controller = new ParkingSessionController(
+            $mockService,
+            $mockEnter,
+            $mockExit,
+            $mockListRes,
+            $mockListSub,
+            $mockJwt,
+            $mockSessionRepo,
+            $mockResRepo,
+            $mockSubRepo
+        );
         $data = ['parkingId' => 2];
         $result = $controller->listByParking($data);
         $this->assertEquals([
@@ -41,7 +63,28 @@ class ParkingSessionControllerTest extends TestCase
     public function testListByParkingThrowsOnMissingFields()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $controller = new ParkingSessionController($this->createMock(ParkingSessionService::class));
+        // Mocks for dependencies
+        $mockService = $this->createMock(ParkingSessionService::class);
+        $mockEnter = $this->createMock(\App\Application\UseCase\User\EnterParking\EnterParkingUseCase::class);
+        $mockExit = $this->createMock(\App\Application\UseCase\User\ExitParking\ExitParkingUseCase::class);
+        $mockListRes = $this->createMock(\App\Application\UseCase\User\ListUserReservations\ListUserReservationsUseCase::class);
+        $mockListSub = $this->createMock(\App\Application\UseCase\User\ListUserSubscriptions\ListUserSubscriptionsUseCase::class);
+        $mockJwt = $this->createMock(\App\Domain\Service\JwtService::class);
+        $mockSessionRepo = $this->createMock(\App\Domain\Repository\ParkingSessionRepositoryInterface::class);
+        $mockResRepo = $this->createMock(\App\Domain\Repository\ReservationRepositoryInterface::class);
+        $mockSubRepo = $this->createMock(\App\Domain\Repository\SubscriptionRepositoryInterface::class);
+
+        $controller = new ParkingSessionController(
+            $mockService,
+            $mockEnter,
+            $mockExit,
+            $mockListRes,
+            $mockListSub,
+            $mockJwt,
+            $mockSessionRepo,
+            $mockResRepo,
+            $mockSubRepo
+        );
         $controller->listByParking([]);
     }
 }

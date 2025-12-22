@@ -18,7 +18,7 @@ return [
 
     // Owner routes
     ['GET', '/owner/register', 'OwnerController::registerForm'],
-    ['GET', '/owner/dashboard', 'OwnerController::dashboard'], // Dashboard 
+    ['GET', '/owner/dashboard', 'OwnerController::dashboard'], // Dashboard
 
     ['GET', '/owner/parkings', 'ParkingController::listOwnedParkings'], // API for Dashboard
 
@@ -62,8 +62,8 @@ return [
     ['POST', '/parking/exit', 'ParkingSessionController::exit'],
     ['GET', '/parking/sessions-out-of-reservation-or-subscription', 'SessionsOutOfReservationOrSubscriptionController::list'],
     ['POST', '/reservation/create', 'ReservationController::create'],
-
-
+    ['POST', '/parking/enter', 'ParkingEntryExitController::enter'],
+    ['POST', '/parking/exit', 'ParkingEntryExitController::exit'],
     // Invoice Download
     ['GET', '/invoices/:id/download', 'InvoiceController::download'],
 ];

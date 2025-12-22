@@ -17,9 +17,23 @@ class OwnerAuthenticateUseCaseTest extends TestCase
 
     protected function setUp(): void
     {
+<<<<<<< HEAD
         $this->repo = $this->createStub(OwnerRepositoryInterface::class);
         $this->passwordHasher = $this->createStub(PasswordHasherInterface::class);
         $this->tokenGenerator = $this->createStub(TokenGeneratorInterface::class);
+=======
+        $repo = $this->createMock(OwnerRepositoryInterface::class);
+        $owner = $this->createMock(Owner::class);
+        $repo->method('findByEmail')->willReturn($owner);
+        $owner->method('getPassword')->willReturn(password_hash('password', PASSWORD_DEFAULT));
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
+        $mockHasher->method('verify')->willReturn(true);
+        $mockTokenGen = $this->createMock(\App\Domain\Auth\TokenGeneratorInterface::class);
+        $useCase = new OwnerAuthenticateUseCase($repo, $mockHasher, $mockTokenGen);
+        $request = new OwnerAuthenticateRequest('test@example.com', 'password');
+        $result = $useCase->execute($request->email, $request->password);
+        $this->assertInstanceOf(\App\Application\DTO\LoginResponse::class, $result);
+>>>>>>> main
     }
 
     private function createUseCase(): OwnerAuthenticateUseCase
@@ -50,6 +64,7 @@ class OwnerAuthenticateUseCaseTest extends TestCase
 
     public function testExecuteReturnsNullOnInvalidCredentials()
     {
+<<<<<<< HEAD
         $owner = $this->createStub(Owner::class);
         $owner->method('getPassword')->willReturn('hashed_password');
 
@@ -59,17 +74,38 @@ class OwnerAuthenticateUseCaseTest extends TestCase
         $useCase = $this->createUseCase();
         $result = $useCase->execute('test@example.com', 'password');
 
+=======
+        $repo = $this->createMock(OwnerRepositoryInterface::class);
+        $owner = $this->createMock(Owner::class);
+        $repo->method('findByEmail')->willReturn($owner);
+        $owner->method('getPassword')->willReturn(password_hash('other', PASSWORD_DEFAULT));
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
+        $mockHasher->method('verify')->willReturn(false);
+        $mockTokenGen = $this->createMock(\App\Domain\Auth\TokenGeneratorInterface::class);
+        $useCase = new OwnerAuthenticateUseCase($repo, $mockHasher, $mockTokenGen);
+        $request = new OwnerAuthenticateRequest('test@example.com', 'password');
+        $result = $useCase->execute($request->email, $request->password);
+>>>>>>> main
         $this->assertNull($result);
     }
 
     public function testExecuteReturnsNullIfOwnerNotFound()
     {
+<<<<<<< HEAD
         $this->repo->method('findByEmail')->willReturn(null);
 
         $useCase = $this->createUseCase();
         $result = $useCase->execute('test@example.com', 'password');
 
+=======
+        $repo = $this->createMock(OwnerRepositoryInterface::class);
+        $repo->method('findByEmail')->willReturn(null);
+        $mockHasher = $this->createMock(\App\Domain\Security\PasswordHasherInterface::class);
+        $mockTokenGen = $this->createMock(\App\Domain\Auth\TokenGeneratorInterface::class);
+        $useCase = new OwnerAuthenticateUseCase($repo, $mockHasher, $mockTokenGen);
+        $request = new OwnerAuthenticateRequest('test@example.com', 'password');
+        $result = $useCase->execute($request->email, $request->password);
+>>>>>>> main
         $this->assertNull($result);
     }
 }
-

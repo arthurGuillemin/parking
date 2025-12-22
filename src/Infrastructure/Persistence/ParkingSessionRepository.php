@@ -27,8 +27,8 @@ class ParkingSessionRepository implements ParkingSessionRepositoryInterface
     public function findActiveSessionByUserId(string $userId): ?ParkingSession
     {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM parking_sessions 
-             WHERE user_id = ? 
+            'SELECT * FROM parking_sessions
+             WHERE user_id = ?
              AND exit_date IS NULL'
         );
         $stmt->execute([$userId]);
@@ -76,8 +76,8 @@ class ParkingSessionRepository implements ParkingSessionRepositoryInterface
     private function insert(ParkingSession $session): ParkingSession
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO parking_sessions 
-             (user_id, parking_id, reservation_id, entry_date, exit_date, final_amount, penalty_applied) 
+            'INSERT INTO parking_sessions
+             (user_id, parking_id, reservation_id, entry_date, exit_date, final_amount, penalty_applied)
              VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
 
@@ -108,8 +108,8 @@ class ParkingSessionRepository implements ParkingSessionRepositoryInterface
     private function update(ParkingSession $session): ParkingSession
     {
         $stmt = $this->pdo->prepare(
-            'UPDATE parking_sessions 
-             SET exit_date = ?, final_amount = ?, penalty_applied = ? 
+            'UPDATE parking_sessions
+             SET exit_date = ?, final_amount = ?, penalty_applied = ?
              WHERE id = ?'
         );
 

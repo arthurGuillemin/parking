@@ -24,7 +24,7 @@ class AuthControllerTest extends TestCase
     public function testLoginSuccess()
     {
         $mockUseCase = $this->createMock(LoginUseCase::class);
-        $mockResponse = new LoginResponse('jwt.token.value', 3600, 'user');
+        $mockResponse = new LoginResponse('jwt.token.value', 'refresh.token', 3600, 'user');
         $mockUseCase->method('execute')->willReturn($mockResponse);
         $_POST['email'] = 'test@example.com';
         $_POST['password'] = 'password123';

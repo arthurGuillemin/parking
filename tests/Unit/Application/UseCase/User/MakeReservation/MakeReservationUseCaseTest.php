@@ -1,84 +1,85 @@
 <?php
 
-namespace Tests\Unit\Application\UseCase\User\MakeReservation;
+namespace Unit\Application\UseCase\User\MakeReservation;
 
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use App\Application\UseCase\User\MakeReservation\MakeReservationUseCase;
 use App\Application\UseCase\User\MakeReservation\MakeReservationRequest;
+use App\Domain\Repository\ReservationRepositoryInterface;
+use App\Domain\Repository\ParkingRepositoryInterface;
+use App\Domain\Service\CheckAvailabilityService;
+use App\Domain\Service\PricingService;
 use App\Domain\Entity\Parking;
 use App\Domain\Entity\Reservation;
-use App\Domain\Repository\ParkingRepositoryInterface;
-use App\Domain\Repository\ReservationRepositoryInterface;
-use App\Domain\Service\CheckAvailabilityService;
-use App\Domain\Repository\PricingRuleRepositoryInterface; // Optional
+use App\Application\DTO\Response\ReservationResponse;
+use DateTimeImmutable;
 
 class MakeReservationUseCaseTest extends TestCase
 {
-    private MakeReservationUseCase $useCase;
-    private MockObject|ReservationRepositoryInterface $reservationRepository;
-    private MockObject|ParkingRepositoryInterface $parkingRepository;
-    private MockObject|CheckAvailabilityService $checkAvailabilityService;
-    private MockObject|PricingRuleRepositoryInterface $pricingRuleRepository;
-
-    protected function setUp(): void
+    public function testSuccessfulReservation()
     {
-        $this->reservationRepository = $this->createMock(ReservationRepositoryInterface::class);
-        $this->parkingRepository = $this->createMock(ParkingRepositoryInterface::class);
-        $this->checkAvailabilityService = $this->createMock(CheckAvailabilityService::class);
-        $this->pricingRuleRepository = $this->createMock(PricingRuleRepositoryInterface::class);
+        // Mocks
+        $reservationRepo = $this->createMock(ReservationRepositoryInterface::class);
+        $parkingRepo = $this->createMock(ParkingRepositoryInterface::class);
+        $availabilityService = $this->createMock(CheckAvailabilityService::class);
+        $pricingService = $this->createMock(PricingService::class);
 
-        $this->useCase = new MakeReservationUseCase(
-            $this->reservationRepository,
-            $this->parkingRepository,
-            $this->checkAvailabilityService,
-            $this->pricingRuleRepository
-        );
-    }
+        // Data
+        $start = new DateTimeImmutable('now');
+        $end = $start->modify('+2 hours');
+        $parking = $this->createMock(Parking::class);
+        $parking->method('getParkingId')->willReturn(1);
 
-    public function testExecuteSuccess(): void
-    {
-        $request = new MakeReservationRequest(
-            'user-1',
-            1,
-            new \DateTimeImmutable('2025-01-01 10:00'),
-            new \DateTimeImmutable('2025-01-01 12:00')
-        );
+        // Expectations
+        $parkingRepo->method('findById')->willReturn($parking);
+        $availabilityService->method('checkAvailability')->willReturn(true);
+        $pricingService->method('calculatePrice')->willReturn(15.0);
 
-        $parking = new Parking(1, 'owner-1', 'Parking 1', 'Address', 0.0, 0.0, 10, true);
-
-        $this->parkingRepository->method('findById')->willReturn($parking);
-        $this->checkAvailabilityService->method('checkAvailability')->willReturn(true);
-        // Pricing mock optional, returns null or rule
-
-        $this->reservationRepository->expects($this->once())
+        // Mock Save to return a reservation with ID
+        $reservationRepo->expects($this->once())
             ->method('save')
-            ->willReturnArgument(0); // Return the reservation passed to save
+            ->willReturnCallback(function (Reservation $res) {
+                // Return same reservation but "simulated" saved state logic if needed
+                return $res;
+            });
 
-        $response = $this->useCase->execute($request);
+        $useCase = new MakeReservationUseCase(
+            $reservationRepo,
+            $parkingRepo,
+            $availabilityService,
+            $pricingService
+        );
 
-        $this->assertEquals(1, $response->parkingId);
-        $this->assertEquals('user-1', $response->userId);
+        $request = new MakeReservationRequest('user1', 1, $start, $end);
+        $response = $useCase->execute($request);
+
+        $this->assertInstanceOf(ReservationResponse::class, $response);
+        $this->assertEquals(15.0, $response->amount); // Accessed directly from DTO
         $this->assertEquals('pending', $response->status);
     }
 
-    public function testExecuteFailsIfFull(): void
+    public function testThrowsExceptionIfParkingFull()
     {
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("Parking is full");
+        $reservationRepo = $this->createMock(ReservationRepositoryInterface::class);
+        $parkingRepo = $this->createMock(ParkingRepositoryInterface::class);
+        $availabilityService = $this->createMock(CheckAvailabilityService::class);
+        $pricingService = $this->createMock(PricingService::class);
 
-        $request = new MakeReservationRequest(
-            'user-1',
-            1,
-            new \DateTimeImmutable('2025-01-01 10:00'),
-            new \DateTimeImmutable('2025-01-01 12:00')
+        $parking = $this->createMock(Parking::class);
+        $parkingRepo->method('findById')->willReturn($parking);
+        $availabilityService->method('checkAvailability')->willReturn(false); // FULL!
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Parking is full during this period.");
+
+        $useCase = new MakeReservationUseCase(
+            $reservationRepo,
+            $parkingRepo,
+            $availabilityService,
+            $pricingService
         );
 
-        $parking = new Parking(1, 'owner-1', 'Parking 1', 'Address', 0.0, 0.0, 10);
-
-        $this->parkingRepository->method('findById')->willReturn($parking);
-        $this->checkAvailabilityService->method('checkAvailability')->willReturn(false);
-
-        $this->useCase->execute($request);
+        $request = new MakeReservationRequest('user1', 1, new DateTimeImmutable(), new DateTimeImmutable());
+        $useCase->execute($request);
     }
 }

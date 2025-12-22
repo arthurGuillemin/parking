@@ -32,15 +32,17 @@ CREATE TABLE IF NOT EXISTS parkings (
 
 CREATE TABLE IF NOT EXISTS subscription_types (
   id INT PRIMARY KEY AUTO_INCREMENT,
+  parking_id INT NOT NULL,
   name VARCHAR(255) NOT NULL,
-  description TEXT NULL
+  description TEXT NULL,
+  FOREIGN KEY (parking_id) REFERENCES parkings(id)
 );
 
 CREATE TABLE IF NOT EXISTS subscriptions (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id VARCHAR(36) NOT NULL,
   parking_id INT NOT NULL,
-  type_id INT NOT NULL,
+  type_id INT NULL,
   start_date DATE NOT NULL,
   end_date DATE NULL,
   status VARCHAR(50) NOT NULL,
@@ -54,9 +56,8 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 -- Assuming 'subscription_id' references 'subscription_types' to define slots for a type.
 CREATE TABLE IF NOT EXISTS subscription_slots (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  subscription_id INT NOT NULL, 
-  weekday_start TINYINT NOT NULL,
-  weekday_end TINYINT NOT NULL,
+  subscription_id INT NOT NULL,
+  weekday TINYINT NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   FOREIGN KEY (subscription_id) REFERENCES subscription_types(id)
@@ -66,11 +67,11 @@ CREATE TABLE IF NOT EXISTS reservations (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id VARCHAR(36) NOT NULL,
   parking_id INT NOT NULL,
-  start_date_time DATETIME NOT NULL,
-  end_date_time DATETIME NOT NULL,
+  start_datetime DATETIME NOT NULL,
+  end_datetime DATETIME NOT NULL,
   status VARCHAR(50) NOT NULL,
   calculated_amount DECIMAL(10, 2) NOT NULL,
-  final_amount DECIMAL(10, 2) NOT NULL,
+  final_amount DECIMAL(10, 2) NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (parking_id) REFERENCES parkings(id)
 );
@@ -80,8 +81,8 @@ CREATE TABLE IF NOT EXISTS parking_sessions (
   user_id VARCHAR(36) NOT NULL,
   parking_id INT NOT NULL,
   reservation_id INT NULL,
-  entry_date_time DATETIME NOT NULL,
-  exit_date_time DATETIME NULL,
+  entry_time DATETIME NOT NULL,
+  exit_time DATETIME NULL,
   final_amount DECIMAL(10, 2) NULL,
   penalty_applied BOOLEAN DEFAULT FALSE NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
@@ -116,7 +117,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   issue_date DATETIME NOT NULL,
   amount_ht DECIMAL(10, 2) NOT NULL,
   amount_ttc DECIMAL(10, 2) NOT NULL,
-  details_json TEXT NULL,
+  details TEXT NULL,
   invoice_type VARCHAR(50) NOT NULL,
   FOREIGN KEY (reservation_id) REFERENCES reservations(id),
   FOREIGN KEY (session_id) REFERENCES parking_sessions(id)

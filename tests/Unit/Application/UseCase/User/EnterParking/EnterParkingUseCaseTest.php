@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Application\UseCase\User\EnterParking;
+namespace Unit\Application\UseCase\User\EnterParking;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -15,26 +15,26 @@ use App\Domain\Repository\ReservationRepositoryInterface;
 class EnterParkingUseCaseTest extends TestCase
 {
     private EnterParkingUseCase $useCase;
-    private MockObject|ReservationRepositoryInterface $reservationRepository;
     private MockObject|ParkingSessionRepositoryInterface $parkingSessionRepository;
-    private MockObject|ParkingRepositoryInterface $parkingRepository;
+    private MockObject|ReservationRepositoryInterface $reservationRepository;
+    private MockObject|\App\Domain\Repository\SubscriptionRepositoryInterface $subscriptionRepository;
 
     protected function setUp(): void
     {
-        $this->reservationRepository = $this->createMock(ReservationRepositoryInterface::class);
         $this->parkingSessionRepository = $this->createMock(ParkingSessionRepositoryInterface::class);
-        $this->parkingRepository = $this->createMock(ParkingRepositoryInterface::class);
+        $this->reservationRepository = $this->createMock(ReservationRepositoryInterface::class);
+        $this->subscriptionRepository = $this->createMock(\App\Domain\Repository\SubscriptionRepositoryInterface::class);
 
         $this->useCase = new EnterParkingUseCase(
-            $this->reservationRepository,
             $this->parkingSessionRepository,
-            $this->parkingRepository
+            $this->reservationRepository,
+            $this->subscriptionRepository
         );
     }
 
     public function testExecuteSuccess(): void
     {
-        $request = new EnterParkingRequest('user-1', 1);
+        $request = new EnterParkingRequest('user-1', 1, 100); // 100 passed as reservationId
 
         // 1. Not inside
         $this->parkingSessionRepository->method('findActiveSessionByUserId')->willReturn(null);
@@ -44,13 +44,13 @@ class EnterParkingUseCaseTest extends TestCase
             100,
             'user-1',
             1,
-            new \DateTimeImmutable('2025-01-01 10:00'),
-            new \DateTimeImmutable('2025-01-01 12:00'),
+            new \DateTimeImmutable('-1 hour'),
+            new \DateTimeImmutable('+1 hour'),
             'pending',
             10.0,
             null
         );
-        $this->reservationRepository->method('findActiveReservation')->willReturn($reservation);
+        $this->reservationRepository->method('findById')->willReturn($reservation);
 
         // 3. Save Session
         $this->parkingSessionRepository->expects($this->once())
@@ -69,7 +69,7 @@ class EnterParkingUseCaseTest extends TestCase
     public function testExecuteFailsIfAlreadyInside(): void
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("already in a parking session");
+        $this->expectExceptionMessage("Vous êtes déjà stationné dans un parking.");
 
         $request = new EnterParkingRequest('user-1', 1);
 
@@ -82,7 +82,7 @@ class EnterParkingUseCaseTest extends TestCase
     public function testExecuteFailsIfNoReservation(): void
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("No active reservation");
+        $this->expectExceptionMessage("Accès refusé. Aucune réservation ou abonnement valide trouvé pour ce parking.");
 
         $request = new EnterParkingRequest('user-1', 1);
 

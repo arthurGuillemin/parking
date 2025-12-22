@@ -95,13 +95,51 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
                         invoice_type = :invoice_type
                     WHERE id = :id
                 ");
+                $stmt->execute([
+                    'id' => $invoice->getInvoiceId(),
+                    'reservation_id' => $invoice->getReservationId(),
+                    'session_id' => $invoice->getSessionId(),
+                    'issue_date' => $invoice->getIssuedDate()->format('Y-m-d H:i:s'),
+                    'amount_ht' => $invoice->getAmountHt(),
+                    'amount_ttc' => $invoice->getAmountTtc(),
+                    'details' => $invoice->getDetailsJson() ? json_encode($invoice->getDetailsJson()) : null,
+                    'invoice_type' => $invoice->getInvoiceType(),
+                ]);
+                return $invoice;
             } else {
                 $stmt = $this->db->prepare("
+<<<<<<< HEAD
                     INSERT INTO invoices (id, reservation_id, session_id, issue_date, amount_ht, amount_ttc, details_json, invoice_type)
                     VALUES (:id, :reservation_id, :session_id, :issue_date, :amount_ht, :amount_ttc, :details_json, :invoice_type)
+=======
+                    INSERT INTO invoices (reservation_id, session_id, issue_date, amount_ht, amount_ttc, details, invoice_type)
+                    VALUES (:reservation_id, :session_id, :issue_date, :amount_ht, :amount_ttc, :details, :invoice_type)
+>>>>>>> main
                 ");
+                $stmt->execute([
+                    'reservation_id' => $invoice->getReservationId(),
+                    'session_id' => $invoice->getSessionId(),
+                    'issue_date' => $invoice->getIssuedDate()->format('Y-m-d H:i:s'),
+                    'amount_ht' => $invoice->getAmountHt(),
+                    'amount_ttc' => $invoice->getAmountTtc(),
+                    'details' => $invoice->getDetailsJson() ? json_encode($invoice->getDetailsJson()) : null,
+                    'invoice_type' => $invoice->getInvoiceType(),
+                ]);
+
+                $newId = (int) $this->db->lastInsertId();
+                return new Invoice(
+                    $newId,
+                    $invoice->getReservationId(),
+                    $invoice->getSessionId(),
+                    $invoice->getIssuedDate(),
+                    $invoice->getAmountHt(),
+                    $invoice->getAmountTtc(),
+                    $invoice->getDetailsJson() ? json_encode($invoice->getDetailsJson()) : null,
+                    $invoice->getInvoiceType()
+                );
             }
 
+<<<<<<< HEAD
             $stmt->execute([
                 'id' => $invoice->getInvoiceId(),
                 'reservation_id' => $invoice->getReservationId(),
@@ -116,6 +154,8 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
 
             return $invoice;
 
+=======
+>>>>>>> main
         } catch (PDOException $e) {
             throw new RuntimeException("erreur dans le save de la facture: " . $e->getMessage());
         }

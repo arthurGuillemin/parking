@@ -20,11 +20,15 @@ class MonthlyRevenueServiceTest extends TestCase
         $service = new MonthlyRevenueService($invoiceRepository, $subscriptionRepository);
         $request = new GetMonthlyRevenueRequest(1, 2025, 11);
 
+<<<<<<< HEAD
         $result = $service->getMonthlyRevenue($request);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('total', $result);
         $this->assertArrayHasKey('reservations', $result);
         $this->assertArrayHasKey('subscriptions', $result);
+=======
+        $this->assertIsArray($service->getMonthlyRevenue($request));
+>>>>>>> main
     }
 }

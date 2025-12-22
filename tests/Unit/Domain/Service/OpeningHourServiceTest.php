@@ -11,6 +11,7 @@ use App\Domain\Entity\OpeningHour;
 
 class OpeningHourServiceTest extends TestCase
 {
+<<<<<<< HEAD
     public function testAddOpeningHourReturnsOpeningHour()
     {
         $openingHourRepository = $this->createStub(OpeningHourRepositoryInterface::class);
@@ -24,6 +25,16 @@ class OpeningHourServiceTest extends TestCase
         $result = $service->addOpeningHour(1, 1, 5, '08:00:00', '18:00:00');
 
         $this->assertSame($openingHour, $result);
+=======
+    public function testServiceCanBeInstantiated()
+    {
+        $openingHourRepository = $this->createMock(OpeningHourRepositoryInterface::class);
+        $addUseCase = $this->createMock(AddOpeningHourUseCase::class);
+        $deleteUseCase = $this->createMock(DeleteOpeningHourUseCase::class);
+
+        $service = new OpeningHourService($openingHourRepository, $addUseCase, $deleteUseCase);
+        $this->assertInstanceOf(OpeningHourService::class, $service);
+>>>>>>> main
     }
 
     public function testGetOpeningHoursByParkingIdReturnsArray()
