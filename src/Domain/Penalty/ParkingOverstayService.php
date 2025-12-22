@@ -22,34 +22,68 @@ final class ParkingOverstayService
     private const PENALTY_AMOUNT_CENTS = 2000; // 20 €
 
     /**
-     * @param TimeRange[] $authorizedRanges  Liste des créneaux autorisés (réservation + abonnements)
-     * @param ParkingSession $session        Stationnement (entrée / sortie )
-     * @param DateTimeImmutable|null $now    Moment de référence si l'utilisateur est encore garé
+     * Évalue si un stationnement a dépassé ses créneaux autorisés.
+     *
+     * @param ParkingSession $session Session de stationnement
+     * @param TimeRange[] $authorizedRanges Créneaux autorisés
+     * @param DateTimeImmutable|null $now Moment de référence
      */
     public function evaluateOverstay(
         ParkingSession $session,
         array $authorizedRanges,
         ?DateTimeImmutable $now = null
     ): OverstayResult {
+        $this->validateAuthorizedRanges($authorizedRanges);
+
+        $now ??= new DateTimeImmutable();
+        $exitTime = $this->getEffectiveExitTime($session, $now);
+        $latestAuthorizedEnd = $this->findLatestAuthorizedEnd($authorizedRanges);
+
+        return $this->buildOverstayResult($exitTime, $latestAuthorizedEnd);
+    }
+
+    /**
+     * Valide que la liste des créneaux autorisés n'est pas vide.
+     */
+    private function validateAuthorizedRanges(array $authorizedRanges): void
+    {
         if (empty($authorizedRanges)) {
             throw new InvalidArgumentException('At least one authorized time range is required.');
         }
+    }
 
-        $now ??= new DateTimeImmutable();
+    /**
+     * Retourne l'heure de sortie effective (sortie réelle ou "now" si encore garé).
+     */
+    private function getEffectiveExitTime(ParkingSession $session, DateTimeImmutable $now): DateTimeImmutable
+    {
+        return $session->getExitDateTime() ?? $now;
+    }
 
-        // Si l'utilisateur n'est pas encore sorti, on prend "now" comme fin
-        $end = $session->getExitDateTime() ?? $now;
-
-        // Fin du dernier créneau autorisé
+    /**
+     * Trouve la fin du dernier créneau autorisé.
+     */
+    private function findLatestAuthorizedEnd(array $authorizedRanges): DateTimeImmutable
+    {
         $latestEnd = $authorizedRanges[0]->getEnd();
+
         foreach ($authorizedRanges as $range) {
             if ($range->getEnd() > $latestEnd) {
                 $latestEnd = $range->getEnd();
             }
         }
 
-        // Pas de dépassement si l'heure de sortie est <= fin du dernier créneau
-        if ($end <= $latestEnd) {
+        return $latestEnd;
+    }
+
+    /**
+     * Construit le résultat de dépassement basé sur la comparaison des temps.
+     */
+    private function buildOverstayResult(
+        DateTimeImmutable $exitTime,
+        DateTimeImmutable $latestAuthorizedEnd
+    ): OverstayResult {
+        if ($exitTime <= $latestAuthorizedEnd) {
             return new OverstayResult(
                 hasOverstay: false,
                 overstayMinutes: 0,
@@ -57,14 +91,24 @@ final class ParkingOverstayService
             );
         }
 
-        // Dépassement : durée en minutes
-        $seconds = $end->getTimestamp() - $latestEnd->getTimestamp();
-        $overstayMinutes = (int) ceil($seconds / 60);
+        $overstayMinutes = $this->calculateOverstayMinutes($exitTime, $latestAuthorizedEnd);
 
         return new OverstayResult(
             hasOverstay: true,
             overstayMinutes: $overstayMinutes,
             penaltyAmountCents: self::PENALTY_AMOUNT_CENTS
         );
+    }
+
+    /**
+     * Calcule la durée du dépassement en minutes.
+     */
+    private function calculateOverstayMinutes(
+        DateTimeImmutable $exitTime,
+        DateTimeImmutable $latestAuthorizedEnd
+    ): int {
+        $seconds = $exitTime->getTimestamp() - $latestAuthorizedEnd->getTimestamp();
+
+        return (int) ceil($seconds / 60);
     }
 }
