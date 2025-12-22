@@ -1,332 +1,164 @@
-Projet : Système de Parking Partagé
+# 🅿️ Parking - Guide d'Installation
 
-Hetic – 3ᵉ année – 2025
+Application de gestion de parkings partagés développée en PHP avec une architecture Clean Architecture.
 
-Contexte
+---
 
-Avec le dérèglement climatique, la réduction des émissions de gaz à effet de serre devient un enjeu mondial, et les transports en représentent une part significative.
+## 📋 Prérequis
 
-Selon certaines études, la recherche d’une place de parking représente environ 30 % du trafic urbain, entraînant embouteillages, émissions supplémentaires et perte de temps.
+Avant de commencer, assurez-vous d'avoir installé :
 
-Pourtant, de nombreuses places existent mais restent inoccupées selon les horaires :
+| Outil | Version requise |
+|-------|-----------------|
+| **PHP** | >= 8.2 |
+| **Composer** | Dernière version |
+| **MySQL/MariaDB** | >= 5.7 |
+| **Extensions PHP** | pdo, pdo_mysql, xdebug (optionnel) |
 
-Places libres en journée dans les immeubles d’habitation et hôtels
+---
 
-Places libres la nuit et le week-end dans les entreprises
+## 🚀 Installation
 
-L’objectif est donc de créer une solution de parking partagé permettant aux propriétaires de louer leurs places inoccupées. Les utilisateurs peuvent consulter, réserver et payer une place via une application web.
+### 1. Extraire le projet
 
-Objectif
+Décompressez l'archive ZIP dans le dossier de votre choix (ex: C:\wamp64\www\parking ou /var/www/parking).
 
-Développer une application web en PHP respectant les principes de la Clean Architecture, avec :
+### 2. Installer les dépendances PHP
 
-Toutes les fonctionnalités du document
+Ouvrez un terminal dans le dossier du projet et exécutez :
 
-Une architecture propre et modulable
+    composer install
 
-Des tests (PHPUnit)
+### 3. Configurer l'environnement
 
-Un système d’authentification sécurisé (JWT)
+Copiez le fichier .env.sample vers .env :
 
-La partie matérielle (ouverture de portes) est simulée : une entrée/sortie s’enregistre via des endpoints.
+Windows (PowerShell) :
 
-Technologies à utiliser
+    Copy-Item .env.sample .env
 
-PHP 8.x, sans framework (Laravel, Symfony, etc.)
+Linux/Mac :
 
-PHPUnit pour les tests
+    cp .env.sample .env
 
-Composer et des librairies externes autorisées
+Éditez le fichier .env avec vos paramètres de base de données :
 
-Framework JS côté client autorisé (React, Vue, Angular)
+    DB_HOST=localhost
+    DB_PORT=3306
+    DB_NAME=parking
+    DB_USER=root
+    DB_PASSWORD=votre_mot_de_passe
+    JWT_SECRET_KEY=votre_cle_secrete_unique
+    STORAGE_DRIVER=sql
 
-Données du système
-Parking
+> ⚠️ Important : Changez impérativement la valeur de JWT_SECRET_KEY par une clé secrète unique et sécurisée.
 
-Coordonnées GPS
+### 4. Créer la base de données
 
-Nombre de places
+#### Option A : Ligne de commande
 
-Tarif horaire (peut varier)
+Connectez-vous à MySQL et créez la base de données :
 
-Horaires d’ouverture
+    CREATE DATABASE parking CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-Liste des réservations
+Puis importez le schéma :
 
-Liste des stationnements
+    mysql -u root -p parking < config/schema.sql
 
-Facturation par tranche de 15 minutes.
+#### Option B : phpMyAdmin
 
-Utilisateur
+1. Créez une nouvelle base de données nommée parking
+2. Sélectionnez la base de données
+3. Allez dans l'onglet Importer
+4. Sélectionnez le fichier config/schema.sql
+5. Cliquez sur Exécuter
 
-email
+---
 
-password
+## ▶️ Exécution
 
-nom
+### Serveur de développement PHP intégré
 
-prénom
+    php -S localhost:8080 -t public
 
-réservations
+L'application sera accessible à l'adresse : http://localhost:8080
 
-stationnements
+### Avec WAMP
 
-Propriétaire de parking
+1. Placez le projet dans C:\wamp64\www\parking
+2. Configurez un VirtualHost pointant vers le dossier public/
+3. Accédez à http://localhost/parking/public
 
-email
+### Avec XAMPP
 
-password
+1. Placez le projet dans C:\xampp\htdocs\parking
+2. Accédez à http://localhost/parking/public
 
-nom
+---
 
-prénom
+## 🧪 Tests
 
-liste de parkings possédés
+### Exécuter tous les tests
 
-Stationnement
+    ./vendor/bin/phpunit
 
-Un stationnement représente l’intervalle entre entrée et sortie.
-Contient :
+### Exécuter uniquement les tests Unitaire
 
-utilisateur
+    ./vendor/bin/phpunit tests/Unit
 
-début (timestamp)
+### Exécuter uniquement les tests Fonctionnel
 
-fin (timestamp)
+    ./vendor/bin/phpunit tests/Functional
 
-parking
+pour avoir le coverage dans le Terminal ajouté :
 
-Réservation
+    ./vendor/bin/phpunit tests/Functional --coverage-text
 
-utilisateur
+### Générer un rapport de couverture
 
-parking
+    ./vendor/bin/phpunit --coverage-html coverage
 
-début (timestamp)
+Le rapport sera disponible dans le dossier coverage/.
 
-fin (timestamp)
+---
 
-Abonnement
+## 🐳 Docker (Optionnel)
 
-Un abonnement garantit une place sur des créneaux hebdomadaires.
-Durée : minimum 1 mois, jusqu’à 1 an.
+### Construire l'image
 
-Types possibles :
+    docker build -t parking-app .
 
-Total : accès illimité
+### Lancer le conteneur
 
-Week-end : Vendredi 18h → Lundi 10h
+    docker run -p 8080:8000 -e PORT=8000 parking-app
 
-Spécifique : Jeudi 10h → Vendredi 10h
+---
 
-Soir : tous les soirs 18h → 8h
+## 📁 Structure du projet
 
-Données :
+    parking/
+    ├── config/             # Configuration (routes, schéma SQL)
+    │   ├── routes.php      # Définition des routes
+    │   └── schema.sql      # Schéma de la base de données
+    ├── public/             # Point d'entrée web
+    │   └── index.php       # Front controller
+    ├── src/                # Code source (Clean Architecture)
+    │   ├── Application/    # Cas d'utilisation (Use Cases)
+    │   ├── Domain/         # Entités et interfaces du domaine
+    │   └── Infrastructure/ # Implémentations (DB, Repositories)
+    ├── templates/          # Vues HTML (PHP)
+    ├── tests/              # Tests unitaires et fonctionnels
+    ├── .env.sample         # Exemple de configuration
+    ├── composer.json       # Dépendances PHP
+    └── dockerfile          # Configuration Docker
 
-utilisateur
+---
 
-parking
+## 👥 Auteurs
 
-créneaux horaires réservés
+- Antoine TU - @atu0601
+- Arthur Guillemin - @arthurGuillemin
+- Amaury SANCHEZ - @Amaury057
+- PILLAH Niali Henri Guy-Harvyn - @Harvyn-10
 
-Les données fournies sont le minimum obligatoire.
-
-Fonctionnalités
-Clean Architecture
-
-Le projet doit comporter au minimum :
-
-Domaine
-
-Use Case
-
-External interface / View
-
-Les règles métiers ne doivent dépendre ni des contrôleurs, ni de la base de données, ni d’une technologie externe.
-
-Use cases à implémenter
-Espace Propriétaire
-
-Créer compte + authentification
-
-Ajouter un parking
-
-Modifier tarifs
-
-Modifier horaires
-
-Voir réservations du parking
-
-Voir stationnements du parking
-
-Voir nombre de places disponibles à un instant donné
-
-Calcul du chiffre d’affaires mensuel (réservations + abonnements)
-
-Ajouter un type d’abonnement
-
-Voir les conducteurs garés hors créneaux autorisés
-
-Espace Utilisateur
-
-Créer compte + authentification
-
-Rechercher parkings disponibles autour de coordonnées GPS
-
-Voir infos d’un parking
-
-Réserver une place
-
-Voir abonnements d’un parking
-
-Souscrire un abonnement
-
-Entrer dans un parking
-
-Sortir d’un parking
-
-Voir ses stationnements
-
-Voir ses réservations
-
-Obtenir la facture d’une réservation
-
-Gestion des places disponibles
-
-Une réservation occupe une place sur tout son créneau
-
-Fin de réservation → la place est libérée
-
-Un abonnement occupe une place sur son créneau même si l’utilisateur n’est pas physiquement présent
-
-Entrées et sorties
-
-Entrée autorisée uniquement avec réservation active ou abonnement actif
-
-Réservation refusée si le parking est plein sur une partie du créneau
-
-L’utilisateur est facturé intégralement même s’il n’utilise pas toute sa réservation
-
-Le système enregistre :
-
-heure d’entrée
-
-heure de sortie
-
-libération automatique de la place
-
-Horaires d’ouverture
-
-Un parking peut être :
-
-toujours ouvert
-
-ouvert sur des plages précises
-(ex : week-end, soirées, journées spécifiques)
-
-Les réservations actives occupent une place même si l’utilisateur n’est pas présent.
-
-Pénalités
-
-Si un conducteur dépasse son créneau :
-
-+20 € de pénalité
-
-durée réelle facturée
-
-Exemple : réservation 3h → stationnement 4h
-→ facturation 4h + 20 €.
-
-Les dépassements empêchent de nouvelles réservations si le parking est ainsi rempli.
-
-Prix d’une réservation
-
-Dépend de la grille tarifaire
-
-Tarifs modulables par tranche de 15 minutes
-
-Après la sortie, le système calcule le prix final et génère une facture (HTML ou PDF)
-
-Stockage des données
-
-Deux systèmes nécessaires, interchangeables :
-
-base relationnelle (MySQL, PostgreSQL, SQLite)
-
-base NoSQL ou fichier
-
-Aucune modification ne doit être nécessaire dans les Entités ou Use cases.
-
-Frontend
-
-Deux modes obligatoires :
-
-1. Interface HTML
-
-Pour :
-
-visualiser les parkings
-
-réserver
-
-consulter abonnements
-
-gérer compte
-
-2. API REST (JSON)
-
-GET, POST, PUT, DELETE
-
-Utilisable par un client JS ou autre application
-
-Totalement indépendante des Use Cases et Entités
-
-Authentification
-
-JWT
-
-Hashage des mots de passe en PHP
-
-Protection : anti-SQL injection, anti-XSS
-
-Gestion du cycle de vie des tokens
-
-Tests
-
-PHPUnit obligatoire
-
-60 % de couverture minimum pour Domaine + Entités
-
-4 tests fonctionnels min. :
-
-2 côté utilisateur
-
-2 côté propriétaire
-
-Critères :
-
-pertinence
-
-couverture des règles métiers
-
-Critères d’évaluation
-
-Fonctionnalités implémentées
-
-Qualité de l’architecture
-
-Authentification JWT
-
-Exhaustivité des tests
-
-Qualité du code (clarté, cohérence, respect conventions, fonctions < 20 lignes)
-
-Barème
-
-Fonctionnalités : 12 points
-
-Tests PHPUnit : 4 points
-
-Authentification JWT : 2 points
-
-Architecture : 2 points
+---
