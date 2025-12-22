@@ -117,6 +117,9 @@
         <div class="link">
             <a href="/register">Pas encore inscrit ? Créer un compte</a>
         </div>
+        <div class="link">
+            <a href="/owner/register" style="color: #666; font-size: 0.9em;">Espace Propriétaire : S'inscrire</a>
+        </div>
         <div class="link" style="margin-top: 10px;">
             <a href="/"
                 style="display: inline-block; padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;">←

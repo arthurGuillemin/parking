@@ -156,7 +156,6 @@ class OwnerController
             'firstName' => $owner->getFirstName(),
             'lastName' => $owner->getLastName(),
         ];
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
         return $response;
     }
 
@@ -172,7 +171,6 @@ class OwnerController
             'expiresIn' => $loginResponse->expiresIn,
             'role' => $loginResponse->role,
         ];
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
         return $response;
     }
 
@@ -182,7 +180,6 @@ class OwnerController
     private function sendJsonError(int $code, string $message): array
     {
         http_response_code($code);
-        echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
-        return [];
+        return ['error' => $message];
     }
 }
