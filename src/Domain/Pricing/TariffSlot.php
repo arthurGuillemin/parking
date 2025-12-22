@@ -10,9 +10,9 @@ use InvalidArgumentException;
 final class TariffSlot
 {
     public function __construct(
-        private int $startHour,            // 0..23
-        private int $endHour,              // 0..24 (exclu)
-        private int $pricePerHourCents,    // ex: 250 = 2,50 €
+        private int $startHour,
+        private int $endHour,
+        private int $pricePerHourCents,
         private bool $weekendOnly = false,
         private bool $weekdaysOnly = false
     ) {
@@ -36,10 +36,9 @@ final class TariffSlot
 
     public function appliesTo(DateTimeImmutable $instant): bool
     {
-        $hour = (int) $instant->format('G'); // 0..23
-        $dayOfWeek = (int) $instant->format('N'); // 1=Mon .. 7=Sun
+        $hour = (int) $instant->format('G');
+        $dayOfWeek = (int) $instant->format('N');
 
-        // Gestion semaine / week-end
         $isWeekend = $dayOfWeek >= 6;
 
         if ($this->weekendOnly && !$isWeekend) {
@@ -50,18 +49,14 @@ final class TariffSlot
             return false;
         }
 
-        // Gestion des créneaux horaires, y compris de nuit (ex: 20h–6h)
         if ($this->startHour < $this->endHour) {
-            // créneau "normal" dans la journée : [startHour, endHour[
             return $hour >= $this->startHour && $hour < $this->endHour;
         }
 
         if ($this->startHour > $this->endHour) {
-            // créneau "nuit" qui chevauche minuit, ex: 20h–6h
             return $hour >= $this->startHour || $hour < $this->endHour;
         }
 
-        // startHour == endHour -> couvre 24h
         return true;
     }
 }

@@ -4,7 +4,7 @@ namespace App\Application\UseCase\Owner\Register;
 
 use App\Domain\Entity\Owner;
 use App\Domain\Repository\OwnerRepositoryInterface;
-use Ramsey\Uuid\Uuid; // composer require ramsey/uuid
+use Ramsey\Uuid\Uuid; 
 
 class OwnerRegisterUseCase
 {

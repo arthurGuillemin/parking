@@ -12,14 +12,14 @@ class SubscriptionTypeServiceTest extends TestCase
 {
     public function testConstructor()
     {
-        $repo = $this->createMock(SubscriptionTypeRepositoryInterface::class);
+        $repo = $this->createStub(SubscriptionTypeRepositoryInterface::class);
         $service = new SubscriptionTypeService($repo);
         $this->assertInstanceOf(SubscriptionTypeService::class, $service);
     }
 
     public function testAddSubscriptionTypeReturnsSubscriptionType()
     {
-        $repo = $this->createMock(SubscriptionTypeRepositoryInterface::class);
+        $repo = $this->createStub(SubscriptionTypeRepositoryInterface::class);
         $service = new SubscriptionTypeService($repo);
         $mockUseCase = $this->getMockBuilder(AddSubscriptionTypeUseCase::class)
             ->disableOriginalConstructor()
@@ -30,12 +30,13 @@ class SubscriptionTypeServiceTest extends TestCase
         $reflection = new \ReflectionClass($service);
         $property = $reflection->getProperty('addSubscriptionTypeUseCase');
         $property->setValue($service, $mockUseCase);
-        $mockRequest = $this->createMock(AddSubscriptionTypeRequest::class);
+        $mockRequest = $this->createStub(AddSubscriptionTypeRequest::class);
         $result = $service->addSubscriptionType($mockRequest);
         $this->assertInstanceOf(AddSubscriptionTypeResponse::class, $result);
         $this->assertEquals(1, $result->id);
         $this->assertEquals(2, $result->parkingId);
         $this->assertEquals('Premium', $result->name);
         $this->assertEquals('desc', $result->description);
+        $this->assertEquals(49.99, $result->monthlyPrice);
     }
 }

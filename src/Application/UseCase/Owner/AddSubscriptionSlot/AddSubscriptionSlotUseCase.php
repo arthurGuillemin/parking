@@ -16,20 +16,20 @@ class AddSubscriptionSlotUseCase
     }
 
     /**
-     * Add a time slot to a subscription type.
+     * Ajouter un intervalle horaire à un type d'abonnement.
      *
      * @param AddSubscriptionSlotRequest $request
      * @return AddSubscriptionSlotResponse
-     * @throws \InvalidArgumentException if times are invalid
+     * @throws \InvalidArgumentException si les heures sont invalides
      */
     public function execute(AddSubscriptionSlotRequest $request): AddSubscriptionSlotResponse
     {
-        // Validate weekday
+        // Vérifier le jour de la semaine
         if ($request->weekday < 1 || $request->weekday > 7) {
             throw new \InvalidArgumentException('Weekday must be between 1 (Monday) and 7 (Sunday).');
         }
 
-        // Validate times
+        // Vérifier les heures
         if ($request->startTime >= $request->endTime) {
             throw new \InvalidArgumentException('Start time must be before end time.');
         }

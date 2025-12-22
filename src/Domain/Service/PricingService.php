@@ -14,58 +14,73 @@ class PricingService
         $this->pricingRuleRepository = $pricingRuleRepository;
     }
 
+    /**
+     * Calcule le prix total pour une durée de stationnement.
+     */
     public function calculatePrice(int $parkingId, \DateInterval $duration, \DateTimeImmutable $atDate): float
     {
         $allRules = $this->pricingRuleRepository->findByParkingId($parkingId);
+        $activeRules = $this->getActiveRules($allRules, $atDate);
+        $totalMinutes = $this->convertDurationToMinutes($duration);
 
-        // Filter valid rules based on effective date
-        $validRules = array_filter($allRules, fn($r) => $r->getEffectiveDate() <= $atDate);
+        $totalPrice = 0.0;
+        foreach ($activeRules as $rule) {
+            $totalPrice += $this->calculateRulePrice($rule, $totalMinutes);
+        }
 
-        // Deduplicate: Keep only the most recent rule for each specific [start, end] range definition
-        // Key concept: The "Definition" of the tier is the [start, end] interval.
+        return $totalPrice;
+    }
+
+    /**
+     * Filtre et déduplique les règles pour ne garder que les plus récentes par intervalle.
+     */
+    private function getActiveRules(array $allRules, \DateTimeImmutable $atDate): array
+    {
+        $validRules = array_filter($allRules, fn($rule) => $rule->getEffectiveDate() <= $atDate);
+
         $activeRules = [];
         foreach ($validRules as $rule) {
             $key = $rule->getStartDurationMinute() . '-' . ($rule->getEndDurationMinute() ?? 'INF');
+            $isMoreRecent = isset($activeRules[$key])
+                && $rule->getEffectiveDate() > $activeRules[$key]->getEffectiveDate();
 
-            if (!isset($activeRules[$key])) {
+            if (!isset($activeRules[$key]) || $isMoreRecent) {
                 $activeRules[$key] = $rule;
-            } else {
-                // If we already have a rule for this range, check if this one is more recent
-                if ($rule->getEffectiveDate() > $activeRules[$key]->getEffectiveDate()) {
-                    $activeRules[$key] = $rule;
-                }
             }
         }
 
-        // Convert total duration to minutes
-        $totalMinutes = ($duration->days * 24 * 60) + ($duration->h * 60) + $duration->i;
+        return $activeRules;
+    }
 
-        $price = 0.0;
+    /**
+     * Convertit un DateInterval en minutes totales.
+     */
+    private function convertDurationToMinutes(\DateInterval $duration): int
+    {
+        return ($duration->days * 24 * 60) + ($duration->h * 60) + $duration->i;
+    }
 
-        foreach ($activeRules as $rule) {
-            $start = $rule->getStartDurationMinute();
-            $end = $rule->getEndDurationMinute();
+    /**
+     * Calcule le prix pour une règle de tarification donnée.
+     */
+    private function calculateRulePrice(object $rule, int $totalMinutes): float
+    {
+        $startMinute = $rule->getStartDurationMinute();
+        $endMinute = $rule->getEndDurationMinute();
 
-            // Logic: Determine duration overlap with this rule
-            if ($totalMinutes < $start) {
-                continue;
-            }
-
-            $effectiveEnd = ($end === null) ? $totalMinutes : min($totalMinutes, $end);
-            $durationInRule = $effectiveEnd - $start;
-
-            if ($durationInRule <= 0)
-                continue;
-
-            // Calculate slices
-            // "Tout quart d'heure entamé est dû" => ceil
-            $sliceSize = $rule->getSliceInMinutes();
-            $slicesCount = ceil($durationInRule / $sliceSize);
-
-            $rulePrice = $slicesCount * $rule->getPricePerSlice();
-            $price += $rulePrice;
+        if ($totalMinutes < $startMinute) {
+            return 0.0;
         }
 
-        return $price;
+        $effectiveEnd = ($endMinute === null) ? $totalMinutes : min($totalMinutes, $endMinute);
+        $durationInRule = $effectiveEnd - $startMinute;
+
+        if ($durationInRule <= 0) {
+            return 0.0;
+        }
+
+        $slicesCount = ceil($durationInRule / $rule->getSliceInMinutes());
+
+        return $slicesCount * $rule->getPricePerSlice();
     }
 }

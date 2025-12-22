@@ -20,9 +20,6 @@ class ListUserReservationsUseCase
 
     public function execute(ListUserReservationsRequest $request): array
     {
-        // Assuming repository has findByUserId or we filter existing list
-        // Let's check repository interface next tool call. 
-        // For now, I'll rely on findByUserId being needed.
         $reservations = $this->reservationRepository->findByUserId($request->userId);
 
         return array_map(function ($reservation) {

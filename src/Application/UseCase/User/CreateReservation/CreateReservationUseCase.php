@@ -31,25 +31,19 @@ class CreateReservationUseCase
             throw new \InvalidArgumentException("La date de fin doit être après la date de début.");
         }
 
-        // 2. Check Availability
-        // We need to ensure there is a spot available for the duration.
-        // Simplification: Check availability AT START.
-        // Ideally, we check overlap with all existing reservations.
-        // GetAvailableSpotsUseCase checks "now" or a specific point.
-        // Let's check availability at $start.
-
-        $request = new GetAvailableSpotsRequest($parkingId, $start); // Assuming Request takes parkingId and DateTime
+        // 2. Vérifier si le parking est disponible
+        $request = new GetAvailableSpotsRequest($parkingId, $start); 
         $spots = $this->parkingAvailabilityService->getAvailableSpots($request);
 
         if ($spots <= 0) {
             throw new \RuntimeException("Aucune place disponible pour ce créneau.");
         }
 
-        // 3. Calculate Price
+        // 3. Calculer le prix
         $duration = $start->diff($end);
-        $amount = $this->pricingService->calculatePrice($parkingId, $duration);
+        $amount = $this->pricingService->calculatePrice($parkingId, $duration, $start);
 
-        // 4. Create Entity
+        // 4. Créer l'entité
         $reservation = new Reservation(
             0, // ID 0 means new
             $userId,
@@ -61,7 +55,7 @@ class CreateReservationUseCase
             null // Final amount null initially
         );
 
-        // 5. Save
+        // 5. Sauvegarder
         return $this->reservationRepository->save($reservation);
     }
 }

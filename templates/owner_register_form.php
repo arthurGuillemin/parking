@@ -1,205 +1,115 @@
-<!DOCTYPE html>
-<html lang="fr">
+<?php
+$pageTitle = "Inscription Propriétaire";
+ob_start();
+?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription Propriétaire - Parking Partagé</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
+<div class="container" style="max-width: 600px; margin-top: 40px;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 25px;">Espace Propriétaire</h2>
 
-        .form-container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 2em;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1 1 0;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: bold;
-        }
-
-        input[type="email"],
-        input[type="password"],
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #28a745;
-            /* Green for owners to distinguish */
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #218838;
-        }
-
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-
-        .success {
-            color: green;
-            margin-top: 10px;
-        }
-
-        .link {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .link a {
-            color: #28a745;
-            text-decoration: none;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="form-container">
-        <h2 style="text-align: center;">Espace Propriétaire</h2>
         <form id="ownerRegisterForm" method="POST" action="/owner/register">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="firstName">Prénom *</label>
-                    <input type="text" id="firstName" name="firstName" required>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="firstName">Prénom *</label>
+                        <input type="text" id="firstName" name="firstName" class="form-control" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="lastName">Nom *</label>
-                    <input type="text" id="lastName" name="lastName" required>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="lastName">Nom *</label>
+                        <input type="text" id="lastName" name="lastName" class="form-control" required>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" class="form-control" required>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="password">Mot de passe *</label>
-                    <input type="password" id="password" name="password" required minlength="8"
-                        pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$">
-                    <small style="color: #666; font-size: 12px;">Au moins 8 caractères, une lettre et un chiffre</small>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="password">Mot de passe *</label>
+                        <input type="password" id="password" name="password" class="form-control" required minlength="8"
+                            pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$">
+                        <small class="text-muted">Au moins 8 caractères, une lettre et un chiffre</small>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="passwordConfirm">Confirmer le mot de passe *</label>
-                    <input type="password" id="passwordConfirm" name="passwordConfirm" required minlength="8">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="passwordConfirm">Confirmer *</label>
+                        <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control" required
+                            minlength="8">
+                    </div>
                 </div>
             </div>
 
-            <button type="submit">Devenir Propriétaire</button>
-            <div id="message"></div>
+            <button type="submit" class="btn btn-success w-100">Devenir Propriétaire</button>
+            <div id="message" style="margin-top: 15px;"></div>
         </form>
-        <div class="link">
-            <div class="link">
-                <a href="/login">Déjà propriétaire ? Se connecter</a>
-            </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/login">Déjà propriétaire ? Se connecter</a>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('ownerRegisterForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData);
+<script>
+    document.getElementById('ownerRegisterForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        const messageDiv = document.getElementById('message');
 
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerHTML = '';
-            messageDiv.className = '';
+        messageDiv.innerHTML = '';
+        messageDiv.className = '';
 
-            // Validation côté client
-            const password = data.password.trim();
-            const passwordConfirm = data.passwordConfirm.trim();
+        const password = data.password.trim();
+        const passwordConfirm = data.passwordConfirm.trim();
 
-            if (password.length < 8) {
-                messageDiv.className = 'error';
-                messageDiv.innerHTML = 'Le mot de passe doit contenir au moins 8 caractères';
-                return;
+        if (password.length < 8) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = 'Le mot de passe doit contenir au moins 8 caractères';
+            return;
+        }
+        if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = 'Le mot de passe doit contenir au moins une lettre et un chiffre';
+            return;
+        }
+        if (password !== passwordConfirm) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = 'Les mots de passe ne correspondent pas';
+            return;
+        }
+
+        try {
+            const response = await fetch('/owner/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageDiv.className = 'alert alert-success';
+                messageDiv.innerHTML = 'Inscription propriétaire réussie ! Redirection...';
+                setTimeout(() => { window.location.href = '/login'; }, 2000);
+            } else {
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.innerHTML = result.error || 'Erreur lors de l\'inscription';
             }
-            if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-                messageDiv.className = 'error';
-                messageDiv.innerHTML = 'Le mot de passe doit contenir au moins une lettre et un chiffre';
-                return;
-            }
-            if (password !== passwordConfirm) {
-                messageDiv.className = 'error';
-                messageDiv.innerHTML = 'Les mots de passe ne correspondent pas';
-                return;
-            }
+        } catch (error) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = 'Erreur de connexion au serveur';
+        }
+    });
+</script>
 
-            try {
-                const response = await fetch('/owner/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    messageDiv.className = 'success';
-                    messageDiv.innerHTML = 'Inscription propriétaire réussie ! Redirection...';
-                    setTimeout(() => {
-                        // Assuming /owner/login exists or will exist. 
-                        // If not, maybe redirect to home or stay here.
-                        // For now, let's try /owner/login as per standard flow.
-                        window.location.href = '/login';
-                    }, 2000);
-                } else {
-                    messageDiv.className = 'error';
-                    messageDiv.innerHTML = result.error || 'Erreur lors de l\'inscription';
-                }
-            } catch (error) {
-                messageDiv.className = 'error';
-                messageDiv.innerHTML = 'Erreur de connexion au serveur';
-            }
-        });
-    </script>
-</body>
-
-</html>
+<?php
+$content = ob_get_clean();
+require __DIR__ . '/layout.php';
+?>

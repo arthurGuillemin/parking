@@ -27,8 +27,8 @@ class JwtService implements TokenGeneratorInterface
     public function generate(array $payload): string
     {
         $now = time();
-        $payload['iat'] = $now; // Issued at
-        $payload['nbf'] = $now; // Not before (token valide immédiatement)
+        $payload['iat'] = $now;
+        $payload['nbf'] = $now;
 
         if (!isset($payload['exp'])) {
             $payload['exp'] = ($payload['type'] ?? 'access') === 'refresh'
@@ -63,7 +63,6 @@ class JwtService implements TokenGeneratorInterface
     public function validateToken(string $token): ?string
     {
         $decoded = $this->decode($token);
-        // Check for 'user_id' as that's what LoginUseCase uses
         if (!$decoded || !isset($decoded['user_id'])) {
             return null;
         }

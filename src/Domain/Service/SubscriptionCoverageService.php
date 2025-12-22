@@ -16,43 +16,68 @@ class SubscriptionCoverageService
     }
 
     /**
-     * Checks if a given datetime is covered by the subscription's time slots.
+     * Vérifie si une date/heure est couverte par les créneaux de l'abonnement.
      */
     public function isDateTimeCovered(Subscription $subscription, DateTimeImmutable $dateTime): bool
     {
-        // Check if the subscription is active 
-        $endDate = $subscription->getEndDate() ?? new DateTimeImmutable('+1 year'); // Handle null endDate
-        if ($dateTime < $subscription->getStartDate() || $dateTime > $endDate) {
+        if (!$this->isWithinSubscriptionPeriod($subscription, $dateTime)) {
             return false;
         }
 
-        // 2. An abonnement can have no typeId if it's a 24/7 subscription
+        // Un abonnement sans typeId est considéré comme un accès 24/7
         if ($subscription->getTypeId() === null) {
-            return true; // Consider null type as total access
+            return true;
         }
-        
-        // 3. Get slots for the subscription type
+
         $slots = $this->slotRepository->findBySubscriptionTypeId($subscription->getTypeId());
-        
+
         if (empty($slots)) {
-            return true; // Or false, depending on business rule if a type has no slots
+            return true;
         }
 
-        $weekday = (int)$dateTime->format('N'); // 1 (Mon) to 7 (Sun)
-        $time = $dateTime->format('H:i:s');
+        return $this->isTimeInAnySlot($slots, $dateTime);
+    }
 
-        // 4. Check if current time falls into any slot for the current day
+    /**
+     * Vérifie si la date est dans la période de validité de l'abonnement.
+     */
+    private function isWithinSubscriptionPeriod(Subscription $subscription, DateTimeImmutable $dateTime): bool
+    {
+        $startDate = $subscription->getStartDate();
+        $endDate = $subscription->getEndDate() ?? new DateTimeImmutable('+1 year');
+
+        return $dateTime >= $startDate && $dateTime <= $endDate;
+    }
+
+    /**
+     * Vérifie si l'heure correspond à l'un des créneaux du jour.
+     */
+    private function isTimeInAnySlot(array $slots, DateTimeImmutable $dateTime): bool
+    {
+        $weekday = (int) $dateTime->format('N');
+        $currentTime = $dateTime->format('H:i:s');
+
         foreach ($slots as $slot) {
-            if ($slot->getWeekday() === $weekday) {
-                $startTime = $slot->getStartTime()->format('H:i:s');
-                $endTime = $slot->getEndTime()->format('H:i:s');
-
-                if ($time >= $startTime && $time <= $endTime) {
-                    return true;
-                }
+            if ($this->isSlotMatching($slot, $weekday, $currentTime)) {
+                return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Vérifie si un créneau correspond au jour et à l'heure donnés.
+     */
+    private function isSlotMatching(object $slot, int $weekday, string $currentTime): bool
+    {
+        if ($slot->getWeekday() !== $weekday) {
+            return false;
+        }
+
+        $startTime = $slot->getStartTime()->format('H:i:s');
+        $endTime = $slot->getEndTime()->format('H:i:s');
+
+        return $currentTime >= $startTime && $currentTime <= $endTime;
     }
 }

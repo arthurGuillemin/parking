@@ -5,14 +5,18 @@ namespace Unit\Domain\Service;
 use PHPUnit\Framework\TestCase;
 use App\Domain\Service\OwnerService;
 use App\Domain\Repository\OwnerRepositoryInterface;
-use App\Domain\Entity\Owner;
 use App\Domain\Security\PasswordHasherInterface;
 use App\Domain\Auth\TokenGeneratorInterface;
+use App\Domain\Entity\Owner;
 use App\Domain\Service\JwtService;
 
 class OwnerServiceTest extends TestCase
 {
-    public function testRegisterReturnsOwner()
+    private $ownerRepository;
+    private $passwordHasher;
+    private $tokenGenerator;
+
+    protected function setUp(): void
     {
         $ownerRepository = $this->createMock(OwnerRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);

@@ -17,12 +17,10 @@ class XssProtectionService
      */
     public function sanitize(string $input): string
     {
-        // Supprimer les balises HTML et PHP
         $cleaned = strip_tags($input);
-        
-        // Échapper les caractères spéciaux HTML
+
         $cleaned = htmlspecialchars($cleaned, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        
+
         return trim($cleaned);
     }
 
@@ -36,7 +34,7 @@ class XssProtectionService
     {
         $sanitized = [];
         foreach ($data as $key => $value) {
-            $sanitizedKey = $this->sanitize((string)$key);
+            $sanitizedKey = $this->sanitize((string) $key);
             if (is_string($value)) {
                 $sanitized[$sanitizedKey] = $this->sanitize($value);
             } elseif (is_array($value)) {
@@ -58,11 +56,11 @@ class XssProtectionService
     {
         $cleaned = trim($email);
         $cleaned = filter_var($cleaned, FILTER_SANITIZE_EMAIL);
-        
+
         if (!filter_var($cleaned, FILTER_VALIDATE_EMAIL)) {
             return null;
         }
-        
+
         return strtolower($cleaned);
     }
 
@@ -78,11 +76,11 @@ class XssProtectionService
             // Pour JSON, on échappe déjà les caractères spéciaux, mais on supprime les balises HTML
             return strip_tags($data);
         }
-        
+
         if (is_array($data)) {
             return array_map([$this, 'prepareForJson'], $data);
         }
-        
+
         return $data;
     }
 }

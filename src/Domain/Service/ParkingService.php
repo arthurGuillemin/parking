@@ -30,8 +30,6 @@ class ParkingService
             throw new \RuntimeException('Parking non trouvé');
         }
 
-        // Create updated entity (immutable-ish pattern)
-        // Note: Ideally we would have UseCase or proper Setters. For now, we reconstruct.
         $updatedParking = new Parking(
             $parking->getParkingId(),
             $parking->getOwnerId(),

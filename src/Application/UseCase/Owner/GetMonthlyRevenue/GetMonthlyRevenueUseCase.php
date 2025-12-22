@@ -17,7 +17,7 @@ class GetMonthlyRevenueUseCase
     }
 
     /**
-     * Get the monthly revenue for a parking (reservations + subscriptions).
+     * Obtenir le revenu mensuel pour un parking (réservations + abonnements).
      *
      * @param GetMonthlyRevenueRequest $request
      * @return array

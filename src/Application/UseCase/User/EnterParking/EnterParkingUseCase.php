@@ -28,13 +28,13 @@ class EnterParkingUseCase
 
     public function execute(EnterParkingRequest $request): ParkingSessionResponse
     {
-        // 1. Check if user already inside
+        // 1. Vérifier si le user est déjà stationné
         $activeSession = $this->sessionRepository->findActiveSessionByUserId($request->userId);
         if ($activeSession) {
             throw new RuntimeException("Vous êtes déjà stationné dans un parking.");
         }
 
-        // 2. Validate Access (Reservation OR Subscription)
+        // 2. Vérifier si le user a accès (Reservation OR Subscription)
         $hasAccess = false;
         $reservationId = $request->reservationId;
 
@@ -43,7 +43,7 @@ class EnterParkingUseCase
             if (!$reservation || $reservation->getUserId() !== $request->userId || $reservation->getParkingId() !== $request->parkingId) {
                 throw new RuntimeException("Réservation invalide.");
             }
-            // Check time validity (allow entry 15 mins before)
+            // Vérifier si le temps est valide
             $now = new DateTimeImmutable();
             if ($now < $reservation->getStartDateTime()->modify('-30 minutes')) {
                 throw new RuntimeException("Il est trop tôt pour entrer (max 30 min avant).");
@@ -53,7 +53,7 @@ class EnterParkingUseCase
             }
             $hasAccess = true;
         } else {
-            // Check Subscription
+            // Vérifier si le user a un abonnement
             $subscriptions = $this->subscriptionRepository->findActiveByUserId($request->userId);
             foreach ($subscriptions as $sub) {
                 if ($sub->getParkingId() === $request->parkingId) {
@@ -67,7 +67,7 @@ class EnterParkingUseCase
             throw new RuntimeException("Accès refusé. Aucune réservation ou abonnement valide trouvé pour ce parking.");
         }
 
-        // 3. Create Session
+        // 3. Créer la session
         $session = new ParkingSession(
             0,
             $request->userId,

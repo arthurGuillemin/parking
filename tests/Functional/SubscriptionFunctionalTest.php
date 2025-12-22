@@ -315,7 +315,7 @@ class SubscriptionFunctionalTest extends BaseFunctionalTest
 
         // ✅ Doit lever une exception
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Subscription duration must be at least 1 month.');
+        $this->expectExceptionMessage('La durée de l\'abonnement doit être d\'au moins 1 mois.');
 
         $this->addSubscriptionUseCase->execute($subscriptionRequest);
     }
@@ -339,7 +339,7 @@ class SubscriptionFunctionalTest extends BaseFunctionalTest
 
         // ✅ Doit lever une exception
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Subscription duration cannot exceed 1 year.');
+        $this->expectExceptionMessage('La durée de l\'abonnement ne peut pas excéder 1 an.');
 
         $this->addSubscriptionUseCase->execute($subscriptionRequest);
     }

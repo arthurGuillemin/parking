@@ -16,7 +16,6 @@ class ListSubscriptionTypesUseCase
 
     public function execute(ListSubscriptionTypesRequest $request): array
     {
-        // Note: For now we return all types. Future: filter by parkingId if implemented in repo.
         $types = $this->repository->findAll();
 
         return array_map(function ($type) {

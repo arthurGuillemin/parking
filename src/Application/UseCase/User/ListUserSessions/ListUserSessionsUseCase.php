@@ -20,7 +20,7 @@ class ListUserSessionsUseCase
 
     public function execute(ListUserSessionsRequest $request): array
     {
-        // Check if repository has findByUserId
+        // Vérifier si le repository a la méthode findByUserId
         $sessions = $this->repository->findByUserId($request->userId);
 
         return array_map(function ($session) {

@@ -19,7 +19,7 @@ class ListUserSubscriptionsUseCase
     }
 
     /**
-     * List all active subscriptions for a user.
+     * Afficher tous les abonnements actifs d'un utilisateur.
      *
      * @param ListUserSubscriptionsRequest $request
      * @return array

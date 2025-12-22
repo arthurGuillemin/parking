@@ -28,9 +28,6 @@ class SqlParkingSessionRepository implements ParkingSessionRepositoryInterface
                 SELECT id, user_id, parking_id, reservation_id, entry_time, exit_time, final_amount, penalty_applied
                 FROM parking_sessions
                 WHERE id = :id
-
-
-
             ");
             $stmt->execute(['id' => $id]);
 

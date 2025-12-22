@@ -1,18 +1,50 @@
 <?php
 
-namespace Unit\Domain\Entity;
+namespace Tests\Unit\Domain\Entity;
 
 use PHPUnit\Framework\TestCase;
 use App\Domain\Entity\SubscriptionType;
 
 class SubscriptionTypeTest extends TestCase
 {
-    public function testGetters()
+    private SubscriptionType $type;
+    private int $parkingId = 1;
+    private string $name = 'Weekend Access';
+    private ?string $description = 'Friday 6PM to Monday 10AM';
+
+    protected function setUp(): void
     {
-        $type = new SubscriptionType(1, 2, 'Annual', 'Full access');
-        $this->assertEquals(1, $type->getSubscriptionTypeId());
-        $this->assertEquals(2, $type->getParkingId());
-        $this->assertEquals('Annual', $type->getName());
-        $this->assertEquals('Full access', $type->getDescription());
+        $this->type = new SubscriptionType(
+            1,
+            $this->parkingId,
+            $this->name,
+            $this->description
+        );
+    }
+
+    public function testGetSubscriptionTypeId(): void
+    {
+        $this->assertEquals(1, $this->type->getSubscriptionTypeId());
+    }
+
+    public function testGetParkingId(): void
+    {
+        $this->assertEquals($this->parkingId, $this->type->getParkingId());
+    }
+
+    public function testGetName(): void
+    {
+        $this->assertEquals($this->name, $this->type->getName());
+    }
+
+    public function testGetDescription(): void
+    {
+        $this->assertEquals($this->description, $this->type->getDescription());
+    }
+
+    public function testGetDescriptionCanBeNull(): void
+    {
+        $type = new SubscriptionType(1, $this->parkingId, $this->name, null);
+        $this->assertNull($type->getDescription());
     }
 }

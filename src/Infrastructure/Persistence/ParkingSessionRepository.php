@@ -55,6 +55,15 @@ class ParkingSessionRepository implements ParkingSessionRepositoryInterface
         return array_map(fn($row) => $this->mapToEntity($row), $rows);
     }
 
+    public function findByUserId(string $userId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM parking_sessions WHERE user_id = ?');
+        $stmt->execute([$userId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->mapToEntity($row), $rows);
+    }
+
     public function save(ParkingSession $session): ParkingSession
     {
         if ($session->getSessionId() === 0) {

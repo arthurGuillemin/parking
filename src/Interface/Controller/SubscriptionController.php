@@ -43,9 +43,11 @@ class SubscriptionController
         $this->presenter = $presenter;
     }
 
+    /**
+     * Affiche le formulaire d'achat d'abonnement
+     */
     public function showPurchaseForm(array $data): void
     {
-        // Extract parkingId from route params or query
         $parkingId = $data['parkingId'] ?? $_GET['parkingId'] ?? null;
         if (!$parkingId) {
             header('Location: /parkings');
@@ -57,94 +59,53 @@ class SubscriptionController
             die("Parking not found");
         }
 
-        // List types (currently implementation returns all, but we should eventually filter)
-        // Since findAll is global, we might show keys that don't belong?
-        // But for now schema seems shared.
-        // We'll rename ListSubscriptionTypesRequest input to parkingId if it matters.
-        // The Request object takes parkingId.
         $request = new \App\Application\UseCase\Owner\ListSubscriptionTypes\ListSubscriptionTypesRequest((int) $parkingId);
         $subscriptionTypes = $this->listSubscriptionTypesUseCase->execute($request);
 
         require dirname(__DIR__, 3) . '/templates/subscription_purchase.php';
     }
 
+    /**
+     * Traite l'achat d'un abonnement
+     */
     public function purchase(array $data): void
     {
-        // Auth check
-        $userId = null;
-        if (isset($_COOKIE['auth_token'])) {
-            $payload = $this->jwtService->decode($_COOKIE['auth_token']);
-            if ($payload) {
-                $userId = $payload['user_id'] ?? null;
-            }
-        }
+        $userId = $this->getUserIdFromToken();
         if (!$userId) {
             header('Location: /login?error=auth_required');
             return;
         }
 
         try {
-            // Data from Form
-            $parkingId = (int) ($data['parkingId'] ?? $_POST['parkingId']);
-            $typeId = (int) ($data['typeId'] ?? $_POST['typeId']);
-            $startDateStr = $data['startDate'] ?? $_POST['startDate'] ?? 'now';
-            $startDate = new \DateTimeImmutable($startDateStr);
-
-            // We need the Type to know the price
-            // Re-fetch types to find the selected one and its price
-            $requestList = new \App\Application\UseCase\Owner\ListSubscriptionTypes\ListSubscriptionTypesRequest($parkingId);
-            $types = $this->listSubscriptionTypesUseCase->execute($requestList);
-
-            $selectedType = null;
-            foreach ($types as $t) {
-                if ($t->id === $typeId) {
-                    $selectedType = $t;
-                    break;
-                }
-            }
+            $purchaseData = $this->parsePurchaseData($data);
+            $selectedType = $this->findSubscriptionType($purchaseData['parkingId'], $purchaseData['typeId']);
 
             if (!$selectedType) {
                 throw new \Exception("Invalid Subscription Type");
             }
 
-            // Calculate End Date (Default 1 month? Or user selected?)
-            // Form implies monthly.
-            // Let's set it to null (infinite) if logic supports it, or request implementation requires end date.
-            // AddSubscriptionUseCase checks: min 1 month, max 1 year.
-            // So let's default to 1 month for now, or 1 year?
-            // "L'abonnement est mensuel avec tacite reconduction" -> usually means indefinite.
-            // usage: $request->endDate.
-            // If I pass null, UseCase defaults to 1 Year.
-            $endDate = null;
-
             $request = new AddSubscriptionRequest(
                 $userId,
-                $parkingId,
-                $typeId,
-                $startDate,
-                $endDate,
+                $purchaseData['parkingId'],
+                $purchaseData['typeId'],
+                $purchaseData['startDate'],
+                null,
                 $selectedType->monthlyPrice
             );
 
             $this->addSubscriptionUseCase->execute($request);
-
-            // Redirect to dashboard (or list for now)
-            header('Location: /subscription/my-subscriptions'); // Or a success page
-
+            header('Location: /subscription/my-subscriptions');
         } catch (\Exception $e) {
             die("Erreur: " . $e->getMessage());
         }
     }
 
+    /**
+     * API - Crée un abonnement
+     */
     public function subscribe(array $data): array
     {
-        // API Method - Kept for compatibility but might need update if used
-        $required = ['userId', 'parkingId', 'monthlyPrice'];
-        foreach ($required as $field) {
-            if (empty($data[$field])) {
-                throw new \InvalidArgumentException("Le champ $field est obligatoire.");
-            }
-        }
+        $this->validateRequiredFields($data, ['userId', 'parkingId', 'monthlyPrice']);
 
         $startDate = new \DateTimeImmutable($data['startDate'] ?? 'now');
         $endDate = !empty($data['endDate']) ? new \DateTimeImmutable($data['endDate']) : null;
@@ -159,26 +120,15 @@ class SubscriptionController
         );
 
         $response = $this->addSubscriptionUseCase->execute($request);
-
         return $this->presenter->present($response);
     }
 
+    /**
+     * Liste les abonnements de l'utilisateur
+     */
     public function list(array $data): void
     {
-        // Modified to be View-friendly OR API-friendly
-        // If accessing via browser (no Content-Type json), render view?
-        // For now, let's look at how it's called. 
-        // Route: GET /subscription/my-subscriptions -> SubscriptionController::list
-        // If checking cookie, we can deduce userId.
-
-        $userId = null;
-        if (isset($_COOKIE['auth_token'])) {
-            $payload = $this->jwtService->decode($_COOKIE['auth_token']);
-            $userId = $payload['user_id'] ?? null;
-        }
-
-        // Use data['userId'] if provided (API) or cookie
-        $userId = $data['userId'] ?? $userId;
+        $userId = $data['userId'] ?? $this->getUserIdFromToken();
 
         if (!$userId) {
             header('Location: /login');
@@ -188,23 +138,13 @@ class SubscriptionController
         $request = new ListUserSubscriptionsRequest($userId);
         $responses = $this->listUserSubscriptionsUseCase->execute($request);
 
-        // If query param ?format=json, return json. Else render view.
-        if (isset($_GET['format']) && $_GET['format'] === 'json') {
-            // Return array for router to json_encode
+        if ($this->isJsonRequest()) {
             $this->presenterToArray($responses);
-            return; // Router handles return
+            return;
         }
 
-        // Render View
-        $subscriptions = $responses; // DTOs
+        $subscriptions = $responses;
         require dirname(__DIR__, 3) . '/templates/subscription_list_user.php';
-    }
-
-    private function presenterToArray($responses): array
-    {
-        return array_map(function ($response) {
-            return $this->presenter->present($response);
-        }, $responses);
     }
 
     public function getById(array $data): array
@@ -229,5 +169,72 @@ class SubscriptionController
         $response = $this->cancelSubscriptionUseCase->execute($request);
 
         return $this->presenter->present($response);
+    }
+
+    /**
+     * Récupère l'ID utilisateur depuis le token JWT
+     */
+    private function getUserIdFromToken(): ?string
+    {
+        if (!isset($_COOKIE['auth_token'])) {
+            return null;
+        }
+        $payload = $this->jwtService->decode($_COOKIE['auth_token']);
+        return $payload['user_id'] ?? null;
+    }
+
+    /**
+     * Parse les données du formulaire d'achat
+     */
+    private function parsePurchaseData(array $data): array
+    {
+        return [
+            'parkingId' => (int) ($data['parkingId'] ?? $_POST['parkingId']),
+            'typeId' => (int) ($data['typeId'] ?? $_POST['typeId']),
+            'startDate' => new \DateTimeImmutable($data['startDate'] ?? $_POST['startDate'] ?? 'now'),
+        ];
+    }
+
+    /**
+     * Recherche un type d'abonnement par ID
+     */
+    private function findSubscriptionType(int $parkingId, int $typeId)
+    {
+        $request = new \App\Application\UseCase\Owner\ListSubscriptionTypes\ListSubscriptionTypesRequest($parkingId);
+        $types = $this->listSubscriptionTypesUseCase->execute($request);
+
+        foreach ($types as $type) {
+            if ($type->id === $typeId) {
+                return $type;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Valide les champs requis
+     */
+    private function validateRequiredFields(array $data, array $required): void
+    {
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                throw new \InvalidArgumentException("Le champ $field est obligatoire.");
+            }
+        }
+    }
+
+    /**
+     * Vérifie si la requête demande du JSON
+     */
+    private function isJsonRequest(): bool
+    {
+        return isset($_GET['format']) && $_GET['format'] === 'json';
+    }
+
+    private function presenterToArray($responses): array
+    {
+        return array_map(function ($response) {
+            return $this->presenter->present($response);
+        }, $responses);
     }
 }

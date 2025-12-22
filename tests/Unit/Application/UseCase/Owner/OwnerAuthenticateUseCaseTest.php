@@ -3,13 +3,19 @@ namespace Unit\Application\UseCase\Owner;
 
 use PHPUnit\Framework\TestCase;
 use App\Application\UseCase\Owner\Authenticate\OwnerAuthenticateUseCase;
-use App\Application\UseCase\Owner\Authenticate\OwnerAuthenticateRequest;
+use App\Application\DTO\LoginResponse;
 use App\Domain\Repository\OwnerRepositoryInterface;
 use App\Domain\Entity\Owner;
+use App\Domain\Security\PasswordHasherInterface;
+use App\Domain\Auth\TokenGeneratorInterface;
 
 class OwnerAuthenticateUseCaseTest extends TestCase
 {
-    public function testExecuteReturnsOwnerOnValidCredentials()
+    private $repo;
+    private $passwordHasher;
+    private $tokenGenerator;
+
+    protected function setUp(): void
     {
         $repo = $this->createMock(OwnerRepositoryInterface::class);
         $owner = $this->createMock(Owner::class);
@@ -23,6 +29,33 @@ class OwnerAuthenticateUseCaseTest extends TestCase
         $result = $useCase->execute($request->email, $request->password);
         $this->assertInstanceOf(\App\Application\DTO\LoginResponse::class, $result);
     }
+
+    private function createUseCase(): OwnerAuthenticateUseCase
+    {
+        return new OwnerAuthenticateUseCase(
+            $this->repo,
+            $this->passwordHasher,
+            $this->tokenGenerator
+        );
+    }
+
+    public function testExecuteReturnsLoginResponseOnValidCredentials()
+    {
+        $owner = $this->createStub(Owner::class);
+        $owner->method('getOwnerId')->willReturn('owner-123');
+        $owner->method('getEmail')->willReturn('test@example.com');
+        $owner->method('getPassword')->willReturn('hashed_password');
+
+        $this->repo->method('findByEmail')->willReturn($owner);
+        $this->passwordHasher->method('verify')->willReturn(true);
+        $this->tokenGenerator->method('generate')->willReturn('mock_token');
+
+        $useCase = $this->createUseCase();
+        $result = $useCase->execute('test@example.com', 'password');
+
+        $this->assertInstanceOf(LoginResponse::class, $result);
+    }
+
     public function testExecuteReturnsNullOnInvalidCredentials()
     {
         $repo = $this->createMock(OwnerRepositoryInterface::class);
@@ -37,6 +70,7 @@ class OwnerAuthenticateUseCaseTest extends TestCase
         $result = $useCase->execute($request->email, $request->password);
         $this->assertNull($result);
     }
+
     public function testExecuteReturnsNullIfOwnerNotFound()
     {
         $repo = $this->createMock(OwnerRepositoryInterface::class);

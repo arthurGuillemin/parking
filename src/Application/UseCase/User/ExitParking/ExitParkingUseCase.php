@@ -33,7 +33,7 @@ class ExitParkingUseCase
 
     public function execute(ExitParkingRequest $request): ParkingSessionResponse
     {
-        // 1. Find active session
+        // 1. Trouver la session active
         $session = $this->sessionRepository->findActiveSessionByUserId($request->userId);
         if (!$session) {
             throw new RuntimeException("Aucun stationnement actif trouvé.");
@@ -42,11 +42,11 @@ class ExitParkingUseCase
             throw new RuntimeException("Vous n'êtes pas stationné dans ce parking.");
         }
 
-        // 2. Set Exit Time
+        // 2. Définir l'heure de sortie
         $exitTime = new DateTimeImmutable();
         $session->setExitDateTime($exitTime);
 
-        // 3. Calculate Final Amount / Penalty
+        // 3. Calculer le montant final / la pénalité
         $finalAmount = 0.0;
         $isPenalty = false;
         $reservationId = $session->getReservationId();
@@ -55,42 +55,29 @@ class ExitParkingUseCase
             $reservation = $this->reservationRepository->findById($reservationId);
             if ($reservation) {
                 if ($exitTime > $reservation->getEndDateTime()) {
-                    // OVERSTAY PENALTY LOGIC
+                    
                     $isPenalty = true;
                     $penaltyAmount = 20.0;
 
-                    // Calculate price based on ACTUAL duration (Entry -> Exit)
-                    // Rule: "Must pay like a reservation of 4h" (if stayed 4h instead of 3h)
+                    // Calculer le prix basé sur la durée effective (Entry -> Exit)
+                    // Règle : "si vous avez reserver pour 3h et que vous êtes resté 4h, vous devez payer le prix de 4h"
 
                     $actualDuration = $session->getEntryDateTime()->diff($exitTime);
 
-                    // Use PricingService (checks active rules at Entry Time)
+                    // Utiliser PricingService (vérifie les règles actives au moment de l'entrée)
                     $basePrice = $this->pricingService->calculatePrice(
                         $request->parkingId,
                         $actualDuration,
                         $session->getEntryDateTime()
                     );
 
-                    // If PricingService returns 0 (e.g. no rule found), fallback to reservation amount to be safe?
-                    // Or trust PricingService. If 0, it means free or error. 
-                    // Let's assume correct configuration.
-
                     $finalAmount = $basePrice + $penaltyAmount;
 
                 } else {
-                    // Normal exit within reservation time
                     $finalAmount = $reservation->getCalculatedAmount();
                 }
             }
         } else {
-            // Subscription: Price is 0 (covered by sub)
-            // Note: If subscription has logic for overstaying (e.g. outside allowed hours), it needs similar logic.
-            // But prompt specifically mentioned Reservation example.
-            // For now, assume subscription covers everything or logic is separate.
-            // "Un conducteur n’est censé se garer que pendant un créneau ... d’un abonnement"
-            // " ... si utilisateur reste au-delà d’un créneau d’une réservation ou d’un abonnement"
-            // Checking subscription validity is harder without knowing the subscription constraints here.
-            // I will leave subscription logic as 0 for now unless requested.
             $finalAmount = 0.0;
         }
 
@@ -100,13 +87,13 @@ class ExitParkingUseCase
         $savedSession = $this->sessionRepository->save($session);
 
         if ($reservationId && isset($reservation)) {
-            // Mark reservation as completed to free the spot immediately
-            // This updates endDateTime to exitTime and status to 'completed'
+            // Marquer la réservation comme terminée pour libérer le parking immédiatement
+            // Cela met à jour endDateTime à exitTime et status à 'completed'
             $reservation->complete($exitTime, $finalAmount);
             $this->reservationRepository->save($reservation);
         }
 
-        // 4. Generate Invoice
+        // 4. Générer une facture
         $details = [
             'penalty_applied' => $isPenalty,
             'duration_minutes' => ($exitTime->getTimestamp() - $session->getEntryDateTime()->getTimestamp()) / 60

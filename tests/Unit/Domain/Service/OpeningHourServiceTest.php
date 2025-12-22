@@ -20,4 +20,18 @@ class OpeningHourServiceTest extends TestCase
         $service = new OpeningHourService($openingHourRepository, $addUseCase, $deleteUseCase);
         $this->assertInstanceOf(OpeningHourService::class, $service);
     }
+
+    public function testGetOpeningHoursByParkingIdReturnsArray()
+    {
+        $openingHourRepository = $this->createStub(OpeningHourRepositoryInterface::class);
+        $addOpeningHourUseCase = $this->createStub(AddOpeningHourUseCase::class);
+        $deleteOpeningHourUseCase = $this->createStub(DeleteOpeningHourUseCase::class);
+
+        $openingHourRepository->method('findByParkingId')->willReturn([]);
+
+        $service = new OpeningHourService($openingHourRepository, $addOpeningHourUseCase, $deleteOpeningHourUseCase);
+        $result = $service->getOpeningHoursByParkingId(1);
+
+        $this->assertIsArray($result);
+    }
 }

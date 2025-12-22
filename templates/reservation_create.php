@@ -52,7 +52,6 @@ ob_start();
         </form>
     </div>
 </div>
-</div>
 
 <script>
     function updateHiddenInputs() {

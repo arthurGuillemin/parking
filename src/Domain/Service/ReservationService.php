@@ -17,13 +17,8 @@ class ReservationService
         \App\Application\UseCase\User\CreateReservation\CreateReservationUseCase $createReservationUseCase
     ) {
         $this->reservationRepository = $reservationRepository;
-        // Keep list usage as explicit/internal or inject it? UseCases usually standalone.
-        // But the previous code instantiated it. Let's start injecting properly as per previous refactor.
-        // Except I don't want to break existing 'new ListReservationsUseCase' without full refactor if feasible.
-        // The user asked for "quick refactor" of Service DI earlier.
-        // To stay consistent: I should inject CreateReservationUseCase.
         $this->createReservationUseCase = $createReservationUseCase;
-        $this->listReservationsUseCase = new ListReservationsUseCase($reservationRepository); // Legacy, kept for now unless I inject it too.
+        $this->listReservationsUseCase = new ListReservationsUseCase($reservationRepository);
     }
 
     public function listReservations(ListReservationsRequest $request): array

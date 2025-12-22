@@ -10,7 +10,6 @@ use App\Domain\Entity\OpeningHour;
 class OpeningHourService
 {
     private OpeningHourRepositoryInterface $openingHourRepository;
-    // We replace Update with Add/Delete
     private AddOpeningHourUseCase $addOpeningHourUseCase;
     private DeleteOpeningHourUseCase $deleteOpeningHourUseCase;
 

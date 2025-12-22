@@ -11,101 +11,110 @@ use App\Application\UseCase\Owner\GetAvailableSpots\GetAvailableSpotsUseCase;
 
 class ParkingAvailabilityServiceTest extends TestCase
 {
-    public function testGetAvailableSpotsDelegatesToUseCase()
-    {
-        $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
-        $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
+        private $getAvailableSpotsUseCase;
+        private $openingHourRepo;
 
-        $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
+        protected function setUp(): void
+        {
+                $this->getAvailableSpotsUseCase = $this->createStub(GetAvailableSpotsUseCase::class);
+                $this->openingHourRepo = $this->createStub(OpeningHourRepositoryInterface::class);
+        }
 
-        $getAvailableSpotsUseCase->expects($this->once())
-            ->method('execute')
-            ->willReturn(10);
+        public function testGetAvailableSpotsDelegatesToUseCase()
+        {
+                $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
+                $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
 
-        $request = new GetAvailableSpotsRequest(1, new \DateTimeImmutable());
-        $result = $service->getAvailableSpots($request);
-        $this->assertEquals(10, $result);
-    }
+                $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
 
-    public function testIsAvailableReturnsTrueForOpen247AndSpotsAvailable()
-    {
-        $parking = $this->createMock(Parking::class);
-        $parking->method('isOpen24_7')->willReturn(true);
-        $parking->method('getParkingId')->willReturn(1);
+                $getAvailableSpotsUseCase->expects($this->once())
+                        ->method('execute')
+                        ->willReturn(10);
 
-        $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
-        $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
+                $request = new GetAvailableSpotsRequest(1, new \DateTimeImmutable());
+                $result = $service->getAvailableSpots($request);
+                $this->assertEquals(10, $result);
+        }
 
-        $getAvailableSpotsUseCase->method('execute')->willReturn(2);
+        public function testIsAvailableReturnsTrueForOpen247AndSpotsAvailable()
+        {
+                $parking = $this->createStub(Parking::class);
+                $parking->method('isOpen24_7')->willReturn(true);
+                $parking->method('getParkingId')->willReturn(1);
 
-        $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
+                $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
+                $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
 
-        $this->assertTrue($service->isAvailable($parking, new \DateTimeImmutable()));
-    }
+                $getAvailableSpotsUseCase->method('execute')->willReturn(2);
 
-    public function testIsAvailableReturnsFalseIfClosed()
-    {
-        $parking = $this->createMock(Parking::class);
-        $parking->method('isOpen24_7')->willReturn(false);
-        $parking->method('getParkingId')->willReturn(1);
+                $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
 
-        $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
-        $openingHourRepo->method('findByParkingId')->willReturn([]); // No opening hours = closed
+                $this->assertTrue($service->isAvailable($parking, new \DateTimeImmutable()));
+        }
 
-        $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
+        public function testIsAvailableReturnsFalseIfClosed()
+        {
+                $parking = $this->createStub(Parking::class);
+                $parking->method('isOpen24_7')->willReturn(false);
+                $parking->method('getParkingId')->willReturn(1);
 
-        $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
+                $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
+                $openingHourRepo->method('findByParkingId')->willReturn([]); // No opening hours = closed
 
-        // Dimanche (7), donc fermé si pas d'horaires
-        $date = new \DateTimeImmutable('next sunday 10:00:00');
-        $this->assertFalse($service->isAvailable($parking, $date));
-    }
+                $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
 
-    public function testIsAvailableReturnsTrueIfOpenAndSpotsAvailable()
-    {
-        $parking = $this->createMock(Parking::class);
-        $parking->method('isOpen24_7')->willReturn(false);
-        $parking->method('getParkingId')->willReturn(1);
+                $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
 
-        $openingHour = $this->createMock(OpeningHour::class);
-        $openingHour->method('getWeekdayStart')->willReturn(1);
-        $openingHour->method('getWeekdayEnd')->willReturn(7);
-        $openingHour->method('getOpeningTime')->willReturn(new \DateTimeImmutable('08:00:00'));
-        $openingHour->method('getClosingTime')->willReturn(new \DateTimeImmutable('18:00:00'));
+                // Dimanche (7), donc fermé si pas d'horaires
+                $date = new \DateTimeImmutable('next sunday 10:00:00');
+                $this->assertFalse($service->isAvailable($parking, $date));
+        }
 
-        $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
-        $openingHourRepo->method('findByParkingId')->willReturn([$openingHour]);
+        public function testIsAvailableReturnsTrueIfOpenAndSpotsAvailable()
+        {
+                $parking = $this->createStub(Parking::class);
+                $parking->method('isOpen24_7')->willReturn(false);
+                $parking->method('getParkingId')->willReturn(1);
 
-        $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
-        $getAvailableSpotsUseCase->method('execute')->willReturn(1);
+                $openingHour = $this->createMock(OpeningHour::class);
+                $openingHour->method('getWeekdayStart')->willReturn(1);
+                $openingHour->method('getWeekdayEnd')->willReturn(7);
+                $openingHour->method('getOpeningTime')->willReturn(new \DateTimeImmutable('08:00:00'));
+                $openingHour->method('getClosingTime')->willReturn(new \DateTimeImmutable('18:00:00'));
 
-        $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
+                $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
+                $openingHourRepo->method('findByParkingId')->willReturn([$openingHour]);
 
-        $date = new \DateTimeImmutable('monday 10:00:00');
-        $this->assertTrue($service->isAvailable($parking, $date));
-    }
+                $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
+                $getAvailableSpotsUseCase->method('execute')->willReturn(1);
 
-    public function testIsAvailableReturnsFalseIfOpenButNoSpots()
-    {
-        $parking = $this->createMock(Parking::class);
-        $parking->method('isOpen24_7')->willReturn(false);
-        $parking->method('getParkingId')->willReturn(1);
+                $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
 
-        $openingHour = $this->createMock(OpeningHour::class);
-        $openingHour->method('getWeekdayStart')->willReturn(1);
-        $openingHour->method('getWeekdayEnd')->willReturn(7);
-        $openingHour->method('getOpeningTime')->willReturn(new \DateTimeImmutable('08:00:00'));
-        $openingHour->method('getClosingTime')->willReturn(new \DateTimeImmutable('18:00:00'));
+                $date = new \DateTimeImmutable('monday 10:00:00');
+                $this->assertTrue($service->isAvailable($parking, $date));
+        }
 
-        $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
-        $openingHourRepo->method('findByParkingId')->willReturn([$openingHour]);
+        public function testIsAvailableReturnsFalseIfOpenButNoSpots()
+        {
+                $parking = $this->createStub(Parking::class);
+                $parking->method('isOpen24_7')->willReturn(false);
+                $parking->method('getParkingId')->willReturn(1);
 
-        $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
-        $getAvailableSpotsUseCase->method('execute')->willReturn(0);
+                $openingHour = $this->createMock(OpeningHour::class);
+                $openingHour->method('getWeekdayStart')->willReturn(1);
+                $openingHour->method('getWeekdayEnd')->willReturn(7);
+                $openingHour->method('getOpeningTime')->willReturn(new \DateTimeImmutable('08:00:00'));
+                $openingHour->method('getClosingTime')->willReturn(new \DateTimeImmutable('18:00:00'));
 
-        $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
+                $openingHourRepo = $this->createMock(OpeningHourRepositoryInterface::class);
+                $openingHourRepo->method('findByParkingId')->willReturn([$openingHour]);
 
-        $date = new \DateTimeImmutable('monday 10:00:00');
-        $this->assertFalse($service->isAvailable($parking, $date));
-    }
+                $getAvailableSpotsUseCase = $this->createMock(GetAvailableSpotsUseCase::class);
+                $getAvailableSpotsUseCase->method('execute')->willReturn(0);
+
+                $service = new ParkingAvailabilityService($getAvailableSpotsUseCase, $openingHourRepo);
+
+                $date = new \DateTimeImmutable('monday 10:00:00');
+                $this->assertFalse($service->isAvailable($parking, $date));
+        }
 }

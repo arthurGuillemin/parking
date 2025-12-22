@@ -94,7 +94,7 @@ class GetAvailableSpotsUseCase
         $subscriptions = $this->subscriptionRepository->findByParkingIdAndMonth($request->parkingId, $year, $month);
         $occupied = 0;
         foreach ($subscriptions as $subscription) {
-            // Check general validity (dates & status) AND specific time slot coverage
+            // Vérifier la validité générale (dates & statut) ET la couverture de la période
             if (
                 $subscription->getStatus() === 'active' &&
                 !in_array($subscription->getUserId(), $sessionUserIds) &&
