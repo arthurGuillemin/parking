@@ -3,47 +3,57 @@
   "description": "App de gestion de parkings partagés ",
   "license": "proprietary",
   "authors": [
-        {
-            "name": "Antoine TU ",
-            "email": "a_tu@hetic.eu",
-            "homepage": "https://github.com/atu0601",
-            "role": "Developer"
-        },
-        {
-            "name": "Arthur Guillemin",
-            "email": "aguillemin291@gmail.com",
-            "homepage": "https://github.com/arthurGuillemin",
-            "role": "Developer"
-        }
-        ,{
-            "name": "Amaury SANCHEZ ",
-            "email": "a_sanchez14@hetic.eu",
-            "homepage": "https://github.com/Amaury057",
-            "role": "Developer"
-        },
-          {
-            "name": "PILLAH Niali Henri Guy-Harvyn ",
-            "email": "n_pillah@hetic.eu",
-            "homepage": "https://github.com/Harvyn-10",
-            "role": "Developer"
-        }
-    ],
+    {
+      "name": "Antoine TU",
+      "email": "a_tu@hetic.eu",
+      "homepage": "https://github.com/atu0601",
+      "role": "Developer"
+    },
+    {
+      "name": "Arthur Guillemin",
+      "email": "aguillemin291@gmail.com",
+      "homepage": "https://github.com/arthurGuillemin",
+      "role": "Developer"
+    },
+    {
+      "name": "Amaury SANCHEZ",
+      "email": "a_sanchez14@hetic.eu",
+      "homepage": "https://github.com/Amaury057",
+      "role": "Developer"
+    },
+    {
+      "name": "PILLAH Niali Henri Guy-Harvyn",
+      "email": "n_pillah@hetic.eu",
+      "homepage": "https://github.com/Harvyn-10",
+      "role": "Developer"
+    }
+  ],
   "require": {
     "php": "^8.2",
+    "ext-pdo": "*",
+    "ext-pdo_pgsql": "*",
     "vlucas/phpdotenv": "^5.6",
     "ramsey/uuid": "^4.9",
-      "ext-pdo": "*",
-      "ext-xdebug": "*",
     "firebase/php-jwt": "^7.0",
     "php-di/php-di": "^7.1",
     "league/route": "^6.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12.4",
+    "ext-xdebug": "*"
   },
   "autoload": {
     "psr-4": {
       "App\\": "src/"
     }
   },
-  "require-dev": {
-    "phpunit/phpunit": "^12.4"
+  "autoload-dev": {
+    "psr-4": {
+      "App\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
   }
 }
