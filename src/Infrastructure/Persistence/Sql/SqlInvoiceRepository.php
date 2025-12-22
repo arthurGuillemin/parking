@@ -82,7 +82,11 @@ class SqlInvoiceRepository implements InvoiceRepositoryInterface
     public function save(Invoice $invoice): Invoice
     {
         try {
-            $existing = $this->findById($invoice->getInvoiceId());
+            // Only check for existing invoice if ID is valid (> 0)
+            $existing = null;
+            if ($invoice->getInvoiceId() > 0) {
+                $existing = $this->findById($invoice->getInvoiceId());
+            }
             if ($existing) {
                 $stmt = $this->db->prepare("
                     UPDATE invoices

@@ -63,5 +63,10 @@ class ParkingService
     {
         return $this->parkingRepository->findNearby($lat, $lng, $radiusKm);
     }
+
+    public function searchByText(string $query): array
+    {
+        return $this->parkingRepository->searchByText($query);
+    }
 }
 

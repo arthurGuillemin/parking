@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,35 +13,42 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+
         .form-container {
             background: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
         h2 {
             color: #333;
             margin-bottom: 20px;
             text-align: center;
             font-size: 2em;
         }
+
         .form-row {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-row .form-group {
             flex: 1 1 0;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #555;
             font-weight: bold;
         }
+
         input[type="email"],
         input[type="password"],
         input[type="text"] {
@@ -50,6 +58,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         button {
             width: 100%;
             padding: 12px;
@@ -60,30 +69,36 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         .error {
             color: red;
             margin-top: 10px;
         }
+
         .success {
             color: green;
             margin-top: 10px;
         }
+
         .link {
             text-align: center;
             margin-top: 15px;
         }
+
         .link a {
             color: #007bff;
             text-decoration: none;
         }
     </style>
 </head>
+
 <body>
     <div class="form-container">
-        <title style="text-align: center;">Inscription - Parking Partagé</title>
+        <h2 style="text-align: center;">Espace Utilisateur</h2>
         <form id="registerForm" method="POST" action="/user/register">
             <div class="form-row">
                 <div class="form-group">
@@ -104,7 +119,8 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="password">Mot de passe *</label>
-                    <input type="password" id="password" name="password" required minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$">
+                    <input type="password" id="password" name="password" required minlength="8"
+                        pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$">
                     <small style="color: #666; font-size: 12px;">Au moins 8 caractères, une lettre et un chiffre</small>
                 </div>
                 <div class="form-group">
@@ -119,10 +135,13 @@
         <div class="link">
             <a href="/login">Déjà un compte ? Se connecter</a>
         </div>
+        <div class="link" style="margin-top: 10px;">
+            <a href="/" style="color: #666;">← Retour à l'accueil</a>
+        </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
@@ -185,4 +204,5 @@
         });
     </script>
 </body>
+
 </html>

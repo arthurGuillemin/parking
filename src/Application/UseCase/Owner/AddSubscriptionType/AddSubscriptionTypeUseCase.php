@@ -16,15 +16,14 @@ class AddSubscriptionTypeUseCase
     }
 
     /**
-     * Ajouter un nouveau type d'abonnement pour un parking.
+     * Add a new subscription type for a parking.
      *
      * @param AddSubscriptionTypeRequest $request
      * @return AddSubscriptionTypeResponse
      */
     public function execute(AddSubscriptionTypeRequest $request): AddSubscriptionTypeResponse
     {
-        $price = 50.0;
-        $type = new SubscriptionType(0, $request->parkingId, $request->name, $request->description, $price);
+        $type = new SubscriptionType(0, $request->parkingId, $request->name, $request->description, $request->monthlyPrice);
         $savedType = $this->subscriptionTypeRepository->save($type);
 
         return new AddSubscriptionTypeResponse(

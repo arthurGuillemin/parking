@@ -35,10 +35,16 @@ class SubscriptionTypeController
             throw new \InvalidArgumentException('Les champs parkingId et name sont obligatoires.');
         }
 
+        $price = (float) ($data['price'] ?? 0.0);
+        if ($price <= 0) {
+            throw new \InvalidArgumentException('Le prix doit être supérieur à 0€.');
+        }
+
         $request = new AddSubscriptionTypeRequest(
             (int) $data['parkingId'],
             $data['name'],
-            $data['description'] ?? null
+            $data['description'] ?? null,
+            $price
         );
 
         $response = $this->addSubscriptionTypeUseCase->execute($request);

@@ -541,7 +541,7 @@
                     const li = document.createElement('li');
                     li.style.padding = '10px';
                     li.style.borderBottom = '1px solid #eee';
-                    li.innerHTML = `<strong>${item.name}</strong> - ${item.description || ''}`;
+                    li.innerHTML = `<strong>${item.name}</strong> (${formatMoney(item.monthlyPrice)}) - ${item.description || ''}`;
                     el.appendChild(li);
                 });
             } catch (e) { el.innerHTML = 'Erreur chargement'; }

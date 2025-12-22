@@ -16,7 +16,11 @@ class ListSubscriptionTypesUseCase
 
     public function execute(ListSubscriptionTypesRequest $request): array
     {
-        $types = $this->repository->findAll();
+        if ($request->parkingId) {
+            $types = $this->repository->findByParkingId($request->parkingId);
+        } else {
+            $types = $this->repository->findAll();
+        }
 
         return array_map(function ($type) {
             return new AddSubscriptionTypeResponse(

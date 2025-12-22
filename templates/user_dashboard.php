@@ -151,13 +151,66 @@ ob_start();
                             <?= date('d/m/Y', strtotime($sub->startDate)) ?> ➝
                             <?= $sub->endDate ? date('d/m/Y', strtotime($sub->endDate)) : 'Indéfini' ?>
                         </p>
-                        <p class="mb-2"><strong>Prix :</strong> <?= number_format($sub->monthlyPrice, 2) ?> € / mois</p>
-                        <a href="/subscription" class="btn btn-outline-secondary btn-sm">Gérer</a>
+                        <p class="mb-2"><strong>Prix :</strong> <?= number_format($sub->monthlyPrice, 2, ',', ' ') ?> € / mois
+                        </p>
+                        <button class="btn btn-outline-secondary btn-sm"
+                            onclick="openManageModal(<?= $sub->id ?>, '<?= htmlspecialchars($sub->parkingName ?? 'Parking #' . $sub->parkingId) ?>')">Gérer</button>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- Modal de gestion d'abonnement -->
+    <div id="manageModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div
+            style="background:white; padding:30px; border-radius:10px; max-width:400px; margin:auto; position:relative; top:50%; transform:translateY(-50%);">
+            <h3 style="margin-top:0;">Gérer l'abonnement</h3>
+            <p><strong>Parking :</strong> <span id="modalParkingName"></span></p>
+            <hr>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-danger" onclick="cancelSubscription()">🚫 Résilier cet abonnement</button>
+                <button class="btn btn-secondary" onclick="closeManageModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSubId = null;
+
+        function openManageModal(subId, parkingName) {
+            currentSubId = subId;
+            document.getElementById('modalParkingName').textContent = parkingName;
+            document.getElementById('manageModal').style.display = 'flex';
+        }
+
+        function closeManageModal() {
+            document.getElementById('manageModal').style.display = 'none';
+            currentSubId = null;
+        }
+
+        function cancelSubscription() {
+            if (!currentSubId) return;
+            if (confirm('Êtes-vous sûr de vouloir résilier cet abonnement ? Cette action est irréversible.')) {
+                fetch('/subscription/' + currentSubId, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Abonnement résilié avec succès.');
+                            location.reload();
+                        } else {
+                            alert('Erreur lors de la résiliation.');
+                        }
+                    })
+                    .catch(() => alert('Erreur de connexion.'));
+            }
+        }
+
+        // Fermer modal en cliquant à l'extérieur
+        document.getElementById('manageModal').addEventListener('click', function (e) {
+            if (e.target === this) closeManageModal();
+        });
+    </script>
 
     <!-- Invoices Tab -->
     <div id="invoices" class="tab-content" style="display: none;">

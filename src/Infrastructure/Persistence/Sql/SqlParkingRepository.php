@@ -104,6 +104,24 @@ class SqlParkingRepository implements ParkingRepositoryInterface
         return $earthRadius * $c;
     }
 
+    public function searchByText(string $query): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT id, owner_id, name, address, latitude, longitude, total_capacity, open_24_7
+                FROM parkings
+                WHERE LOWER(name) LIKE LOWER(:query)
+                   OR LOWER(address) LIKE LOWER(:query)
+                ORDER BY name
+            ");
+            $stmt->execute(['query' => '%' . $query . '%']);
+            $rows = $stmt->fetchAll();
+            return array_map([$this, 'mapToParking'], $rows);
+        } catch (PDOException $e) {
+            throw new RuntimeException("Erreur lors de la recherche de parkings: " . $e->getMessage());
+        }
+    }
+
     public function save(Parking $parking): Parking
     {
         try {

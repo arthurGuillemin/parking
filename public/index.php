@@ -59,7 +59,7 @@ function callControllerMethod(object $controller, string $methodName, array $dat
         return $controller->$methodName();
     } elseif (count($params) === 1) {
         $paramType = $params[0]->getType();
-        if ($paramType && $paramType->getName() === 'array') {
+        if ($paramType instanceof \ReflectionNamedType && $paramType->getName() === 'array') {
             return $controller->$methodName($data);
         } else {
             return $controller->$methodName();
@@ -111,6 +111,9 @@ foreach ($routes as $route) {
     if ($params !== null) {
         $matched = true;
 
+        // DEBUG: Trace matched route
+        file_put_contents('/tmp/route_debug.log', date('c') . " URI: $uri matched Handler: " . (is_string($handler) ? $handler : 'Callable') . "\n", FILE_APPEND);
+
         try {
             // Préparation des données
             // Si le Content-Type est JSON, on décode le body
@@ -153,9 +156,16 @@ foreach ($routes as $route) {
             exit;
         } catch (\Throwable $e) {
             error_log("Route error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-            http_response_code(500);
-            header('Content-Type: application/json; charset=UTF-8');
-            echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+
+            if (!headers_sent()) {
+                http_response_code(500);
+                header('Content-Type: application/json; charset=UTF-8');
+                echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            } else {
+                echo '<div style="color:red;padding:20px;background:#fee;border:1px solid red;margin:20px;">';
+                echo '<strong>Erreur serveur:</strong> ' . htmlspecialchars($e->getMessage());
+                echo '</div>';
+            }
             exit;
         }
     }
@@ -163,6 +173,7 @@ foreach ($routes as $route) {
 
 // Route non trouvée
 if (!$matched) {
+    file_put_contents('/tmp/route_debug.log', date('c') . " URI: $uri UNMATCHED\n", FILE_APPEND);
     http_response_code(404);
     header('Content-Type: application/json; charset=UTF-8');
     echo json_encode(['error' => 'Route non trouvée'], JSON_UNESCAPED_UNICODE);

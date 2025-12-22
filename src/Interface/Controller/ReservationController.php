@@ -31,7 +31,11 @@ class ReservationController
 
     public function show(): void
     {
-        // On pourrait récupérer le parking_id depuis $_GET si nécessaire pour pré-remplir le formulaire
+        if (!isset($_COOKIE['auth_token']) || !$this->jwtService->validateToken($_COOKIE['auth_token'])) {
+            header('Location: /login?error=auth_required');
+            exit;
+        }
+
         $parkingId = isset($_GET['parkingId']) ? (int) $_GET['parkingId'] : null;
         if (!$parkingId) {
             header('Location: /parkings');

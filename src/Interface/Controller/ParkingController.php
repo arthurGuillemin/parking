@@ -20,39 +20,96 @@ class ParkingController
         $this->xssProtection = $xssProtection;
     }
 
-    /**
-     * Ajoute un nouveau parking
-     */
     public function add(array $data): void
     {
         header('Content-Type: application/json; charset=UTF-8');
         try {
-            $data = $this->mergeJsonInput($data);
-            $data = $this->extractOwnerIdFromToken($data);
-            $this->validateParkingFields($data);
+            if (empty($data['name'])) {
+                $input = file_get_contents('php://input');
+                $jsonData = json_decode($input, true);
+                if (is_array($jsonData)) {
+                    $data = array_merge($data, $jsonData);
+                }
+            }
 
-            $parking = $this->createParking($data);
-            echo $this->formatParkingResponse($parking);
+            if (empty($data['ownerId']) && isset($_COOKIE['auth_token'])) {
+                $payload = $this->jwtService->decode($_COOKIE['auth_token']);
+                if ($payload) {
+                    $data['ownerId'] = $payload['user_id'] ?? null;
+                }
+            }
+
+            if (empty($data['ownerId'])) {
+                throw new \InvalidArgumentException('Champs requis manquants: ownerId');
+            }
+            if (empty($data['name'])) {
+                throw new \InvalidArgumentException('Champs requis manquants: name');
+            }
+            if (empty($data['address'])) {
+                throw new \InvalidArgumentException('Champs requis manquants: address');
+            }
+            if (!isset($data['latitude'])) {
+                throw new \InvalidArgumentException('Champs requis manquants: latitude');
+            }
+            if (!isset($data['longitude'])) {
+                throw new \InvalidArgumentException('Champs requis manquants: longitude');
+            }
+            if (isset($data['totalCapacity']) && $data['totalCapacity'] === '') {
+                throw new \InvalidArgumentException('Champs requis manquants: totalCapacity');
+            }
+
+
+            $name = $this->xssProtection->sanitize($data['name']);
+            $address = $this->xssProtection->sanitize($data['address']);
+
+
+            $open_24_7 = isset($data['open_24_7']) ? (bool) $data['open_24_7'] : false;
+            $parking = $this->parkingService->addParking(
+                $data['ownerId'],
+                $name,
+                $address,
+                (float) $data['latitude'],
+                (float) $data['longitude'],
+                (int) $data['totalCapacity'],
+                $open_24_7
+            );
+
+            echo json_encode([
+                'id' => $parking->getParkingId(),
+                'ownerId' => $parking->getOwnerId(),
+                'name' => $parking->getName(),
+                'address' => $parking->getAddress(),
+            ], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $e) {
-            $this->sendErrorResponse($e);
+            error_log('Error adding parking: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
         }
     }
 
-    /**
-     * Met à jour un parking existant
-     */
     public function update(array $params): void
     {
         header('Content-Type: application/json; charset=UTF-8');
         try {
-            $data = $this->parseJsonBody();
-            $data['id'] = $data['id'] ?? $params['id'] ?? null;
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true) ?? [];
+
+            if (empty($data['id']) && !empty($params['id'])) {
+                $data['id'] = $params['id'];
+            }
 
             if (empty($data['id'])) {
                 throw new \InvalidArgumentException('ID du parking manquant');
             }
 
-            $data = $this->sanitizeParkingData($data);
+            // Sanitize
+            if (isset($data['name'])) {
+                $data['name'] = $this->xssProtection->sanitize($data['name']);
+            }
+            if (isset($data['address'])) {
+                $data['address'] = $this->xssProtection->sanitize($data['address']);
+            }
+
             $parking = $this->parkingService->updateParking((int) $data['id'], $data);
 
             echo json_encode([
@@ -61,6 +118,7 @@ class ParkingController
                 'open_24_7' => $parking->isOpen24_7(),
                 'message' => 'Parking mis à jour'
             ], JSON_UNESCAPED_UNICODE);
+
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
@@ -76,22 +134,31 @@ class ParkingController
     {
         $lat = $_GET['lat'] ?? null;
         $lng = $_GET['lng'] ?? null;
+        $query = $_GET['q'] ?? null;
 
-        $parkings = ($lat && $lng)
-            ? $this->parkingService->searchNearby((float) $lat, (float) $lng)
-            : $this->parkingService->getAllParkings();
+        if ($lat && $lng) {
+            $parkings = $this->parkingService->searchNearby((float) $lat, (float) $lng);
+        } elseif ($query && trim($query) !== '') {
+            $parkings = $this->parkingService->searchByText(trim($query));
+        } else {
+            $parkings = $this->parkingService->getAllParkings();
+        }
 
         require dirname(__DIR__, 3) . '/templates/parking_list_user.php';
     }
 
-    /**
-     * Liste les parkings du propriétaire connecté
-     */
     public function listOwnedParkings(): void
     {
         header('Content-Type: application/json; charset=UTF-8');
 
-        $ownerId = $this->getAuthenticatedUserId();
+        $ownerId = null;
+        if (isset($_COOKIE['auth_token'])) {
+            $payload = $this->jwtService->decode($_COOKIE['auth_token']);
+            if ($payload) {
+                $ownerId = $payload['user_id'] ?? null;
+            }
+        }
+
         if (!$ownerId) {
             http_response_code(401);
             echo json_encode(['error' => 'Non authentifié'], JSON_UNESCAPED_UNICODE);
@@ -99,7 +166,19 @@ class ParkingController
         }
 
         $parkings = $this->parkingService->getParkingsByOwner($ownerId);
-        $data = array_map([$this, 'formatParkingToArray'], $parkings);
+
+        $data = array_map(function ($parking) {
+            return [
+                'id' => $parking->getParkingId(),
+                'ownerId' => $parking->getOwnerId(),
+                'name' => $parking->getName(),
+                'address' => $parking->getAddress(),
+                'latitude' => $parking->getLatitude(),
+                'longitude' => $parking->getLongitude(),
+                'totalCapacity' => $parking->getTotalCapacity(),
+                'open_24_7' => $parking->isOpen24_7(),
+            ];
+        }, $parkings);
 
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
@@ -114,6 +193,7 @@ class ParkingController
         }
 
         $parking = $this->parkingService->getParkingById((int) $parkingId);
+
         if (!$parking) {
             http_response_code(404);
             echo "Parking not found";
@@ -121,150 +201,8 @@ class ParkingController
         }
 
         $this->checkAuth();
+
         require dirname(__DIR__, 3) . '/templates/parking_manage.php';
-    }
-
-    /**
-     * Fusionne les données JSON avec les données existantes
-     */
-    private function mergeJsonInput(array $data): array
-    {
-        if (empty($data['name'])) {
-            $jsonData = $this->parseJsonBody();
-            $data = array_merge($data, $jsonData);
-        }
-        return $data;
-    }
-
-    /**
-     * Parse le body JSON de la requête
-     */
-    private function parseJsonBody(): array
-    {
-        $input = file_get_contents('php://input');
-        return json_decode($input, true) ?? [];
-    }
-
-    /**
-     * Extrait l'ID propriétaire du token JWT si non fourni
-     */
-    private function extractOwnerIdFromToken(array $data): array
-    {
-        if (empty($data['ownerId']) && isset($_COOKIE['auth_token'])) {
-            $payload = $this->jwtService->decode($_COOKIE['auth_token']);
-            if ($payload) {
-                $data['ownerId'] = $payload['user_id'] ?? null;
-            }
-        }
-        return $data;
-    }
-
-    /**
-     * Récupère l'ID utilisateur authentifié depuis le token
-     */
-    private function getAuthenticatedUserId(): ?string
-    {
-        if (!isset($_COOKIE['auth_token'])) {
-            return null;
-        }
-        $payload = $this->jwtService->decode($_COOKIE['auth_token']);
-        return $payload['user_id'] ?? null;
-    }
-
-    /**
-     * Valide les champs requis pour un parking
-     */
-    private function validateParkingFields(array $data): void
-    {
-        $requiredFields = ['ownerId', 'name', 'address'];
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                throw new \InvalidArgumentException("Champs requis manquants: $field");
-            }
-        }
-        if (!isset($data['latitude'])) {
-            throw new \InvalidArgumentException('Champs requis manquants: latitude');
-        }
-        if (!isset($data['longitude'])) {
-            throw new \InvalidArgumentException('Champs requis manquants: longitude');
-        }
-        if (isset($data['totalCapacity']) && $data['totalCapacity'] === '') {
-            throw new \InvalidArgumentException('Champs requis manquants: totalCapacity');
-        }
-    }
-
-    /**
-     * Applique le sanitize XSS sur les données du parking
-     */
-    private function sanitizeParkingData(array $data): array
-    {
-        if (isset($data['name'])) {
-            $data['name'] = $this->xssProtection->sanitize($data['name']);
-        }
-        if (isset($data['address'])) {
-            $data['address'] = $this->xssProtection->sanitize($data['address']);
-        }
-        return $data;
-    }
-
-    /**
-     * Crée un parking avec les données fournies
-     */
-    private function createParking(array $data)
-    {
-        $name = $this->xssProtection->sanitize($data['name']);
-        $address = $this->xssProtection->sanitize($data['address']);
-        $open24_7 = isset($data['open_24_7']) ? (bool) $data['open_24_7'] : false;
-
-        return $this->parkingService->addParking(
-            $data['ownerId'],
-            $name,
-            $address,
-            (float) $data['latitude'],
-            (float) $data['longitude'],
-            (int) $data['totalCapacity'],
-            $open24_7
-        );
-    }
-
-    /**
-     * Formate un parking en réponse JSON
-     */
-    private function formatParkingResponse($parking): string
-    {
-        return json_encode([
-            'id' => $parking->getParkingId(),
-            'ownerId' => $parking->getOwnerId(),
-            'name' => $parking->getName(),
-            'address' => $parking->getAddress(),
-        ], JSON_UNESCAPED_UNICODE);
-    }
-
-    /**
-     * Formate un parking en tableau pour listOwnedParkings
-     */
-    private function formatParkingToArray($parking): array
-    {
-        return [
-            'id' => $parking->getParkingId(),
-            'ownerId' => $parking->getOwnerId(),
-            'name' => $parking->getName(),
-            'address' => $parking->getAddress(),
-            'latitude' => $parking->getLatitude(),
-            'longitude' => $parking->getLongitude(),
-            'totalCapacity' => $parking->getTotalCapacity(),
-            'open_24_7' => $parking->isOpen24_7(),
-        ];
-    }
-
-    /**
-     * Envoie une réponse d'erreur JSON
-     */
-    private function sendErrorResponse(\Throwable $e): void
-    {
-        error_log('Error adding parking: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-        http_response_code(500);
-        echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
     }
 
     private function checkAuth(): void
@@ -273,5 +211,29 @@ class ParkingController
             header('Location: /login');
             exit;
         }
+    }
+
+    public function details(array $args): void
+    {
+        $parkingId = isset($args['id']) ? (int) $args['id'] : 0;
+
+        // Get parking
+        $parking = $this->parkingService->getParkingById($parkingId);
+        if (!$parking) {
+            http_response_code(404);
+            echo "Parking non trouvé.";
+            return;
+        }
+
+        $pricingRulesRepo = new \App\Infrastructure\Persistence\Sql\SqlPricingRuleRepository();
+        $pricingRules = $pricingRulesRepo->findByParkingId($parkingId);
+
+        $openingHoursRepo = new \App\Infrastructure\Persistence\Sql\SqlOpeningHourRepository();
+        $openingHours = $openingHoursRepo->findByParkingId($parkingId);
+
+        $subscriptionTypeRepo = new \App\Infrastructure\Persistence\Sql\SqlSubscriptionTypeRepository();
+        $subscriptionTypes = $subscriptionTypeRepo->findByParkingId($parkingId);
+
+        require dirname(__DIR__, 3) . '/templates/parking_details.php';
     }
 }
