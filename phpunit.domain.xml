@@ -1,0 +1,15 @@
+<phpunit bootstrap="vendor/autoload.php" colors="true">
+    <testsuites>
+        <testsuite name="Domain Unit">
+            <directory>./tests/Unit/Domain</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="test"/>
+    </php>
+    <source>
+        <include>
+            <directory suffix=".php">src/Domain</directory>
+        </include>
+    </source>
+</phpunit>
